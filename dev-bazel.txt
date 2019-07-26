@@ -14,8 +14,13 @@ To build Gerrit from source, you need:
 * zip, unzip
 * gcc
 
-[[Java 10 and newer version support]]
-Java 10 (and newer is) supported through vanilla java toolchain
+[[java]]
+=== Java
+
+[[java-10]]
+==== Java 10 support
+
+Java 10 (and newer) is supported through vanilla java toolchain
 link:https://docs.bazel.build/versions/master/toolchains.html[Bazel option].
 To build Gerrit with Java 10 and newer, specify vanilla java toolchain and
 provide the path to JDK home:
@@ -66,7 +71,9 @@ in `$gerrit_site/etc/gerrit.config` to run Gerrit with Java 10|11|...:
   javaOptions = --add-opens=jdk.management/com.sun.management.internal=ALL-UNNAMED
 ```
 
-[[Java 9 support]]
+[[java-9]]
+==== Java 9 support
+
 Java 9 is supported through alternative java toolchain
 link:https://docs.bazel.build/versions/master/toolchains.html[Bazel option].
 The Java 9 support is backwards compatible. Java 8 is still the default.
@@ -151,7 +158,7 @@ The output archive that contains Java binaries, Java sources and
 Java docs will be placed in:
 
 ----
-  bazel-genfiles/api.zip
+  bazel-bin/api.zip
 ----
 
 Install {extension,plugin,acceptance-framework}-api to the local
@@ -176,13 +183,13 @@ Install gerrit.war to the local maven repository:
 The output JAR files for individual plugins will be placed in:
 
 ----
-  bazel-genfiles/plugins/<name>/<name>.jar
+  bazel-bin/plugins/<name>/<name>.jar
 ----
 
 The JAR files will also be packaged in:
 
 ----
-  bazel-genfiles/plugins/core.zip
+  bazel-bin/plugins/core.zip
 ----
 
 To build a specific plugin:
@@ -194,7 +201,7 @@ To build a specific plugin:
 The output JAR file will be be placed in:
 
 ----
-  bazel-genfiles/plugins/<name>/<name>.jar
+  bazel-bin/plugins/<name>/<name>.jar
 ----
 
 Note that when building an individual plugin, the `core.zip` package
@@ -533,6 +540,43 @@ Finally, add the new binary to the build process:
 
 To use the binary from the Bazel build, you need to use the `run_npm_binary.py`
 wrapper script. For an example, see the use of `crisper` in `tools/bzl/js.bzl`.
+
+
+
+[[RBE]]
+== Google Remote Build Support
+
+The Bazel build can be used with Google's Remote Build Execution.
+
+
+This needs the following setup steps:
+
+```
+gcloud auth application-default login
+gcloud services enable remotebuildexecution.googleapis.com  --project=${PROJECT}
+```
+
+Create a worker pool. The instances should have at least 4 CPUs each
+for adequate performance.
+
+```
+gcloud alpha remote-build-execution worker-pools create default \
+    --project=${PROJECT} \
+    --instance=default_instance \
+    --worker-count=50 \
+    --machine-type=n1-highcpu-4 \
+    --disk-size=200
+```
+
+To use RBE, execute
+
+```
+bazel test --config=remote \
+    --remote_instance_name=projects/${PROJECT}/instances/default_instance \
+    javatests/...
+```
+
+
 
 
 GERRIT

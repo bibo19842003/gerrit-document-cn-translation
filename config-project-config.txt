@@ -100,7 +100,7 @@ These are the keys:
 +
 A description for the project.
 
-[[state]]state:
+[[state]]state::
 +
 This setting defines the state of the project. A project can have the
 following states:
@@ -319,7 +319,7 @@ submit settings:
 - 'mergeContent': Defines whether to automatically merge changes.  Valid values
 are 'true', 'false', or 'INHERIT'.  Default is 'INHERIT'.
 
-- 'action': defines the #submit-type[submit type].  Valid
+- 'action': defines the link:#submit-type[submit type].  Valid
 values are 'fast forward only', 'merge if necessary', 'rebase if necessary',
 'merge always' and 'cherry pick'.  The default is 'merge if necessary'.
 
@@ -473,13 +473,6 @@ interpretable by the 'Prolog Cafe' interpreter.
 You can read more about the +rules.pl+ file and the prolog rules on
 link:prolog-cookbook.html[the Prolog cookbook page].
 
-GERRIT
-------
-Part of link:index.html[Gerrit Code Review]
-
-SEARCHBOX
----------
-
 [[submit-type]]
 === Submit Type
 
@@ -569,5 +562,13 @@ Thus, Rebase Always can be considered similar to Cherry Pick, but with
 the important distinction that Rebase Always does not ignore dependencies.
 
 [[content_merge]]
+=== Allow content merges
 If `Allow content merges` is enabled, Gerrit will try
 to do a content merge when a path conflict occurs.
+
+GERRIT
+------
+Part of link:index.html[Gerrit Code Review]
+
+SEARCHBOX
+---------

@@ -1955,10 +1955,20 @@ By default unset, as the HTTP daemon must be configured externally
 by the system administrator, and might not even be running on the
 same host as Gerrit.
 
+[[gerrit.installDbModule]]gerrit.installDbModule::
++
+Repeatable list of class name of additional Guice modules to load at
+Gerrit startup as part of the dbInjector and during the init phases.
+Classes are resolved using the primary Gerrit class loader, hence the
+class needs to be either declared in Gerrit or an additional JAR
+located under the `/lib` directory.
++
+By default unset.
+
 [[gerrit.installModule]]gerrit.installModule::
 +
 Repeatable list of class name of additional Guice modules to load at
-Gerrit startup and init phases.
+Gerrit startup as part of the sysInjector and during the init phases.
 Classes are resolved using the primary Gerrit class loader, hence the
 class needs to be either declared in Gerrit or an additional JAR
 located under the `/lib` directory.
@@ -1970,6 +1980,7 @@ Example:
 [gerrit]
   installModule = com.googlesource.gerrit.libmodule.MyModule
   installModule = com.example.abc.OurSpecialSauceModule
+  installDbModule = com.example.def.OurCustomProvider
 ----
 
 [[gerrit.listProjectsFromIndex]]gerrit.listProjectsFromIndex::
@@ -2854,15 +2865,15 @@ manually.
 [[elasticsearch.numberOfShards]]elasticsearch.numberOfShards::
 +
 Sets the number of shards to use per index. Refer to the
-link:https://www.elastic.co/guide/en/elasticsearch/reference/current/_basic_concepts.html#getting-started-shards-and-replicas[
+link:https://www.elastic.co/guide/en/elasticsearch/reference/current/getting-started-concepts.html#getting-started-shards-and-replicas[
 Elasticsearch documentation] for details.
 +
-Defaults to 5.
+Defaults to 5 for Elasticsearch versions 5 and 6, and to 1 starting with Elasticsearch 7.
 
 [[elasticsearch.numberOfReplicas]]elasticsearch.numberOfReplicas::
 +
 Sets the number of replicas to use per index. Refer to the
-link:https://www.elastic.co/guide/en/elasticsearch/reference/current/_basic_concepts.html#getting-started-shards-and-replicas[
+link:https://www.elastic.co/guide/en/elasticsearch/reference/current/getting-started-concepts.html#getting-started-shards-and-replicas[
 Elasticsearch documentation] for details.
 +
 Defaults to 1.
@@ -2949,6 +2960,14 @@ an encrypted connection.
 If true, Gerrit will perform StartTLS extended operation.
 +
 By default, false, StartTLS will not be enabled.
+
+[[ldap.supportAnonymous]]ldap.supportAnonymous::
++
+If false, Gerrit will provide credentials only at connection open, this is
+required for some `LDAP` implementations that do not allow anonymous bind
+for StartTLS or for reauthentication.
++
+By default, true.
 
 [[ldap.sslVerify]]ldap.sslVerify::
 +
