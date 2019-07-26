@@ -1,0 +1,45 @@
+= Gerrit Code Review - Automatic Site Initialization on Startup
+
+== Description
+
+Gerrit supports automatic site initialization on server startup when Gerrit runs
+in a servlet container. Both creation of a new site and upgrade of an existing
+site are supported. By default, all packaged plugins will be installed when
+Gerrit is deployed in a servlet container and the location of the Gerrit
+distribution can be determined at runtime. It is also possible to install only a
+subset of packaged plugins or not install any plugins.
+
+This feature may be useful for such setups where Gerrit administrators don't
+have direct access to the file system of the server where Gerrit should be
+deployed and, therefore, cannot perform the init from their local machine prior
+to deploying Gerrit on such a server. It may also make deployment and testing in
+a local servlet container faster to set up as the init step could be skipped.
+
+== Gerrit Configuration
+
+In order to perform site initialization, define `gerrit.site_path` with the path
+to your site. If the site already exists, this is the only required property.
+If your site does not yet exist, set the `gerrit.init` system property to
+automatically initialize the site.
+
+During initialization, if the `gerrit.install_plugins` property is not defined,
+then all packaged plugins will be installed. If it is defined, then it is parsed
+as a comma-separated list of plugin names to install. If the value is an empty
+string then no plugins will be installed.
+
+=== Example
+
+Prepare Tomcat so that a site is initialized at a given path (if the site
+doesn't exist yet), installing all packaged plugins.
+
+----
+  $ export CATALINA_OPTS='-Dgerrit.init -Dgerrit.site_path=/path/to/site'
+  $ catalina.sh start
+----
+
+GERRIT
+------
+Part of link:index.html[Gerrit Code Review]
+
+SEARCHBOX
+---------
