@@ -1,0 +1,2695 @@
+# Gerrit Code Review - Plugin Development
+
+The Gerrit server functionality can be extended by installing plugins.
+This page describes how plugins for Gerrit can be developed.
+
+For PolyGerrit-specific plugin development, consult with
+[PolyGerrit Plugin Development](pg-plugin-dev.md) guide.
+
+Depending on how tightly the extension code is coupled with the Gerrit
+server code, there is a distinction between `plugins` and `extensions`.
+
+A `plugin` in Gerrit is tightly coupled code that runs in the same
+JVM as Gerrit. It has full access to all server internals. Plugins
+are tightly coupled to a specific major.minor server version and
+may require source code changes to compile against a different
+server version.
+
+Plugins may require a specific major.minor.patch server version
+and may need rebuild and revalidation across different
+patch levels. A different patch level may only add new
+API interfaces and never change or extend existing ones.
+
+An `extension` in Gerrit runs inside of the same JVM as Gerrit
+in the same way as a plugin, but has limited visibility to the
+server's internals. The limited visibility reduces the extension's
+dependencies, enabling it to be compatible across a wider range
+of server versions.
+
+Most of this documentation refers to either type as a plugin.
+
+## Getting started
+
+To get started with the development of a plugin, take a look at
+the samples in the 
+[examples plugin project](https://gerrit.googlesource.com/plugins/examples).
+
+This is a project that demonstrates the various features of the
+plugin API. It can be taken as an example to develop an own plugin.
+
+When starting from this example one should take care to adapt the
+`Gerrit-ApiVersion` in the `BUILD` to the version of Gerrit for which
+the plugin is developed.
+
+## API
+
+There are two different API formats offered against which plugins can
+be developed:
+
+**gerrit-extension-api.jar**
+  A stable but thin interface. Suitable for extensions that need
+  to be notified of events, but do not require tight coupling to
+  the internals of Gerrit. Extensions built against this API can
+  expect to be binary compatible across a wide range of server
+  versions.
+
+**gerrit-plugin-api.jar**
+  The complete internals of the Gerrit server, permitting a
+  plugin to tightly couple itself and provide additional
+  functionality that is not possible as an extension. Plugins
+  built against this API are expected to break at the source
+  code level between every major.minor Gerrit release. A plugin
+  that compiles against 2.5 will probably need source code level
+  changes to work with 2.6, 2.7, and so on.
+
+## Manifest
+
+Plugins may provide optional description information with standard
+manifest fields:
+
+```
+  Implementation-Title: Example plugin showing examples
+  Implementation-Version: 1.0
+  Implementation-Vendor: Example, Inc.
+```
+
+### ApiType
+
+Plugins using the tightly coupled `gerrit-plugin-api.jar` must
+declare this API dependency in the manifest to gain access to server
+internals. If no `Gerrit-ApiType` is specified the stable `extension`
+API will be assumed. This may cause ClassNotFoundExceptions when
+loading a plugin that needs the plugin API.
+
+```
+  Gerrit-ApiType: plugin
+```
+
+### Explicit Registration
+
+Plugins that use explicit Guice registration must name the Guice
+modules in the manifest. Up to three modules can be named in the
+manifest. `Gerrit-Module` supplies bindings to the core server;
+`Gerrit-SshModule` supplies SSH commands to the SSH server (if
+enabled); `Gerrit-HttpModule` supplies servlets and filters to the HTTP
+server (if enabled). If no modules are named automatic registration
+will be performed by scanning all classes in the plugin JAR for
+`@Listen` and `@Export("")` annotations.
+
+```
+  Gerrit-Module:     tld.example.project.CoreModuleClassName
+  Gerrit-SshModule:  tld.example.project.SshModuleClassName
+  Gerrit-HttpModule: tld.example.project.HttpModuleClassName
+```
+
+### Batch runtime
+
+Gerrit can be run as a server, serving HTTP or SSH requests, or as an
+offline program. Plugins can contribute Guice modules to this batch
+runtime by binding `Gerrit-BatchModule` to one of their classes.
+The Guice injector is bound to less classes, and some Gerrit features
+will be absent - on purpose.
+
+This feature was originally introduced to support plugins during an
+offline reindexing task.
+
+```
+  Gerrit-BatchModule: tld.example.project.CoreModuleClassName
+```
+
+In this runtime, only the module designated by `Gerrit-BatchModule` is
+enabled, not `Gerrit-SysModule`.
+
+### Plugin Name
+
+A plugin can optionally provide its own plugin name.
+
+```
+  Gerrit-PluginName: replication
+```
+
+This is useful for plugins that contribute plugin-owned capabilities that
+are stored in the `project.config` file. Another use case is to be able to put
+project specific plugin configuration section in `project.config`. In this
+case it is advantageous to reserve the plugin name to access the configuration
+section in the `project.config` file.
+
+If `Gerrit-PluginName` is omitted, then the plugin's name is determined from
+the plugin file name.
+
+If a plugin provides its own name, then that plugin cannot be deployed
+multiple times under different file names on one Gerrit site.
+
+For Maven driven plugins, the following line must be included in the pom.xml
+file:
+
+```xml
+<manifestEntries>
+  <Gerrit-PluginName>name</Gerrit-PluginName>
+</manifestEntries>
+```
+
+For Bazel driven plugins, the following line must be included in the BUILD
+configuration file:
+
+```python
+manifest_entries = [
+   'Gerrit-PluginName: name',
+]
+```
+
+A plugin can get its own name injected at runtime:
+
+```java
+public class MyClass {
+
+  private final String pluginName;
+
+  @Inject
+  public MyClass(@PluginName String pluginName) {
+    this.pluginName = pluginName;
+  }
+
+  [...]
+}
+```
+
+A plugin can get its canonical web URL injected at runtime:
+
+```java
+public class MyClass {
+
+  private final String url;
+
+  @Inject
+  public MyClass(@PluginCanonicalWebUrl String url) {
+    this.url = url;
+  }
+
+  [...]
+}
+```
+
+The URL is composed of the server's canonical web URL and the plugin's
+name, i.e. `http://review.example.com:8080/plugin-name`.
+
+The canonical web URL may be injected into any .jar plugin regardless of
+whether or not the plugin provides an HTTP servlet.
+
+### Reload Method
+
+If a plugin holds an exclusive resource that must be released before
+loading the plugin again (for example listening on a network port or
+acquiring a file lock) the manifest must declare `Gerrit-ReloadMode`
+to be `restart`. Otherwise the preferred method of `reload` will
+be used, as it enables the server to hot-patch an updated plugin
+with no down time.
+
+```
+  Gerrit-ReloadMode: restart
+```
+
+In either mode ('restart' or 'reload') any plugin or extension can
+be updated without restarting the Gerrit server. The difference is
+how Gerrit handles the upgrade:
+
+**restart**
+  The old plugin is completely stopped. All registrations of SSH
+  commands and HTTP servlets are removed. All registrations of any
+  extension points are removed. All registered LifecycleListeners
+  have their `stop()` method invoked in reverse order. The new
+  plugin is started, and registrations are made from the new
+  plugin. There is a brief window where neither the old nor the
+  new plugin is connected to the server. This means SSH commands
+  and HTTP servlets will return not found errors, and the plugin
+  will not be notified of events that occurred during the restart.
+
+**reload**
+  The new plugin is started. Its LifecycleListeners are permitted
+  to perform their `start()` methods. All SSH and HTTP registrations
+  are atomically swapped out from the old plugin to the new plugin,
+  ensuring the server never returns a not found error. All extension
+  point listeners are atomically swapped out from the old plugin to
+  the new plugin, ensuring no events are missed (however some events
+  may still route to the old plugin if the swap wasn't complete yet).
+  The old plugin is stopped.
+
+To reload/restart a plugin the [plugin reload](cmd-plugin-reload.md)
+command can be used.
+
+### Init step
+
+Plugins can contribute their own "init step" during the Gerrit init
+wizard. This is useful for guiding the Gerrit administrator through
+the settings needed by the plugin to work properly.
+
+For instance plugins to integrate Jira issues to Gerrit changes may
+contribute their own "init step" to allow configuring the Jira URL,
+credentials and possibly verify connectivity to validate them.
+
+```
+  Gerrit-InitStep: tld.example.project.MyInitStep
+```
+
+MyInitStep needs to follow the standard Gerrit InitStep syntax
+and behavior: writing to the console using the injected ConsoleUI
+and accessing / changing configuration settings using Section.Factory.
+
+In addition to the standard Gerrit init injections, plugins receive
+the @PluginName String injection containing their own plugin name.
+
+During their initialization plugins may get access to the
+`project.config` file of the `All-Projects` project and they are able
+to store configuration parameters in it. For this a plugin `InitStep`
+can get `com.google.gerrit.pgm.init.api.AllProjectsConfig` injected:
+
+```java
+  public class MyInitStep implements InitStep {
+    private final String pluginName;
+    private final ConsoleUI ui;
+    private final AllProjectsConfig allProjectsConfig;
+
+    @Inject
+    public MyInitStep(@PluginName String pluginName, ConsoleUI ui,
+        AllProjectsConfig allProjectsConfig) {
+      this.pluginName = pluginName;
+      this.ui = ui;
+      this.allProjectsConfig = allProjectsConfig;
+    }
+
+    @Override
+    public void run() throws Exception {
+    }
+
+    @Override
+    public void postRun() throws Exception {
+      ui.message("\n");
+      ui.header(pluginName + " Integration");
+      boolean enabled = ui.yesno(true, "By default enabled for all projects");
+      Config cfg = allProjectsConfig.load().getConfig();
+      if (enabled) {
+        cfg.setBoolean("plugin", pluginName, "enabled", enabled);
+      } else {
+        cfg.unset("plugin", pluginName, "enabled");
+      }
+      allProjectsConfig.save(pluginName, "Initialize " + pluginName + " Integration");
+    }
+  }
+```
+
+Bear in mind that the Plugin's InitStep class will be loaded but
+the standard Gerrit runtime environment is not available and the plugin's
+own Guice modules were not initialized.
+This means the InitStep for a plugin is not executed in the same way that
+the plugin executes within the server, and may mean a plugin author cannot
+trivially reuse runtime code during init.
+
+For instance a plugin that wants to verify connectivity may need to statically
+call the constructor of their connection class, passing in values obtained
+from the Section.Factory rather than from an injected Config object.
+
+Plugins' InitSteps are executed during the "Gerrit Plugin init" phase, after
+the extraction of the plugins embedded in the distribution .war file into
+`$GERRIT_SITE/plugins` and before the site initialization or upgrade.
+
+A plugin's InitStep cannot refer to any Gerrit runtime objects injected at
+startup.
+
+```java
+public class MyInitStep implements InitStep {
+  private final ConsoleUI ui;
+  private final Section.Factory sections;
+  private final String pluginName;
+
+  @Inject
+  public GitBlitInitStep(final ConsoleUI ui, Section.Factory sections, @PluginName String pluginName) {
+    this.ui = ui;
+    this.sections = sections;
+    this.pluginName = pluginName;
+  }
+
+  @Override
+  public void run() throws Exception {
+    ui.header("\nMy plugin");
+
+    Section mySection = getSection("myplugin", null);
+    mySection.string("Link name", "linkname", "MyLink");
+  }
+
+  @Override
+  public void postRun() throws Exception {
+  }
+}
+```
+
+## Classpath
+
+Each plugin is loaded into its own ClassLoader, isolating plugins
+from each other. A plugin or extension inherits the Java runtime
+and the Gerrit API chosen by `Gerrit-ApiType` (extension or plugin)
+from the hosting server.
+
+Plugins are loaded from a single JAR file. If a plugin needs
+additional libraries, it must include those dependencies within
+its own JAR. Plugins built using Maven may be able to use the
+[shade plugin](http://maven.apache.org/plugins/maven-shade-plugin/)
+to package additional dependencies. Relocating (or renaming) classes
+should not be necessary due to the ClassLoader isolation.
+
+## Listening to Events
+
+Certain operations in Gerrit trigger events. Plugins may receive
+notifications of these events by implementing the corresponding
+listeners.
+
+* `com.google.gerrit.common.EventListener`:
+
+Allows to listen to events without user visibility restrictions. These
+are the same [events](cmd-stream-events.md) that are also streamed by
+the [gerrit stream-events](cmd-stream-events.md) command.
+
+* `com.google.gerrit.common.UserScopedEventListener`:
+
+Allows to listen to events visible to the specified user. These are the
+same [events](cmd-stream-events.md) that are also streamed
+by the [gerrit stream-events](cmd-stream-events.md) command.
+
+* `com.google.gerrit.extensions.events.LifecycleListener`:
+
+Plugin start and stop
+
+* `com.google.gerrit.extensions.events.NewProjectCreatedListener`:
+
+Project creation
+
+* `com.google.gerrit.extensions.events.ProjectDeletedListener`:
+
+Project deletion
+
+* `com.google.gerrit.extensions.events.HeadUpdatedListener`:
+
+Update of HEAD on a project
+
+* `com.google.gerrit.extensions.events.UsageDataPublishedListener`:
+
+Publication of usage data
+
+* `com.google.gerrit.extensions.events.GarbageCollectorListener`:
+
+Garbage collection ran on a project
+
+* `com.google.gerrit.server.extensions.events.ChangeIndexedListener`:
+
+Update of the change secondary index
+
+* `com.google.gerrit.server.extensions.events.AccountIndexedListener`:
+
+Update of the account secondary index
+
+* `com.google.gerrit.server.extensions.events.GroupIndexedListener`:
+
+Update of the group secondary index
+
+* `com.google.gerrit.server.extensions.events.ProjectIndexedListener`:
+
+Update of the project secondary index
+
+* `com.google.gerrit.httpd.WebLoginListener`:
+
+User login or logout interactively on the Web user interface.
+
+The event listener is under the Gerrit http package to automatically
+inherit the javax.servlet.http dependencies and allowing to influence
+the login or logout flow with additional redirections.
+
+## Sending Events to the Events Stream
+
+Plugins may send events to the events stream where consumers of
+Gerrit's `stream-events` ssh command will receive them.
+
+To send an event, the plugin must invoke one of the `postEvent`
+methods in the `EventDispatcher` interface, passing an instance of
+its own custom event class derived from
+`com.google.gerrit.server.events.Event`.
+
+```java
+import com.google.gerrit.common.EventDispatcher;
+import com.google.gerrit.extensions.registration.DynamicItem;
+import com.google.exceptions.StorageException;
+import com.google.inject.Inject;
+
+class MyPlugin {
+  private final DynamicItem<EventDispatcher> eventDispatcher;
+
+  @Inject
+  myPlugin(DynamicItem<EventDispatcher> eventDispatcher) {
+    this.eventDispatcher = eventDispatcher;
+  }
+
+  private void postEvent(MyPluginEvent event) {
+    try {
+      eventDispatcher.get().postEvent(event);
+    } catch (StorageException e) {
+      // error handling
+    }
+  }
+}
+```
+
+Plugins which define new Events should register them via the
+`com.google.gerrit.server.events.EventTypes.registerClass()`
+method. This will make the EventType known to the system.
+Deserializing events with the
+`com.google.gerrit.server.events.EventDeserializer` class requires
+that the event be registered in EventTypes.
+
+## Modifying the Stream Event Flow
+
+It is possible to modify the stream event flow from plugins by registering
+an `com.google.gerrit.server.events.EventDispatcher`. A plugin may register
+a Dispatcher class to replace the internal Dispatcher. EventDispatcher is
+a DynamicItem, so Gerrit may only have one copy.
+
+## Validation Listeners
+
+Certain operations in Gerrit can be validated by plugins by
+implementing the corresponding [listeners](config-validation.md).
+
+## Change Message Modifier
+
+`com.google.gerrit.server.git.ChangeMessageModifier`:
+plugins implementing this can modify commit message of the change being
+submitted by Rebase Always and Cherry Pick submit strategies as well as
+change being queried with COMMIT_FOOTERS option.
+
+## Merge Super Set Computation
+
+The algorithm to compute the merge super set to detect changes that
+should be submitted together can be customized by implementing
+`com.google.gerrit.server.git.MergeSuperSetComputation`.
+MergeSuperSetComputation is a DynamicItem, so Gerrit may only have one
+implementation.
+
+## Receive Pack Initializers
+
+Plugins may provide ReceivePackInitializer instances, which will be
+invoked by Gerrit just before a ReceivePack instance will be used.
+Usually, plugins will make use of the setXXX methods on the ReceivePack
+to set additional properties on it.
+
+The interactions with the core Gerrit ReceivePack initialization and
+between ReceivePackInitializers can be complex. Please read the
+ReceivePack Javadoc and Gerrit AsyncReceiveCommits implementation
+carefully.
+
+## Post Receive-Pack Hooks
+
+Plugins may register PostReceiveHook instances in order to get
+notified when JGit successfully receives a pack. This may be useful
+for those plugins which would like to monitor changes in Git
+repositories.
+
+## Upload Pack Initializers
+
+Plugins may provide UploadPackInitializer instances, which will be
+invoked by Gerrit just before a UploadPack instance will be used.
+Usually, plugins will make use of the setXXX methods on the UploadPack
+to set additional properties on it.
+
+The interactions with the core Gerrit UploadPack initialization and
+between UploadPackInitializers can be complex. Please read the
+UploadPack Javadoc and Gerrit Upload/UploadFactory implementations
+carefully.
+
+## Pre Upload-Pack Hooks
+
+Plugins may register PreUploadHook instances in order to get
+notified when JGit is about to upload a pack. This may be useful
+for those plugins which would like to monitor usage in Git
+repositories.
+
+## Post Upload-Pack Hooks
+
+Plugins may register PostUploadHook instances in order to get notified after
+JGit is done uploading a pack.
+
+## SSH Commands
+
+Plugins may provide commands that can be accessed through the SSH
+interface (extensions do not have this option).
+
+Command implementations must extend the base class SshCommand:
+
+```java
+import com.google.gerrit.sshd.SshCommand;
+import com.google.gerrit.sshd.CommandMetaData;
+
+@CommandMetaData(name="print", description="Print hello command")
+class PrintHello extends SshCommand {
+  @Override
+  protected void run() {
+    stdout.print("Hello\n");
+  }
+}
+```
+
+If no Guice modules are declared in the manifest, SSH commands may
+use auto-registration by providing an `@Export` annotation:
+
+```java
+import com.google.gerrit.extensions.annotations.Export;
+import com.google.gerrit.sshd.SshCommand;
+
+@Export("print")
+class PrintHello extends SshCommand {
+  @Override
+  protected void run() {
+    stdout.print("Hello\n");
+  }
+}
+```
+
+If explicit registration is being used, a Guice module must be
+supplied to register the SSH command and declared in the manifest
+with the `Gerrit-SshModule` attribute:
+
+```java
+import com.google.gerrit.sshd.PluginCommandModule;
+
+class MyCommands extends PluginCommandModule {
+  @Override
+  protected void configureCommands() {
+    command(PrintHello.class);
+  }
+}
+```
+
+For a plugin installed as name `helloworld`, the command implemented
+by PrintHello class will be available to users as:
+
+```
+$ ssh -p 29418 review.example.com helloworld print
+```
+
+### Multiple Commands bound to one implementation
+
+Multiple SSH commands can be bound to the same implementation class. For
+example a Gerrit Shell plugin can bind different shell commands to the same
+implementation class:
+
+```java
+public class SshShellModule extends PluginCommandModule {
+  @Override
+  protected void configureCommands() {
+    command("ls").to(ShellCommand.class);
+    command("ps").to(ShellCommand.class);
+    [...]
+  }
+}
+```
+
+With the possible implementation:
+
+```java
+public class ShellCommand extends SshCommand {
+  @Override
+  protected void run() throws UnloggedFailure {
+    String cmd = getName().substring(getPluginName().length() + 1);
+    ProcessBuilder proc = new ProcessBuilder(cmd);
+    Process cmd = proc.start();
+    [...]
+  }
+}
+```
+
+And the call:
+
+```
+$ ssh -p 29418 review.example.com shell ls
+$ ssh -p 29418 review.example.com shell ps
+```
+
+### Root Level Commands
+
+Single command plugins are also supported. In this scenario plugin binds
+SSH command to its own name. `SshModule` must inherit from
+`SingleCommandPluginModule` class:
+
+```java
+public class SshModule extends SingleCommandPluginModule {
+ @Override
+ protected void configure(LinkedBindingBuilder<Command> b) {
+    b.to(ShellCommand.class);
+  }
+}
+```
+
+If the plugin above is deployed under sh.jar file in `$site/plugins`
+directory, generic commands can be called without specifying the
+actual SSH command. Note in the example below, that the called commands
+`ls` and `ps` was not explicitly bound:
+
+```
+$ ssh -p 29418 review.example.com sh ls
+$ ssh -p 29418 review.example.com sh ps
+```
+
+## Search Operators
+
+Plugins can define new search operators to extend change searching by
+implementing the `ChangeQueryBuilder.ChangeOperatorFactory` interface
+and registering it to an operator name in the plugin module's
+`configure()` method.  The search operator name is defined during
+registration via the DynamicMap annotation mechanism.  The plugin
+name will get appended to the annotated name, with an underscore
+in between, leading to the final operator name.  An example
+registration looks like this:
+
+    bind(ChangeOperatorFactory.class)
+       .annotatedWith(Exports.named("sample"))
+       .to(SampleOperator.class);
+
+If this is registered in the `myplugin` plugin, then the resulting
+operator will be named `sample_myplugin`.
+
+The search operator itself is implemented by ensuring that the
+`create()` method of the class implementing the
+`ChangeQueryBuilder.ChangeOperatorFactory` interface returns a
+`Predicate<ChangeData>`.  Here is a sample operator factory
+definition which creates a `MyPredicate`:
+
+```java
+public class SampleOperator
+    implements ChangeQueryBuilder.ChangeOperatorFactory {
+  public static class MyPredicate extends PostFilterPredicate<ChangeData> {
+    ...
+  }
+
+  @Override
+  public Predicate<ChangeData> create(ChangeQueryBuilder builder, String value)
+      throws QueryParseException {
+    return new MyPredicate(value);
+  }
+}
+```
+
+### Search Operands
+
+Plugins can define new search operands to extend change searching.
+Plugin methods implementing search operands (returning a
+`Predicate<ChangeData>`), must be defined on a class implementing
+one of the `ChangeQueryBuilder.ChangeOperandsFactory` interfaces
+(.e.g., ChangeQueryBuilder.ChangeHasOperandFactory).  The specific
+`ChangeOperandFactory` class must also be bound to the `DynamicSet` from
+a module's `configure()` method in the plugin.
+
+The new operand, when used in a search would appear as:
+  operatorName:operandName_pluginName
+
+A sample `ChangeHasOperandFactory` class implementing, and registering, a
+new `has:sample_pluginName` operand is shown below:
+
+```
+  public class SampleHasOperand implements ChangeHasOperandFactory {
+    public static class Module extends AbstractModule {
+      @Override
+      protected void configure() {
+        bind(ChangeHasOperandFactory.class)
+            .annotatedWith(Exports.named("sample")
+            .to(SampleHasOperand.class);
+      }
+    }
+
+    @Override
+    public Predicate<ChangeData> create(ChangeQueryBuilder builder)
+        throws QueryParseException {
+      return new HasSamplePredicate();
+    }
+```
+
+### Command Options
+
+Plugins can provide additional options for each of the gerrit ssh and the
+REST API commands by implementing the DynamicBean interface and registering
+it to a command class name in the plugin module's `configure()` method. The
+plugin's name will be prepended to the name of each @Option annotation found
+on the DynamicBean object provided by the plugin. The example below shows a
+plugin that adds an option to log a value from the gerrit 'ban-commits'
+ssh command.
+
+```java
+public class SshModule extends AbstractModule {
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
+
+  @Override
+  protected void configure() {
+    bind(DynamicOptions.DynamicBean.class)
+        .annotatedWith(Exports.named(
+        com.google.gerrit.sshd.commands.BanCommitCommand.class))
+        .to(BanOptions.class);
+  }
+
+  public static class BanOptions implements DynamicOptions.DynamicBean {
+    @Option(name = "--log", aliases = { "-l" }, usage = "Say Hello in the Log")
+    private void parse(String arg) {
+      logger.atSevere().log("Say Hello in the Log %s", arg);
+    }
+  }
+```
+
+### Calling Command Options
+
+Within an OptionHandler, during the processing of an option, plugins can
+provide and call extra parameters on the current command during parsing
+simulating as if they had been passed from the command line originally.
+
+To call additional parameters from within an option handler, instantiate
+the com.google.gerrit.util.cli.CmdLineParser.Parameters class with the
+existing parameters, and then call callParameters() with the additional
+parameters to be parsed. OptionHandlers may optionally pass this class to
+other methods which may then both parse/consume more parameters and call
+additional parameters.
+
+When calling command options not provided by your plugin, there is always
+a risk that the options may not exist, perhaps because the options being
+called are to be provided by another plugin, and said plugin is not
+currently installed. To protect againt this situation, it is possible to
+define an option as being dependent on other options using the
+@RequiresOptions() annotation. If the required options are not all not
+currently present, then the dependent option will not be available or
+visible in the help.
+
+The example below shows a plugin that adds a "--special" option (perhaps
+for use with the Query command) that calls (and requires) the
+"--format json" option.
+
+
+```java
+public class JsonOutputOptionHandler<T> extends OptionHandler<T> {
+  protected com.google.gerrit.util.cli.CmdLineParser.MyParser myParser;
+
+  public JsonOutputOptionHandler(CmdLineParser parser, OptionDef option, Setter<? super T> setter) {
+    super(parser, option, setter);
+    myParser = (com.google.gerrit.util.cli.CmdLineParser.MyParser) owner;
+  }
+
+  @Override
+  public int parseArguments(org.kohsuke.args4j.spi.Parameters params) throws CmdLineException {
+    new Parameters(params, myParser).callParameters("--format", "json");
+    setter.addValue(true);
+    return 0; // we didn't consume any additional args
+  }
+
+  @Override
+  public String getDefaultMetaVariable() {
+   ...
+  }
+}
+
+@RequiresOptions("--format")
+@Option(
+  name = "--special",
+  usage = "ouptut results using json",
+  handler = JsonOutputOptionHandler.class
+)
+boolean json;
+```
+
+### Change Attributes
+
+Plugins can provide additional attributes to be returned from the Get Change and
+Query Change APIs by implementing implementing the `ChangeAttributeFactory`
+interface and adding it to the `DynamicSet` in the plugin module's `configure()`
+method. The new attribute(s) will be output under a `plugin` attribute in the
+change output. This can be further controlled by registering a class containing
+@Option declarations as a `DynamicBean`, annotated with the with HTTP/SSH
+commands on which the options should be available.
+
+The example below shows a plugin that adds two attributes (`exampleName` and
+`changeValue`), to the change query output, when the query command is provided
+the `--myplugin-name--all` option.
+
+
+```java
+public class Module extends AbstractModule {
+  @Override
+  protected void configure() {
+    // Register attribute factory.
+    DynamicSet.bind(binder(), ChangeAttributeFactory.class)
+        .to(AttributeFactory.class);
+
+    // Register options for GET /changes/X/change and /changes/X/detail.
+    bind(DynamicBean.class)
+        .annotatedWith(Exports.named(GetChange.class))
+        .to(MyChangeOptions.class);
+
+    // Register options for GET /changes/?q=...
+    bind(DynamicBean.class)
+        .annotatedWith(Exports.named(QueryChanges.class))
+        .to(MyChangeOptions.class);
+
+    // Register options for ssh gerrit query.
+    bind(DynamicBean.class)
+        .annotatedWith(Exports.named(Query.class))
+        .to(MyChangeOptions.class);
+  }
+}
+
+public class MyChangeOptions implements DynamicBean {
+  @Option(name = "--all", usage = "Include plugin output")
+  public boolean all = false;
+}
+
+public class AttributeFactory implements ChangeAttributeFactory {
+  protected MyChangeOptions options;
+
+  public class PluginAttribute extends PluginDefinedInfo {
+    public String exampleName;
+    public String changeValue;
+
+    public PluginAttribute(ChangeData c) {
+      this.exampleName = "Attribute Example";
+      this.changeValue = Integer.toString(c.getId().get());
+    }
+  }
+
+  @Override
+  public PluginDefinedInfo create(ChangeData c, BeanProvider bp, String plugin) {
+    if (options == null) {
+      options = (MyChangeOptions) bp.getDynamicBean(plugin);
+    }
+    if (options.all) {
+      return new PluginAttribute(c);
+    }
+    return null;
+  }
+}
+```
+
+Example
+```
+
+ssh -p 29418 localhost gerrit query --myplugin-name--all "change:1" --format json
+
+Output:
+
+{
+   "url" : "http://localhost:8080/1",
+   "plugins" : [
+      {
+         "name" : "myplugin-name",
+         "exampleName" : "Attribute Example",
+         "changeValue" : "1"
+      }
+   ],
+    ...
+}
+
+curl http://localhost:8080/changes/1?myplugin-name--all
+
+Output:
+
+{
+  "_number": 1,
+  ...
+  "plugins": [
+    {
+      "name": "myplugin-name",
+      "example_name": "Attribute Example",
+      "change_value": "1"
+    }
+  ],
+  ...
+}
+```
+
+## Simple Configuration in `gerrit.config`
+
+In Gerrit, global configuration is stored in the `gerrit.config` file.
+If a plugin needs global configuration, this configuration should be
+stored in a `plugin` subsection in the `gerrit.config` file.
+
+This approach of storing the plugin configuration is only suitable for
+plugins that have a simple configuration that only consists of
+key-value pairs. With this approach it is not possible to have
+subsections in the plugin configuration. Plugins that require a complex
+configuration need to store their configuration in their
+`own configuration file]` where they can make use of
+subsections. On the other hand storing the plugin configuration in a
+'plugin' subsection in the `gerrit.config` file has the advantage that
+administrators have all configuration parameters in one file, instead
+of having one configuration file per plugin.
+
+To avoid conflicts with other plugins, it is recommended that plugins
+only use the `plugin` subsection with their own name. For example the
+`helloworld` plugin should store its configuration in the
+`plugin.helloworld` subsection:
+
+```
+[plugin "helloworld"]
+  language = Latin
+```
+
+Via the `com.google.gerrit.server.config.PluginConfigFactory` class a
+plugin can easily access its configuration and there is no need for a
+plugin to parse the `gerrit.config` file on its own:
+
+[source,java]
+```
+@Inject
+private com.google.gerrit.server.config.PluginConfigFactory cfg;
+
+[...]
+
+String language = cfg.getFromGerritConfig("helloworld")
+                     .getString("language", "English");
+```
+
+## Configuration in own config file
+
+Plugins can store their configuration in an own configuration file.
+This makes sense if the plugin configuration is rather complex and
+requires the usage of subsections. Plugins that have a simple
+key-value pair configuration can store their configuration in a
+`plugin` subsection of the `gerrit.config` file.
+
+The plugin configuration file must be named after the plugin and must
+be located in the `etc` folder of the review site. For example a
+configuration file for a `default-reviewer` plugin could look like
+this:
+
+.$site_path/etc/default-reviewer.config
+```
+[branch "refs/heads/master"]
+  reviewer = Project Owners
+  reviewer = john.doe@example.com
+[match "file:^.*\.txt"]
+  reviewer = My Info Developers
+```
+
+Plugins that have sensitive configuration settings can store those settings in
+an own secure configuration file. The plugin's secure configuration file must be
+named after the plugin and must be located in the `etc` folder of the review
+site. For example a secure configuration file for a `default-reviewer` plugin
+could look like this:
+
+.$site_path/etc/default-reviewer.secure.config
+```
+[auth]
+  password = secret
+```
+
+Via the `com.google.gerrit.server.config.PluginConfigFactory` class a
+plugin can easily access its configuration:
+
+
+```java
+@Inject
+private com.google.gerrit.server.config.PluginConfigFactory cfg;
+
+[...]
+
+String[] reviewers = cfg.getGlobalPluginConfig("default-reviewer")
+                        .getStringList("branch", "refs/heads/master", "reviewer");
+String password = cfg.getGlobalPluginConfig("default-reviewer")
+                     .getString("auth", null, "password");
+```
+
+
+## Simple Project Specific Configuration in `project.config`
+
+In Gerrit, project specific configuration is stored in the project's
+`project.config` file on the `refs/meta/config` branch.  If a plugin
+needs configuration on project level (e.g. to enable its functionality
+only for certain projects), this configuration should be stored in a
+`plugin` subsection in the project's `project.config` file.
+
+This approach of storing the plugin configuration is only suitable for
+plugins that have a simple configuration that only consists of
+key-value pairs. With this approach it is not possible to have
+subsections in the plugin configuration. Plugins that require a complex
+configuration need to store their configuration in their
+own configuration file where they
+can make use of subsections. On the other hand storing the plugin
+configuration in a 'plugin' subsection in the `project.config` file has
+the advantage that project owners have all configuration parameters in
+one file, instead of having one configuration file per plugin.
+
+To avoid conflicts with other plugins, it is recommended that plugins
+only use the `plugin` subsection with their own name. For example the
+`helloworld` plugin should store its configuration in the
+`plugin.helloworld` subsection:
+
+```
+  [plugin "helloworld"]
+    enabled = true
+```
+
+Via the `com.google.gerrit.server.config.PluginConfigFactory` class a
+plugin can easily access its project specific configuration and there
+is no need for a plugin to parse the `project.config` file on its own:
+
+
+```java
+@Inject
+private com.google.gerrit.server.config.PluginConfigFactory cfg;
+
+[...]
+
+boolean enabled = cfg.getFromProjectConfig(project, "helloworld")
+                     .getBoolean("enabled", false);
+```
+
+It is also possible to get missing configuration parameters inherited
+from the parent projects:
+
+
+```java
+@Inject
+private com.google.gerrit.server.config.PluginConfigFactory cfg;
+
+[...]
+
+boolean enabled = cfg.getFromProjectConfigWithInheritance(project, "helloworld")
+                     .getBoolean("enabled", false);
+```
+
+Project owners can edit the project configuration by fetching the
+`refs/meta/config` branch, editing the `project.config` file and
+pushing the commit back.
+
+Plugin configuration values that are stored in the `project.config`
+file can be exposed in the ProjectInfoScreen to allow project owners
+to see and edit them from the UI.
+
+For this an instance of `ProjectConfigEntry` needs to be bound for each
+parameter. The export name must be a valid Git variable name. The
+variable name is case-insensitive, allows only alphanumeric characters
+and '-', and must start with an alphabetic character.
+
+The example below shows how the parameters `plugin.helloworld.enabled`
+and `plugin.helloworld.language` are bound to be editable from the
+Web UI. For the parameter `plugin.helloworld.enabled` "Enable Greeting"
+is provided as display name and the default value is set to `true`.
+For the parameter `plugin.helloworld.language` "Preferred Language"
+is provided as display name and "en" is set as default value.
+
+
+```java
+class Module extends AbstractModule {
+  @Override
+  protected void configure() {
+    bind(ProjectConfigEntry.class)
+        .annotatedWith(Exports.named("enabled"))
+        .toInstance(new ProjectConfigEntry("Enable Greeting", true));
+    bind(ProjectConfigEntry.class)
+        .annotatedWith(Exports.named("language"))
+        .toInstance(new ProjectConfigEntry("Preferred Language", "en"));
+  }
+}
+```
+
+By overwriting the `onUpdate` method of `ProjectConfigEntry` plugins
+can be notified when this configuration parameter is updated on a
+project.
+
+### Referencing groups in `project.config`
+
+Plugins can refer to groups so that when they are renamed, the project
+config will also be updated in this section. The proper format to use is
+the same as for any other group reference in the `project.config`, as shown below.
+
+```
+group group_name
+```
+
+The file `groups` must also contains the mapping of the group name and its UUID,
+refer to [file groups](config-project-config.md)
+
+## Project Specific Configuration in own config file
+
+Plugins can store their project specific configuration in an own
+configuration file in the projects `refs/meta/config` branch.
+This makes sense if the plugins project specific configuration is
+rather complex and requires the usage of subsections. Plugins that
+have a simple key-value pair configuration can store their project
+specific configuration in a link:#simple-project-specific-configuration[
+`plugin` subsection of the `project.config` file].
+
+The plugin configuration file in the `refs/meta/config` branch must be
+named after the plugin. For example a configuration file for a
+`default-reviewer` plugin could look like this:
+
+.default-reviewer.config
+```
+[branch "refs/heads/master"]
+  reviewer = Project Owners
+  reviewer = john.doe@example.com
+[match "file:^.*\.txt"]
+  reviewer = My Info Developers
+```
+
+Via the `com.google.gerrit.server.config.PluginConfigFactory` class a
+plugin can easily access its project specific configuration:
+
+[source,java]
+```
+@Inject
+private com.google.gerrit.server.config.PluginConfigFactory cfg;
+
+[...]
+
+String[] reviewers = cfg.getProjectPluginConfig(project, "default-reviewer")
+                        .getStringList("branch", "refs/heads/master", "reviewer");
+```
+
+It is also possible to get missing configuration parameters inherited
+from the parent projects:
+
+[source,java]
+```
+@Inject
+private com.google.gerrit.server.config.PluginConfigFactory cfg;
+
+[...]
+
+String[] reviewers = cfg.getProjectPluginConfigWithInheritance(project, "default-reviewer")
+                        .getStringList("branch", "refs/heads/master", "reviewer");
+```
+
+Project owners can edit the project configuration by fetching the
+`refs/meta/config` branch, editing the `<plugin-name>.config` file and
+pushing the commit back.
+
+## React on changes in project configuration
+
+If a plugin wants to react on changes in the project configuration, it
+can implement a `GitReferenceUpdatedListener` and filter on events for
+the `refs/meta/config` branch:
+
+
+```java
+public class MyListener implements GitReferenceUpdatedListener {
+
+  private final MetaDataUpdate.Server metaDataUpdateFactory;
+
+  @Inject
+  MyListener(MetaDataUpdate.Server metaDataUpdateFactory) {
+    this.metaDataUpdateFactory = metaDataUpdateFactory;
+  }
+
+  @Override
+  public void onGitReferenceUpdated(Event event) {
+    if (event.getRefName().equals(RefNames.REFS_CONFIG)) {
+      Project.NameKey p = new Project.NameKey(event.getProjectName());
+      try {
+        ProjectConfig oldCfg = parseConfig(p, event.getOldObjectId());
+        ProjectConfig newCfg = parseConfig(p, event.getNewObjectId());
+
+        if (oldCfg != null && newCfg != null
+            && !oldCfg.getProject().getSubmitType().equals(newCfg.getProject().getSubmitType())) {
+          // submit type has changed
+          ...
+        }
+      } catch (IOException | ConfigInvalidException e) {
+        ...
+      }
+    }
+  }
+
+  private ProjectConfig parseConfig(Project.NameKey p, String idStr)
+      throws IOException, ConfigInvalidException, RepositoryNotFoundException {
+    ObjectId id = ObjectId.fromString(idStr);
+    if (ObjectId.zeroId().equals(id)) {
+      return null;
+    }
+    return ProjectConfig.read(metaDataUpdateFactory.create(p), id);
+  }
+}
+```
+
+
+## Plugin Owned Capabilities
+
+Plugins may provide their own capabilities and restrict usage of SSH
+commands or `UiAction` to the users who are granted those capabilities.
+
+Plugins define the capabilities by overriding the `CapabilityDefinition`
+abstract class:
+
+```java
+public class PrintHelloCapability extends CapabilityDefinition {
+  @Override
+  public String getDescription() {
+    return "Print Hello";
+  }
+}
+```
+
+If no Guice modules are declared in the manifest, capability may
+use auto-registration by providing an `@Export` annotation:
+
+```java
+@Export("printHello")
+public class PrintHelloCapability extends CapabilityDefinition {
+  [...]
+}
+```
+
+Otherwise the capability must be bound in a plugin module:
+
+```java
+public class HelloWorldModule extends AbstractModule {
+  @Override
+  protected void configure() {
+    bind(CapabilityDefinition.class)
+      .annotatedWith(Exports.named("printHello"))
+      .to(PrintHelloCapability.class);
+  }
+}
+```
+
+With a plugin-owned capability defined in this way, it is possible to restrict
+usage of an SSH command or `UiAction` to members of the group that were granted
+this capability in the usual way, using the `RequiresCapability` annotation:
+
+```java
+@RequiresCapability("printHello")
+@CommandMetaData(name="print", description="Print greeting in different languages")
+public final class PrintHelloWorldCommand extends SshCommand {
+  [...]
+}
+```
+
+Or with `UiAction`:
+
+```java
+@RequiresCapability("printHello")
+public class SayHelloAction extends UiAction<RevisionResource>
+  implements RestModifyView<RevisionResource, SayHelloAction.Input> {
+  [...]
+}
+```
+
+Capability scope was introduced to differentiate between plugin-owned
+capabilities and core capabilities. Per default the scope of the
+`@RequiresCapability` annotation is `CapabilityScope.CONTEXT`, that means:
+
+* when `@RequiresCapability` is used within a plugin the scope of the
+capability is assumed to be that plugin.
+
+* If `@RequiresCapability` is used within the core Gerrit Code Review server
+(and thus is outside of a plugin) the scope is the core server and will use
+the `GlobalCapability` known to Gerrit Code Review server.
+
+If a plugin needs to use a core capability name (e.g. "administrateServer")
+this can be specified by setting `scope = CapabilityScope.CORE`:
+
+```java
+@RequiresCapability(value = "administrateServer", scope =
+    CapabilityScope.CORE)
+  [...]
+```
+
+## UI Extension
+
+### Panels
+
+UI plugins can contribute panels to Gerrit screens.
+
+Gerrit screens define extension points where plugins can add GWT
+panels with custom controls:
+
+* Change Screen:
+** `GerritUiExtensionPoint.CHANGE_SCREEN_HEADER`:
+
+Panel will be shown in the header bar to the right of the change
+status.
+
+** `GerritUiExtensionPoint.CHANGE_SCREEN_HEADER_RIGHT_OF_BUTTONS`:
+
+Panel will be shown in the header bar on the right side of the buttons.
+
+** `GerritUiExtensionPoint.CHANGE_SCREEN_HEADER_RIGHT_OF_POP_DOWNS`:
+
+Panel will be shown in the header bar on the right side of the pop down
+buttons.
+
+** `GerritUiExtensionPoint.CHANGE_SCREEN_BELOW_COMMIT_INFO_BLOCK`:
+
+Panel will be shown below the commit info block.
+
+** `GerritUiExtensionPoint.CHANGE_SCREEN_BELOW_CHANGE_INFO_BLOCK`:
+
+Panel will be shown below the change info block.
+
+** `GerritUiExtensionPoint.CHANGE_SCREEN_BELOW_RELATED_INFO_BLOCK`:
+
+Panel will be shown below the related info block.
+
+** `GerritUiExtensionPoint.CHANGE_SCREEN_HISTORY_RIGHT_OF_BUTTONS`:
+
+Panel will be shown in the history bar on the right side of the buttons.
+
+** The following parameters are provided:
+*** `GerritUiExtensionPoint.Key.CHANGE_INFO`:
+
+The [ChangeInfo](rest-api-changes.md) entity for the
+current change.
+
+The [RevisionInfo](rest-api-changes.md) entity for
+the current patch set.
+
+* Project Info Screen:
+** `GerritUiExtensionPoint.PROJECT_INFO_SCREEN_TOP`:
+
+Panel will be shown at the top of the screen.
+
+** `GerritUiExtensionPoint.PROJECT_INFO_SCREEN_BOTTOM`:
+
+Panel will be shown at the bottom of the screen.
+
+** The following parameters are provided:
+*** `GerritUiExtensionPoint.Key.PROJECT_NAME`:
+
+The name of the project.
+
+* User Password Screen:
+** `GerritUiExtensionPoint.PASSWORD_SCREEN_BOTTOM`:
+
+Panel will be shown at the bottom of the screen.
+
+** The following parameters are provided:
+*** `GerritUiExtensionPoint.Key.ACCOUNT_INFO`:
+
+The [AccountInfo](rest-api-accounts.md) entity for the current user.
+
+* User Preferences Screen:
+** `GerritUiExtensionPoint.PREFERENCES_SCREEN_BOTTOM`:
+
+Panel will be shown at the bottom of the screen.
+
+** The following parameters are provided:
+*** `GerritUiExtensionPoint.Key.ACCOUNT_INFO`:
+
+The [AccountInfo](rest-api-accounts.md) entity for the current user.
+
+* User Profile Screen:
+** `GerritUiExtensionPoint.PROFILE_SCREEN_BOTTOM`:
+
+Panel will be shown at the bottom of the screen below the grid with the
+profile data.
+
+** The following parameters are provided:
+*** `GerritUiExtensionPoint.Key.ACCOUNT_INFO`:
+
+The [AccountInfo](rest-api-accounts.md) entity for the current user.
+
+Example panel:
+
+```java
+public class MyPlugin extends PluginEntryPoint {
+  @Override
+  public void onPluginLoad() {
+    Plugin.get().panel(GerritUiExtensionPoint.CHANGE_SCREEN_BELOW_CHANGE_INFO_BLOCK,
+        "my_panel_name",
+        new Panel.EntryPoint() {
+          @Override
+          public void onLoad(Panel panel) {
+            panel.setWidget(new InlineLabel("My Panel for change "
+                + panel.getInt(GerritUiExtensionPoint.Key.CHANGE_ID, -1));
+          }
+        });
+  }
+}
+```
+
+Change Screen panel ordering may be specified in the
+project config. Values may be either "plugin name" or
+"plugin name"."panel name".
+Panels not specified in the config will be added
+to the end in load order. Panels specified in the config that
+are not found will be ignored.
+
+Example config:
+```
+[extension-panels "CHANGE_SCREEN_BELOW_CHANGE_INFO_BLOCK"]
+        panel = helloworld.change_id
+        panel = myotherplugin
+        panel = myplugin.my_panel_name
+```
+
+
+
+### Actions
+
+Plugins can contribute UI actions on core Gerrit pages. This is useful
+for workflow customization or exposing plugin functionality through the
+UI in addition to SSH commands and the REST API.
+
+For instance a plugin to integrate Jira with Gerrit changes may
+contribute a "File bug" button to allow filing a bug from the change
+page or plugins to integrate continuous integration systems may
+contribute a "Schedule" button to allow a CI build to be scheduled
+manually from the patch set panel.
+
+Two different places on core Gerrit pages are supported:
+
+* Change screen
+* Project info screen
+
+Plugins contribute UI actions by implementing the `UiAction` interface:
+
+```java
+@RequiresCapability("printHello")
+class HelloWorldAction implements UiAction<RevisionResource>,
+    RestModifyView<RevisionResource, HelloWorldAction.Input> {
+  static class Input {
+    boolean french;
+    String message;
+  }
+
+  private Provider<CurrentUser> user;
+
+  @Inject
+  HelloWorldAction(Provider<CurrentUser> user) {
+    this.user = user;
+  }
+
+  @Override
+  public String apply(RevisionResource rev, Input input) {
+    final String greeting = input.french
+        ? "Bonjour"
+        : "Hello";
+    return String.format("%s %s from change %s, patch set %d!",
+        greeting,
+        Strings.isNullOrEmpty(input.message)
+            ? Objects.firstNonNull(user.get().getUserName(), "world")
+            : input.message,
+        rev.getChange().getId().toString(),
+        rev.getPatchSet().getPatchSetId());
+  }
+
+  @Override
+  public Description getDescription(
+      RevisionResource resource) {
+    return new Description()
+        .setLabel("Say hello")
+        .setTitle("Say hello in different languages");
+  }
+}
+```
+
+Sometimes plugins may want to be able to change the state of a patch set or
+change in the `UiAction.apply()` method and reflect these changes on the core
+UI. For example a buildbot plugin which exposes a 'Schedule' button on the
+patch set panel may want to disable that button after the build was scheduled
+and update the tooltip of that button. But because of Gerrit's caching
+strategy the following must be taken into consideration.
+
+The browser is allowed to cache the `UiAction` information until something on
+the change is modified. More accurately the change row needs to be modified in
+the database to have a more recent `lastUpdatedOn` or a new `rowVersion`, or
+the +refs/meta/config+ of the project or any parents needs to change to a new
+SHA-1. The ETag SHA-1 computation code can be found in the
+`ChangeResource.getETag()` method.
+
+The easiest way to accomplish this is to update `lastUpdatedOn` of the change:
+
+```java
+@Override
+public Object apply(RevisionResource rcrs, Input in) {
+  // schedule a build
+  [...]
+  // update change
+  try (BatchUpdate bu = batchUpdateFactory.create(
+      project.getNameKey(), user, TimeUtil.nowTs())) {
+    bu.addOp(change.getId(), new BatchUpdate.Op() {
+      @Override
+      public boolean updateChange(ChangeContext ctx) {
+        return true;
+      }
+    });
+    bu.execute();
+  }
+  [...]
+}
+```
+
+`UiAction` must be bound in a plugin module:
+
+```java
+public class Module extends AbstractModule {
+  @Override
+  protected void configure() {
+    install(new RestApiModule() {
+      @Override
+      protected void configure() {
+        post(REVISION_KIND, "say-hello")
+            .to(HelloWorldAction.class);
+      }
+    });
+  }
+}
+```
+
+The module above must be declared in the `pom.xml` for Maven driven
+plugins:
+
+```xml
+<manifestEntries>
+  <Gerrit-Module>com.googlesource.gerrit.plugins.cookbook.Module</Gerrit-Module>
+</manifestEntries>
+```
+
+or in the `BUILD` configuration file for Bazel driven plugins:
+
+```python
+manifest_entries = [
+  'Gerrit-Module: com.googlesource.gerrit.plugins.cookbook.Module',
+]
+```
+
+In some use cases more user input must be gathered, for that `UiAction` can be
+combined with the JavaScript API. This would display a small popup near the
+activation button to gather additional input from the user. The JS file is
+typically put in the `static` folder within the plugin's directory:
+
+
+```javascript
+Gerrit.install(function(self) {
+  function onSayHello(c) {
+    var f = c.textfield();
+    var t = c.checkbox();
+    var b = c.button('Say hello', {onclick: function(){
+      c.call(
+        {message: f.value, french: t.checked},
+        function(r) {
+          c.hide();
+          window.alert(r);
+          c.refresh();
+        });
+    }});
+    c.popup(c.div(
+      c.prependLabel('Greeting message', f),
+      c.br(),
+      c.label(t, 'french'),
+      c.br(),
+      b));
+    f.focus();
+  }
+  self.onAction('revision', 'say-hello', onSayHello);
+});
+```
+
+The JS module must be exposed as a `WebUiPlugin` and bound as
+an HTTP Module:
+
+```java
+public class HttpModule extends ServletModule {
+  @Override
+  protected void configureServlets() {
+    DynamicSet.bind(binder(), WebUiPlugin.class)
+        .toInstance(new JavaScriptPlugin("hello.js"));
+  }
+}
+```
+
+The HTTP module above must be declared in the `pom.xml` for Maven
+driven plugins:
+
+```xml
+<manifestEntries>
+  <Gerrit-HttpModule>com.googlesource.gerrit.plugins.cookbook.HttpModule</Gerrit-HttpModule>
+</manifestEntries>
+```
+
+or in the `BUILD` configuration file for Bazel driven plugins
+
+```python
+manifest_entries = [
+  'Gerrit-HttpModule: com.googlesource.gerrit.plugins.cookbook.HttpModule',
+]
+```
+
+If `UiAction` is annotated with the `@RequiresCapability` annotation, then the
+capability check is done during the `UiAction` gathering, so the plugin author
+doesn't have to set `UiAction.Description.setVisible()` explicitly in this
+case.
+
+The following prerequisites must be met, to satisfy the capability check:
+
+* user is authenticated
+* user is a member of a group which has the `Administrate Server` capability, or
+* user is a member of a group which has the required capability
+
+The `apply` method is called when the button is clicked. If `UiAction` is
+combined with JavaScript API (its own JavaScript function is provided),
+then a popup dialog is normally opened to gather additional user input.
+A new button is placed on the popup dialog to actually send the request.
+
+Every `UiAction` exposes a REST API endpoint. The endpoint from the example above
+can be accessed from any REST client, i. e.:
+
+```
+  curl -X POST -H "Content-Type: application/json" \
+    -d '{message: "François", french: true}' \
+    --user joe:secret \
+    http://host:port/a/changes/1/revisions/1/cookbook~say-hello
+  "Bonjour François from change 1, patch set 1!"
+```
+
+A special case is to bind an endpoint without a view name.  This is
+particularly useful for `DELETE` requests:
+
+
+```java
+public class Module extends AbstractModule {
+  @Override
+  protected void configure() {
+    install(new RestApiModule() {
+      @Override
+      protected void configure() {
+        delete(PROJECT_KIND)
+            .to(DeleteProject.class);
+      }
+    });
+  }
+}
+```
+
+For a `UiAction` bound this way, a JS API function can be provided.
+
+Currently only one restriction exists: per plugin only one `UiAction`
+can be bound per resource without view name. To define a JS function
+for the `UiAction`, "/" must be used as the name:
+
+
+```javascript
+Gerrit.install(function(self) {
+  function onDeleteProject(c) {
+    [...]
+  }
+  self.onAction('project', '/', onDeleteProject);
+});
+```
+
+
+### Action Visitors
+
+In addition to providing new actions, plugins can have fine-grained control
+over the [ActionInfo](rest-api-changes.md) map, modifying or
+removing existing actions, including those contributed by core.
+
+Visitors are provided the [ActionInfo](rest-api-changes.md),
+which is mutable, along with copies of the
+[ChangeInfo](rest-api-changes.md) and
+[RevisionInfo](rest-api-changes.md). They can modify the
+action, or return `false` to exclude it from the resulting map.
+
+These operations only affect the action buttons that are displayed in the UI;
+the underlying REST API endpoints are not affected. Multiple plugins may
+implement the visitor interface, but the order in which they are run is
+undefined.
+
+For example, to exclude "Cherry-Pick" only from certain projects, and rename
+"Abandon":
+
+
+```java
+public class MyActionVisitor implements ActionVisitor {
+  @Override
+  public boolean visit(String name, ActionInfo actionInfo,
+      ChangeInfo changeInfo) {
+    if (name.equals("abandon")) {
+      actionInfo.label = "Drop";
+    }
+    return true;
+  }
+
+  @Override
+  public boolean visit(String name, ActionInfo actionInfo,
+      ChangeInfo changeInfo, RevisionInfo revisionInfo) {
+    if (project.startsWith("some-team/") && name.equals("cherrypick")) {
+      return false;
+    }
+    return true;
+  }
+}
+```
+
+
+## Top Menu Extensions
+
+Plugins can contribute items to Gerrit's top menu.
+
+A single top menu extension can have multiple elements and will be put as
+the last element in Gerrit's top menu.
+
+Plugins define the top menu entries by implementing `TopMenu` interface:
+
+
+```java
+public class MyTopMenuExtension implements TopMenu {
+
+  @Override
+  public List<MenuEntry> getEntries() {
+    return Lists.newArrayList(
+               new MenuEntry("Top Menu Entry", Lists.newArrayList(
+                      new MenuItem("Gerrit", "http://gerrit.googlecode.com/"))));
+  }
+}
+```
+
+Plugins can also add additional menu items to Gerrit's top menu entries
+by defining a `MenuEntry` that has the same name as a Gerrit top menu
+entry:
+
+
+```java
+public class MyTopMenuExtension implements TopMenu {
+
+  @Override
+  public List<MenuEntry> getEntries() {
+    return Lists.newArrayList(
+               new MenuEntry(GerritTopMenu.PROJECTS, Lists.newArrayList(
+                      new MenuItem("Browse Repositories", "https://gerrit.googlesource.com/"))));
+  }
+}
+```
+
+`MenuItems` that are bound for the `MenuEntry` with the name
+`GerritTopMenu.PROJECTS` can contain a `${projectName}` placeholder
+which is automatically replaced by the actual project name.
+
+E.g. plugins may register an HTTP Servlet to handle project
+specific requests and add an menu item for this:
+
+```java
+  new MenuItem("My Screen", "/plugins/myplugin/project/${projectName}");
+```
+
+This also enables plugins to provide menu items for project aware
+screens:
+
+```java
+  new MenuItem("My Screen", "/x/my-screen/for/${projectName}");
+```
+
+If no Guice modules are declared in the manifest, the top menu extension may use
+auto-registration by providing an `@Listen` annotation:
+
+```java
+@Listen
+public class MyTopMenuExtension implements TopMenu {
+  [...]
+}
+```
+
+Otherwise the top menu extension must be bound in the plugin module used
+for the Gerrit system injector (Gerrit-Module entry in MANIFEST.MF):
+
+```java
+package com.googlesource.gerrit.plugins.helloworld;
+
+public class HelloWorldModule extends AbstractModule {
+  @Override
+  protected void configure() {
+    DynamicSet.bind(binder(), TopMenu.class).to(MyTopMenuExtension.class);
+  }
+}
+```
+
+
+```manifest
+Gerrit-ApiType: plugin
+Gerrit-Module: com.googlesource.gerrit.plugins.helloworld.HelloWorldModule
+```
+
+It is also possible to show some menu entries only if the user has a
+certain capability:
+
+
+```java
+public class MyTopMenuExtension implements TopMenu {
+  private final String pluginName;
+  private final Provider<CurrentUser> userProvider;
+  private final List<MenuEntry> menuEntries;
+
+  @Inject
+  public MyTopMenuExtension(@PluginName String pluginName,
+      Provider<CurrentUser> userProvider) {
+    this.pluginName = pluginName;
+    this.userProvider = userProvider;
+    menuEntries = new ArrayList<TopMenu.MenuEntry>();
+
+    // add menu entry that is only visible to users with a certain capability
+    if (canSeeMenuEntry()) {
+      menuEntries.add(new MenuEntry("Top Menu Entry", Collections
+          .singletonList(new MenuItem("Gerrit", "http://gerrit.googlecode.com/"))));
+    }
+
+    // add menu entry that is visible to all users (even anonymous users)
+    menuEntries.add(new MenuEntry("Top Menu Entry", Collections
+          .singletonList(new MenuItem("Documentation", "/plugins/myplugin/"))));
+  }
+
+  private boolean canSeeMenuEntry() {
+    if (userProvider.get().isIdentifiedUser()) {
+      CapabilityControl ctl = userProvider.get().getCapabilities();
+      return ctl.canPerform(pluginName + "-" + MyCapability.ID)
+          || ctl.canAdministrateServer();
+    } else {
+      return false;
+    }
+  }
+
+  @Override
+  public List<MenuEntry> getEntries() {
+    return menuEntries;
+  }
+}
+```
+
+
+## Plugin Settings Screen
+
+If a plugin implements a screen for administrating its settings that is
+available under "#/x/<plugin-name>/settings" it is automatically linked
+from the plugin list screen.
+
+## HTTP Servlets
+
+Plugins or extensions may register additional HTTP servlets, and
+wrap them with HTTP filters.
+
+Servlets may use auto-registration to declare the URL they handle:
+
+
+```java
+import com.google.gerrit.extensions.annotations.Export;
+import com.google.inject.Singleton;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+@Export("/print")
+@Singleton
+class HelloServlet extends HttpServlet {
+  protected void doGet(HttpServletRequest req, HttpServletResponse res) throws IOException {
+    res.setContentType("text/plain");
+    res.setCharacterEncoding("UTF-8");
+    res.getWriter().write("Hello");
+  }
+}
+```
+
+The auto registration only works for standard servlet mappings like
+`/foo` or `+/foo/*+`. Regex style bindings must use a Guice ServletModule
+to register the HTTP servlets and declare it explicitly in the manifest
+with the `Gerrit-HttpModule` attribute:
+
+
+```java
+import com.google.inject.servlet.ServletModule;
+
+class MyWebUrls extends ServletModule {
+  protected void configureServlets() {
+    serve("/print").with(HelloServlet.class);
+  }
+}
+```
+
+For a plugin installed as name `helloworld`, the servlet implemented
+by HelloServlet class will be available to users as:
+
+```
+$ curl http://review.example.com/plugins/helloworld/print
+```
+
+## Data Directory
+
+Plugins can request a data directory with a `@PluginData` Path (or File,
+deprecated) dependency. A data directory will be created automatically
+by the server in `$site_path/data/$plugin_name` and passed to the
+plugin.
+
+Plugins can use this to store any data they want.
+
+
+```java
+@Inject
+MyType(@PluginData java.nio.file.Path myDir) {
+  this.in = Files.newInputStream(myDir.resolve("my.config"));
+}
+```
+
+## SecureStore
+
+SecureStore allows to change the way Gerrit stores sensitive data like
+passwords.
+
+In order to replace the default SecureStore (no-op) implementation,
+a class that extends `com.google.gerrit.server.securestore.SecureStore`
+needs to be provided (with dependencies) in a separate jar file. Then
+[SwitchSecureStore](pgm-SwitchSecureStore.md) must be run to
+switch implementations.
+
+The SecureStore implementation is instantiated using a Guice injector
+which binds the `File` annotated with the `@SitePath` annotation.
+This means that a SecureStore implementation class can get access to
+the `site_path` like in the following example:
+
+
+```java
+@Inject
+MySecureStore(@SitePath java.io.File sitePath) {
+  // your code
+}
+```
+
+No Guice bindings or modules are required. Gerrit will automatically
+discover and bind the implementation.
+
+## Account Creation
+
+Plugins can hook into the
+link:rest-api-accounts.html#create-account[account creation] REST API and
+inject additional external identifiers for an account that represents a user
+in some external user store. For that, an implementation of the extension
+point `com.google.gerrit.server.account.AccountExternalIdCreator`
+must be registered.
+
+```java
+class MyExternalIdCreator implements AccountExternalIdCreator {
+  @Override
+  public List<AccountExternalId> create(Account.Id id, String username,
+      String email) {
+    // your code
+  }
+}
+
+bind(AccountExternalIdCreator.class)
+  .annotatedWith(UniqueAnnotations.create())
+  .to(MyExternalIdCreator.class);
+}
+```
+
+## Download Commands
+
+Gerrit offers commands for downloading changes and cloning projects
+using different download schemes (e.g. for downloading via different
+network protocols). Plugins can contribute download schemes, download
+commands and clone commands by implementing
+`com.google.gerrit.extensions.config.DownloadScheme`,
+`com.google.gerrit.extensions.config.DownloadCommand` and
+`com.google.gerrit.extensions.config.CloneCommand`.
+
+The download schemes, download commands and clone commands which are
+used most often are provided by the Gerrit core plugin
+`download-commands`.
+
+## Included In
+
+For merged changes the [Included In](user-review-ui.md)
+drop-down panel shows the branches and tags in which the change is
+included.
+
+Plugins can add additional systems in which the change can be included
+by implementing `com.google.gerrit.extensions.config.ExternalIncludedIn`,
+e.g. a plugin can provide a list of servers on which the change was
+deployed.
+
+## Change Report Formatting
+
+When a change is pushed for review from the command line, Gerrit reports
+the change(s) received with their URL and subject.
+
+By implementing the
+`com.google.gerrit.server.git.ChangeReportFormatter` interface, a plugin
+may change the formatting of the report.
+
+## URL Formatting
+
+URLs to various parts of Gerrit are usually formed by adding suffixes to
+the canonical web URL.
+
+By implementing the
+`com.google.gerrit.server.config.UrlFormatter` interface, a plugin may
+change the format of the URL.
+
+## Links To External Tools
+
+Gerrit has extension points that enables development of a
+light-weight plugin that links commits to external
+tools (GitBlit, CGit, company specific resources etc).
+
+PatchSetWebLinks will appear to the right of the commit-SHA1 in the UI.
+
+
+```java
+import com.google.gerrit.extensions.annotations.Listen;
+**import com.google.gerrit.extensions.webui.PatchSetWebLink**
+import com.google.gerrit.extensions.webui.WebLinkTarget;
+
+@Listen
+public class MyWeblinkPlugin implements PatchSetWebLink {
+
+  private String name = "MyLink";
+  private String placeHolderUrlProjectCommit = "http://my.tool.com/project=%s/commit=%s";
+  private String imageUrl = "http://placehold.it/16x16.gif";
+
+  @Override
+  public WebLinkInfo getPatchSetWebLink(String projectName, String commit) {
+    return new WebLinkInfo(name,
+        imageUrl,
+        String.format(placeHolderUrlProjectCommit, project, commit),
+        WebLinkTarget.BLANK);
+  }
+}
+```
+
+ParentWebLinks will appear to the right of the SHA1 of the parent
+revisions in the UI. The implementation should in most use cases direct
+to the same external service as PatchSetWebLink; it is provided as a
+separate interface because not all users want to have links for the
+parent revisions.
+
+FileWebLinks will appear in the side-by-side diff screen on the right
+side of the patch selection on each side.
+
+DiffWebLinks will appear in the side-by-side and unified diff screen in
+the header next to the navigation icons.
+
+ProjectWebLinks will appear in the project list in the
+`Repository Browser` column.
+
+BranchWebLinks will appear in the branch list in the last column.
+
+FileHistoryWebLinks will appear on the access rights screen.
+
+TagWebLinks will appear in the tag list in the last column.
+
+If a `get*WebLink` implementation returns `null`, the link will be omitted. This
+allows the plugin to selectively "enable" itself on a per-project/branch/file
+basis.
+
+## LFS Storage Plugins
+
+Gerrit provides an extension point that enables development of
+link:https://github.com/github/git-lfs/blob/master/docs/api/v1/http-v1-batch.md[
+LFS (Large File Storage)] storage plugins. Gerrit core exposes the default LFS
+protocol endpoint `<project-name>/info/lfs/objects/batch` and forwards the requests
+to the configured [lfs.plugin](config-gerrit.md) plugin which implements
+the LFS protocol. By exposing the default LFS endpoint, the git-lfs client can be
+used without any configuration.
+
+
+```java
+/** Provide an LFS protocol implementation */
+import org.eclipse.jgit.lfs.server.LargeFileRepository;
+import org.eclipse.jgit.lfs.server.LfsProtocolServlet;
+
+@Singleton
+public class LfsApiServlet extends LfsProtocolServlet {
+  private static final long serialVersionUID = 1L;
+
+  private final S3LargeFileRepository repository;
+
+  @Inject
+  LfsApiServlet(S3LargeFileRepository repository) {
+    this.repository = repository;
+  }
+
+  @Override
+  protected LargeFileRepository getLargeFileRepository() {
+    return repository;
+  }
+}
+
+/** Register the LfsApiServlet to listen on the default LFS protocol endpoint */
+import static com.google.gerrit.httpd.plugins.LfsPluginServlet.URL_REGEX;
+
+import com.google.inject.servlet.ServletModule;
+
+public class HttpModule extends ServletModule {
+
+  @Override
+  protected void configureServlets() {
+    serveRegex(URL_REGEX).with(LfsApiServlet.class);
+  }
+}
+
+/** Provide an implementation of the LargeFileRepository */
+import org.eclipse.jgit.lfs.server.s3.S3Repository;
+
+public class S3LargeFileRepository extends S3Repository {
+...
+}
+```
+
+## Metrics
+
+### Metrics Reporting
+
+To send Gerrit's metrics data to an external reporting backend, a plugin can
+get a `MetricRegistry` injected and register an instance of a class that
+implements the `Reporter` interface from link:http://metrics.dropwizard.io/[
+DropWizard Metrics].
+
+Metric reporting plugin implementations are provided for
+[JMX](https://gerrit.googlesource.com/plugins/metrics-reporter-jmx/),
+[Elastic Search](https://gerrit.googlesource.com/plugins/metrics-reporter-elasticsearch/),
+and [Graphite](https://gerrit.googlesource.com/plugins/metrics-reporter-graphite/).
+
+There is also a working example of reporting metrics to the console in the
+[cookbook plugin](https://gerrit.googlesource.com/plugins/cookbook-plugin/+/master/src/main/java/com/googlesource/gerrit/plugins/cookbook/ConsoleMetricReporter.java).
+
+### Providing own metrics
+
+Plugins may provide metrics to be dispatched to external reporting services by
+getting a `MetricMaker` injected and creating instances of specific types of
+metric:
+
+* Counter
+
+Metric whose value increments during the life of the process.
+
+* Timer
+
+Metric recording time spent on an operation.
+
+* Histogram
+
+Metric recording statistical distribution (rate) of values.
+
+Note that metrics cannot be recorded from plugin init steps that
+are run during site initialization.
+
+By default, plugin metrics are recorded under
+`plugins/${plugin-name}/${metric-name}`. This can be changed by
+setting `plugins.${plugin-name}.metricsPrefix` in the `gerrit.config`
+file. For example:
+
+```
+  [plugin "my-plugin"]
+    metricsPrefix = my-metrics
+```
+
+will cause the metrics to be recorded under `my-metrics/${metric-name}`.
+
+See the replication metrics in the
+link:https://gerrit.googlesource.com/plugins/replication/+/master/src/main/java/com/googlesource/gerrit/plugins/replication/ReplicationMetrics.java[
+replication plugin] for an example of usage.
+
+## AccountPatchReviewStore
+
+The AccountPatchReviewStore is used to store reviewed flags on changes.
+A reviewed flag is a tuple of (patch set ID, file, account ID) and
+records whether the user has reviewed a file in a patch set. Each user
+can easily have thousands of reviewed flags and the number of reviewed
+flags is growing without bound. The store must be able handle this data
+volume efficiently.
+
+Gerrit implements this extension point, but plugins may bind another
+implementation, e.g. one that supports multi-master.
+
+```
+DynamicItem.bind(binder(), AccountPatchReviewStore.class)
+    .to(MultiMasterAccountPatchReviewStore.class);
+
+...
+
+public class MultiMasterAccountPatchReviewStore
+    implements AccountPatchReviewStore {
+  ...
+}
+```
+
+
+## Documentation
+
+If a plugin does not register a filter or servlet to handle URLs
+`+/Documentation/*+` or `+/static/*+`, the core Gerrit server will
+automatically export these resources over HTTP from the plugin JAR.
+
+Static resources under the `static/` directory in the JAR will be
+available as `/plugins/helloworld/static/resource`. This prefix is
+configurable by setting the `Gerrit-HttpStaticPrefix` attribute.
+
+Documentation files under the `Documentation/` directory in the JAR
+will be available as `/plugins/helloworld/Documentation/resource`. This
+prefix is configurable by setting the `Gerrit-HttpDocumentationPrefix`
+attribute.
+
+Documentation may be written in the Markdown flavor
+[flexmark-java](https://github.com/vsch/flexmark-java)
+if the file name ends with `.md`. Gerrit will automatically convert
+Markdown to HTML if accessed with extension `.html`.
+
+Within the Markdown documentation files macros can be used that allow
+to write documentation with reasonably accurate examples that adjust
+automatically based on the installation.
+
+The following macros are supported:
+
+|Macro       | Replacement
+| :------| :------|
+|@PLUGIN@    | name of the plugin
+|@URL@       | Gerrit Web URL
+|@SSH_HOST@  | SSH Host
+|@SSH_PORT@  | SSH Port
+
+The macros will be replaced when the documentation files are rendered
+from Markdown to HTML.
+
+Macros that start with `\` such as `\@KEEP@` will render as `@KEEP@`
+even if there is an expansion for `KEEP` in the future.
+
+### Automatic Index
+
+If a plugin does not handle its `/` URL itself, Gerrit will
+redirect clients to the plugin's `/Documentation/index.html`.
+Requests for `/Documentation/` (bare directory) will also redirect
+to `/Documentation/index.html`.
+
+If neither resource `Documentation/index.html` or
+`Documentation/index.md` exists in the plugin JAR, Gerrit will
+automatically generate an index page for the plugin's documentation
+tree by scanning every `*.md` and `*.html` file in the Documentation/
+directory.
+
+For any discovered Markdown (`*.md`) file, Gerrit will parse the
+header of the file and extract the first level one title. This
+title text will be used as display text for a link to the HTML
+version of the page.
+
+For any discovered HTML (`*.html`) file, Gerrit will use the name
+of the file, minus the `*.html` extension, as the link text. Any
+hyphens in the file name will be replaced with spaces.
+
+If a discovered file is named `about.md` or `about.html`, its
+content will be inserted in an 'About' section at the top of the
+auto-generated index page.  If both `about.md` and `about.html`
+exist, only the first discovered file will be used.
+
+If a discovered file name beings with `cmd-` it will be clustered
+into a 'Commands' section of the generated index page.
+
+If a discovered file name beings with `servlet-` it will be clustered
+into a 'Servlets' section of the generated index page.
+
+If a discovered file name beings with `rest-api-` it will be clustered
+into a 'REST APIs' section of the generated index page.
+
+All other files are clustered under a 'Documentation' section.
+
+Some optional information from the manifest is extracted and
+displayed as part of the index page, if present in the manifest:
+
+|Field       | Source Attribute
+| :------| :------|
+|Name        | Implementation-Title
+|Vendor      | Implementation-Vendor
+|Version     | Implementation-Version
+|URL         | Implementation-URL
+|API Version | Gerrit-ApiVersion
+
+## Deployment
+
+Compiled plugins and extensions can be deployed to a running Gerrit
+server using the [plugin install](cmd-plugin-install.md) command.
+
+Web UI plugins distributed as a single `.js` file (or `.html` file for
+Polygerrit) can be deployed without the overhead of JAR packaging. For
+more information refer to [plugin install](cmd-plugin-install.md)
+command.
+
+Plugins can also be copied directly into the server's directory at
+`$site_path/plugins/$name.(jar|js|html)`. For Web UI plugins, the name
+of the file, minus the `.js` or `.html` extension, will be used as the
+plugin name. For JAR plugins, the value of the `Gerrit-PluginName`
+manifest attribute will be used, if provided, otherwise the name of
+the file, minus the `.jar` extension, will be used.
+
+For Web UI plugins, the plugin version is derived from the filename.
+If the filename contains one or more hyphens, the version is taken
+from the portion following the last hyphen. For example if the plugin
+filename is `my-plugin-1.0.js` the version will be `1.0`. For JAR
+plugins, the version is taken from the `Version` attribute in the
+manifest.
+
+Unless disabled, servers periodically scan the `$site_path/plugins`
+directory for updated plugins. The time can be adjusted by
+[plugins.checkFrequency](config-gerrit.md).
+
+For disabling plugins the [plugin remove](cmd-plugin-remove.md)
+command can be used.
+
+Disabled plugins can be re-enabled using the
+link:cmd-plugin-enable.html[plugin enable] command.
+
+## Known issues and bugs
+
+### Error handling in UI when using the REST API
+
+When a plugin invokes a REST endpoint in the UI, it provides an
+`AsyncCallback` to handle the result. At the moment the
+`onFailure(Throwable)` of the callback is never invoked, even if there
+is an error. Errors are always handled by the Gerrit core UI which
+shows the error dialog. This means currently plugins cannot do any
+error handling and e.g. ignore expected errors.
+
+In the following example the REST endpoint would return '404 Not
+Found' if the user has no username and the Gerrit core UI would
+display an error dialog for this. However having no username is
+not an error and the plugin may like to handle this case.
+
+```java
+new RestApi("accounts").id("self").view("username")
+    .get(new AsyncCallback<NativeString>() {
+
+  @Override
+  public void onSuccess(NativeString username) {
+    // TODO
+  }
+
+  @Override
+  public void onFailure(Throwable caught) {
+    // never invoked
+  }
+});
+```
+
+
+## Reviewer Suggestion Plugins
+
+Gerrit provides an extension point that enables Plugins to rank
+the list of reviewer suggestion a user receives upon clicking "Add Reviewer" on
+the change screen.
+
+Gerrit supports both a default suggestion that appears when the user has not yet
+typed anything and a filtered suggestion that is shown as the user starts
+typing.
+
+Plugins receive a candidate list and can return a `Set` of suggested reviewers
+containing the `Account.Id` and a score for each reviewer. The candidate list is
+non-binding and plugins can choose to return reviewers not initially contained in
+the candidate list.
+
+Server administrators can configure the overall weight of each plugin by setting
+the `addreviewer.pluginName-exportName.weight` value in `gerrit.config`.
+
+```java
+import com.google.gerrit.common.Nullable;
+import com.google.gerrit.extensions.annotations.ExtensionPoint;
+import com.google.gerrit.reviewdb.client.Account;
+import com.google.gerrit.reviewdb.client.Change;
+import com.google.gerrit.reviewdb.client.Project;
+
+import java.util.Set;
+
+public class MyPlugin implements ReviewerSuggestion {
+  public Set<SuggestedReviewer> suggestReviewers(Project.NameKey project,
+      @Nullable Change.Id changeId, @Nullable String query,
+      Set<Account.Id> candidates) {
+    Set<SuggestedReviewer> suggestions = new HashSet<>();
+    // Implement your ranking logic here
+    return suggestions;
+  }
+}
+```
+
+
+## Mail Filter Plugins
+
+Gerrit provides an extension point that enables Plugins to discard incoming
+messages and prevent further processing by Gerrit.
+
+This can be used to implement spam checks, signature validations or organization
+specific checks like IP filters.
+
+```java
+import com.google.gerrit.extensions.annotations.ExtensionPoint;
+import com.google.gerrit.mail.MailMessage;
+
+public class MyPlugin implements MailFilter {
+  public boolean shouldProcessMessage(MailMessage message) {
+    // Implement your filter logic here
+    return true;
+  }
+}
+```
+
+## SSH Command Creation Interception
+
+Gerrit provides an extension point that allows a plugin to intercept
+creation of SSH commands and override the functionality with its own
+implementation.
+
+```java
+import com.google.gerrit.sshd.SshCreateCommandInterceptor;
+
+class MyCommandInterceptor implements SshCreateCommandInterceptor {
+  @Override
+  public String intercept(String in) {
+    return pluginName + " mycommand";
+```
+
+## SSH Command Execution Interception
+Gerrit provides an extension point that enables plugins to check and
+prevent an SSH command from being run.
+
+```java
+import com.google.gerrit.sshd.SshExecuteCommandInterceptor;
+
+@Singleton
+public class SshExecuteCommandInterceptorImpl implements SshExecuteCommandInterceptor {
+  private final Provider<SshSession> sessionProvider;
+
+  @Inject
+  SshExecuteCommandInterceptorImpl(Provider<SshSession> sessionProvider) {
+    this.sessionProvider = sessionProvider;
+  }
+
+  @Override
+  public boolean accept(String command, List<String> arguments) {
+    if (command.startsWith("gerrit") && !"10.1.2.3".equals(sessionProvider.get().getRemoteAddressAsString())) {
+      return false;
+    }
+    return true;
+  }
+}
+```
+
+And then declare it in your SSH module:
+
+```java
+  DynamicSet.bind(binder(), SshExecuteCommandInterceptor.class).to(SshExecuteCommandInterceptorImpl.class);
+```
+
+## Pre-submit Validation Plugins
+
+Gerrit provides an extension point that enables plugins to prevent a change
+from being submitted.
+
+[IMPORTANT]
+This extension point **must NOT** be used for long or slow operations, like
+calling external programs or content, running unit tests...
+Slow operations will hurt the whole Gerrit instance.
+
+This can be used to implement custom rules that changes have to match to become
+submittable. A more concrete example: the Prolog rules engine can be
+implemented using this.
+
+Gerrit calls the plugins once per change and caches the results. Although it is
+possible to predict when this interface will be triggered, this should not be
+considered as a feature. Plugins should only rely on the internal state of the
+ChangeData, not on external values like date and time, remote content or
+randomness.
+
+Plugins are expected to support rules inheritance themselves, providing ways
+to configure it and handling the logic behind it.
+Please note that no inheritance is sometimes better than badly handled
+inheritance: mis-communication and strange behaviors caused by inheritance
+may and will confuse the users. Each plugins is responsible for handling the
+project hierarchy and taking wise actions. Gerrit does not enforce it.
+
+Once Gerrit has gathered every plugins' SubmitRecords, it stores them.
+
+Plugins accept or reject a given change using `SubmitRecord.Status`.
+If a change is ready to be submitted, `OK`. If it is not ready and requires
+modifications, `NOT_READY`. Other statuses are available for particular cases.
+A change can be submitted if all the plugins accept the change.
+
+Plugins may also decide not to vote on a given change by returning an empty
+Collection (ie: the plugin is not enabled for this repository), or to vote
+several times (ie: one SubmitRecord per project in the hierarchy).
+The results are handled as if multiple plugins voted for the change.
+
+If a plugin decides not to vote, it's name will not be displayed in the UI and
+it will not be recoded in the database.
+
+.Gerrit's Pre-submit handling with three plugins
+
+|  Plugin A  |  Plugin B  |  Plugin C  | Final decision
+| :------| :------| :------| :------|
+|     OK     |     OK     |     OK     | OK
+|     OK     |     OK     |     /      | OK
+|     OK     |     OK     | RULE_ERROR | NOT_READY
+|     OK     | NOT_READY  |     OK     | NOT_READY
+|  NOT_READY |     OK     |     OK     | NOT_READY
+
+
+This makes composing plugins really easy.
+
+- If a plugin places a veto on a change, it can't be submitted.
+- If a plugin isn't enabled for a project (or isn't needed for this change),
+  it returns an empty collection.
+- If all the plugins answer `OK`, the change can be submitted.
+
+
+A more rare case, but worth documenting: if there are no installed plugins,
+the labels will be compared to the rules defined in the project's config,
+and the permission system will be used to allow or deny a submit request.
+
+Some rules are defined internally to provide a common base ground (and sanity):
+changes that are marked as WIP or that are closed (abandoned, merged) can't be merged.
+
+
+```java
+import java.util.Collection;
+import com.google.gerrit.common.data.SubmitRecord;
+import com.google.gerrit.common.data.SubmitRecord.Status;
+import com.google.gerrit.server.query.change.ChangeData;
+import com.google.gerrit.server.rules.SubmitRule;
+
+public class MyPluginRules implements SubmitRule {
+  public Collection<SubmitRecord> evaluate(ChangeData changeData) {
+    // Implement your submitability logic here
+
+    // Assuming we want to prevent this change from being submitted:
+    SubmitRecord record;
+    record.status = Status.NOT_READY;
+    return record;
+  }
+}
+```
+
+Don't forget to register your class!
+
+```java
+import com.google.gerrit.extensions.annotations.Exports;
+import com.google.inject.AbstractModule;
+
+public class MyPluginModule extends AbstractModule {
+  @Override
+  protected void configure() {
+    bind(SubmitRule.class).annotatedWith(Exports.named("myPlugin")).to(MyPluginRules.class);
+  }
+}
+```
+
+Plugin authors should also consider binding their SubmitRule using a `Gerrit-BatchModule`.
+See [Batch runtime](dev-plugins.md) for more informations.
+
+
+The SubmitRule extension point allows you to write complex rules, but writing
+small self-contained rules should be preferred: doing so allows end users to
+compose several rules to form more complex submit checks.
+
+The `SubmitRequirement` class allows rules to communicate what the user needs
+to change in order to be compliant. These requirements should be kept once they
+are met, but marked as `OK`. If the requirements were not displayed, reviewers
+would need to use their precious time to manually check that they were met.
+
+## Quota Enforcer
+
+Gerrit provides an extension point that allows a plugin to enforce quota.
+[This documentation page](quota.md) has a list of all quota requests that
+Gerrit core issues. Plugins can choose to respond to all or just a subset of
+requests. Some implementations might want to keep track of user quota in buckets,
+others might just check against instance or project state to enforce limits on how
+many projects can be created or how large a repository can become.
+
+Checking against instance state can be racy for concurrent requests as the server does not
+refill tokens if the action fails in a later stage (e.g. database failure). If
+plugins want to guarantee an absolute maximum on a resource, they have to do their own
+book-keeping.
+
+```java
+import com.google.server.quota.QuotaEnforcer;
+
+class ProjectLimiter implements QuotaEnforcer {
+  private final long maxNumberOfProjects = 100;
+  @Override
+  QuotaResponse requestTokens(String quotaGroup, QuotaRequestContext ctx, long numTokens) {
+    if (!"/projects/create".equals(quotaGroup)) {
+      return QuotaResponse.noOp();
+    }
+    // No deduction because we always check against the instance state (racy but fine for
+    // this plugin)
+    if (currentNumberOfProjects() + numTokens > maxNumberOfProjects) {
+      return QuotaResponse.error("too many projects");
+    }
+    return QuotaResponse.ok();
+  }
+
+  @Override
+  QuotaResponse dryRun(String quotaGroup, QuotaRequestContext ctx, long numTokens) {
+    // Since we are not keeping any state in this enforcer, we can simply call requestTokens().
+    return requestTokens(quotaGroup, ctx, numTokens);
+  }
+
+  void refill(String quotaGroup, QuotaRequestContext ctx, long numTokens) {
+    // No-op
+  }
+}
+```
+
+```java
+import com.google.server.quota.QuotaEnforcer;
+
+class ApiQpsEnforcer implements QuotaEnforcer {
+  // AutoRefillingPerUserBuckets is a imaginary bucket implementation that could be based on
+  // a loading cache or a commonly used bucketing algorithm.
+  private final AutoRefillingPerUserBuckets<CurrentUser, Long> buckets;
+  @Override
+  QuotaResponse requestTokens(String quotaGroup, QuotaRequestContext ctx, long numTokens) {
+    if (!quotaGroup.startsWith("/restapi/")) {
+      return QuotaResponse.noOp();
+    }
+    boolean success = buckets.deduct(ctx.user(), numTokens);
+    if (!success) {
+      return QuotaResponse.error("user sent too many qps, please wait for 5 minutes");
+    }
+    return QuotaResponse.ok();
+  }
+
+  @Override
+  QuotaResponse dryRun(String quotaGroup, QuotaRequestContext ctx, long numTokens) {
+    if (!quotaGroup.startsWith("/restapi/")) {
+      return QuotaResponse.noOp();
+    }
+    boolean success = buckets.checkOnly(ctx.user(), numTokens);
+    if (!success) {
+      return QuotaResponse.error("user sent too many qps, please wait for 5 minutes");
+    }
+    return QuotaResponse.ok();
+  }
+
+  @Override
+  void refill(String quotaGroup, QuotaRequestContext ctx, long numTokens) {
+    if (!quotaGroup.startsWith("/restapi/")) {
+      return;
+    }
+    buckets.add(ctx.user(), numTokens);
+  }
+}
+```
+
+## SEE ALSO
+
+* [JavaScript API](js-api.md)
+* [REST API Developers' Notes](dev-rest-api.md)
+
