@@ -14,9 +14,7 @@ _ssh_ -p <port> <host> _gerrit review_
   [--abandon | --restore]
   [--rebase]
   [--move <BRANCH>]
-  [--publish]
   [--json | -j]
-  [--delete]
   [--verified <N>] [--code-review <N>]
   [--label Label-Name=<N>]
   [--tag TAG]
@@ -28,7 +26,7 @@ _ssh_ -p <port> <host> _gerrit review_
 
 命令行中，patch-set 需要按照具体的格式来书写，'CHANGEID,PATCHSET', 如：'8242,2', 或者 'COMMIT' 格式。
 
-如果 patch-set 使用 'COMMIT' 格式，支持完整和缩写的 commit SHA-1。如果同一个 commit-id 出现在多个 project 中，需要指定 `--project` 参数；如果出现在多个 branch 中，需要指定 `--branch`  参数。
+如果 patch-set 使用 'COMMIT' 格式，支持完整和缩写的 commit SHA-1。如果同一个 commit-id 出现在多个 project 中，需要指定 `--project` 参数；如果出现在多个 branch 中，需要指定 `--branch` 参数。
 
 ## OPTIONS
 

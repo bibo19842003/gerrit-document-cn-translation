@@ -41,6 +41,10 @@ ChangeFooter 模板，邮箱底部，change 的相关信息。属于 `ChangeEmai
 
 CommentFooter 模板，邮箱底部，用户向 change 发布评论的信息。可参考 `ChangeSubject.soy`, Comment 和 ChangeFooter。
 
+### DeleteKey.soy and DeleteKeyHtml.soy
+
+DeleteKey 模板会根据从用户账户中删除的 SSH 或 GPG 密钥来确定邮件的内容。当管理员删除其他用户信息的时候，系统不会发送邮件。
+
 ### DeleteVote.soy and DeleteVoteHtml.soy
 
 DeleteVote 模板，change 的打分被移除的相关信息。属于 `ChangeEmail`，参考 `ChangeSubject.soy`, ChangeFooter。
@@ -52,6 +56,10 @@ DeleteReviewer 模板，change 的 评审人员被移除的信息。属于 `Chan
 ### Footer.soy and FooterHtml.soy
 
 Footer 模板，在 ChangeFooter 和 CommentFooterwill 后面添加的信息。
+
+### HttpPasswordUpdate.soy and HttpPasswordUpdateHtml.soy
+
+HttpPasswordUpdate 模板会根据用户添加或修改或删除 HTTP 密码来确定邮件内容。 
 
 ### Merged.soy and MergedHtml.soy
 

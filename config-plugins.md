@@ -66,6 +66,14 @@ gerrit 服务器端的 hook。
 [Documentation](https://gerrit.googlesource.com/plugins/hooks/+doc/master/src/main/resources/Documentation/about.md) |
 [Configuration](https://gerrit.googlesource.com/plugins/hooks/+doc/master/src/main/resources/Documentation/config.md)
 
+### plugin-manager
+
+此 plugin 可以根据运行的 gerrit 来提供可以使用的 plugin 列表。默认从 `GerritForge CI` 下载相关 plugin，但此 plugin 不能修改其他 plugin 的配置，若要修改配置，需要对应的参考说明文档进行手动修改。
+
+[Project](https://gerrit-review.googlesource.com/admin/repos/plugins/plugin-manager) |
+[Documentation](https://gerrit.googlesource.com/plugins/plugin-manager/+doc/master/src/main/resources/Documentation/about.md) |
+[Configuration](https://gerrit.googlesource.com/plugins/plugin-manager/+doc/master/src/main/resources/Documentation/config.md)
+
 ### replication
 
 refs 有更新时，自动将 refs 推送到其他服务器。用于镜像代码。

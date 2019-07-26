@@ -15,8 +15,8 @@ Gerrit 的使命是成为优秀的 [管理 open source project 的主机](https:
 
 可参考下面实际的声明：
 
-* [Individual Agreement](https://cla.developers.google.com/about/android-individual)
-* [Corporate Agreement](https://source.android.com/source/cla-corporate.pdf)
+* [Individual Agreement](https://cla.developers.google.com/about/google-individual)
+* [Corporate Agreement](https://cla.developers.google.com/about/google-corporate)
 
 ## Code Review
 
@@ -104,7 +104,7 @@ HTTPS 的链接方式需要用户名和密码，可以点击 'Obtain Password' �
 
 Gerrit 的代码风格参考 [Google Java Style Guide](https://google.github.io/styleguide/javaguide.html)。
 
-为了统一 Java 源码的风格，Gerrit 使用 [`google-java-format`](https://github.com/google/google-java-format) 工具(version 1.7)进行代码风格的格式化操作。使用 [`buildifier`](https://github.com/bazelbuild/buildtools/tree/master/buildifier) 工具(version 0.20.0) 来对 bazel 的 BUILD, WORKSPACE 和 .bzl 文件进行格式化操作。这些工具根据代码风格指导自动处理代码的格式，简化了代码的评审过程，减少了相关的耗时，乏味和有争议的讨论。
+为了统一 Java 源码的风格，Gerrit 使用 [`google-java-format`](https://github.com/google/google-java-format) 工具(version 1.7)进行代码风格的格式化操作。使用 [`buildifier`](https://github.com/bazelbuild/buildtools/tree/master/buildifier) 工具(version 0.26.0) 来对 bazel 的 BUILD, WORKSPACE 和 .bzl 文件进行格式化操作。这些工具根据代码风格指导自动处理代码的格式，简化了代码的评审过程，减少了相关的耗时，乏味和有争议的讨论。
 
 可以本地的机器上下载并运行 `google-java-format` 工具，或者使用 `./tools/setup_gjf.sh` 脚本来下载。由于工具不同的版本之间有差异，请使用文中提到的工具版本。
 

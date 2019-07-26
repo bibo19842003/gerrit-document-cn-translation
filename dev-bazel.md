@@ -13,6 +13,10 @@
 * zip, unzip
 * gcc
 
+### Java
+
+#### Java 10 support
+
 通过 `vanilla java toolchain` 的 [Bazel 参数](https://docs.bazel.build/versions/master/toolchains.html) ，可以支持 Java 10 (及更新版本)。为了使用 Java 10 及更新版本来构建 gerrit，需要明确 `vanilla java toolchain` 和 JDK 的 `home` 路径。
 
 ```
@@ -56,6 +60,8 @@ $ cat << EOF > ~/.bazelrc
 [container]
   javaOptions = --add-opens=jdk.management/com.sun.management.internal=ALL-UNNAMED
 ```
+
+#### Java 9 support
 
 通过变更 `java toolchain` 的 [Bazel 参数](https://docs.bazel.build/versions/master/toolchains.html)，可以支持 Java 9 的使用。Java 9 支持向后兼容。目前默认使用的是 Java 8。为了在构建的时候使用 Java 9,需要明确 JDK 9 java toolchain：
 
@@ -131,7 +137,7 @@ $ cat << EOF > ~/.bazelrc
 输出的含有 Java 二进制文件, Java 源码 和 Java 文档的路径如下：
 
 ```
-  bazel-genfiles/api.zip
+  bazel-bin/api.zip
 ```
 
 安装 {extension,plugin,acceptance-framework}-api 到本地的 maven repository:
@@ -155,13 +161,13 @@ $ cat << EOF > ~/.bazelrc
 输出 plugin 的 JAR 文件会存放在：
 
 ```
-  bazel-genfiles/plugins/<name>/<name>.jar
+  bazel-bin/plugins/<name>/<name>.jar
 ```
 
 JAR 文件会被打包在:
 
 ```
-  bazel-genfiles/plugins/core.zip
+  bazel-bin/plugins/core.zip
 ```
 
 构建指定的 plugin:
@@ -173,7 +179,7 @@ JAR 文件会被打包在:
 输出的 JAR 文件会存放在：
 
 ```
-  bazel-genfiles/plugins/<name>/<name>.jar
+  bazel-bin/plugins/<name>/<name>.jar
 ```
 
 构建单独的 plugin，`core.zip` 文件不会重新生成。
@@ -457,4 +463,35 @@ PolyGerrit 的构建需要执行基于 NPM 的 JavaScript 的二进制文件。�
 ```
 
 为了使用 bazel 构建产生的二进制文件，可以使用 `run_npm_binary.py` 脚本。例如：参考 `tools/bzl/js.bzl` 中 `crisper` 的使用。
+
+## Google Remote Build Support
+
+Bazel 可以通过 `Google's Remote Build Execution` 来进行构建。
+
+需要如下设置：
+
+```
+gcloud auth application-default login
+gcloud services enable remotebuildexecution.googleapis.com  --project=${PROJECT}
+```
+
+创建工作池。至少需要 4 CPU，否则性能不足。
+
+```
+gcloud alpha remote-build-execution worker-pools create default \
+    --project=${PROJECT} \
+    --instance=default_instance \
+    --worker-count=50 \
+    --machine-type=n1-highcpu-4 \
+    --disk-size=200
+```
+
+为了使用 RBE，执行：
+
+```
+bazel test --config=remote \
+    --remote_instance_name=projects/${PROJECT}/instances/default_instance \
+    javatests/...
+```
+
 

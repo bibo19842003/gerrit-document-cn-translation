@@ -1313,6 +1313,12 @@ fetch-cmd some://url/to/commit-msg .git/hooks/commit-msg ; chmod +x .git/hooks/c
 
 默认不设置，因为需要额外配置 `HTTP daemon`。
 
+**gerrit.installDbModule**
+
+在 gerrit 启动的时候，部分的 dbInjector 会加载其他 Guice 模块类的重复列表。类会被 gerrit 的加载器进行处理，因此类需要在 gerrit 或者 `/lib` 目录下的 JAR 文件中事先声明。
+
+默认不设置
+
 **gerrit.installModule**
 
 在 Gerrit 启动和初始阶段，加载 Guice 模块的类名的列表。
@@ -1326,6 +1332,7 @@ Example:
 [gerrit]
   installModule = com.googlesource.gerrit.libmodule.MyModule
   installModule = com.example.abc.OurSpecialSauceModule
+  installDbModule = com.example.def.OurCustomProvider
 ```
 
 **gerrit.listProjectsFromIndex**
@@ -1943,13 +1950,13 @@ Elasticsearch 服务器的 URI，格式为：`http[s]://hostname:port`。`port` 
 
 **elasticsearch.numberOfShards**
 
-每个 index 使用的 shard 的数量。可以参考 [Elasticsearch 文档](https://www.elastic.co/guide/en/elasticsearch/reference/current/_basic_concepts.html#getting-started-shards-and-replicas)。
+每个 index 使用的 shard 的数量。可以参考 [Elasticsearch 文档](https://www.elastic.co/guide/en/elasticsearch/reference/current/getting-started-concepts.html#getting-started-shards-and-replicas)。
 
-默认值：5
+Elasticsearch versions 5 或 6 的时候，默认值为 5；从 Elasticsearch 7 开始，默认值为 1 。
 
 **elasticsearch.numberOfReplicas**
 
-每个 index 使用的 replica 的数量。可以参考 [Elasticsearch 文档](https://www.elastic.co/guide/en/elasticsearch/reference/current/_basic_concepts.html#getting-started-shards-and-replicas)。
+每个 index 使用的 replica 的数量。可以参考 [Elasticsearch 文档](https://www.elastic.co/guide/en/elasticsearch/reference/current/getting-started-concepts.html#getting-started-shards-and-replicas)。
 
 默认值：1
 
@@ -2016,6 +2023,12 @@ LDAP 服务器的 URL，用于搜索用户和群组信息。格式必须为：`l
 如果设置为 true, Gerrit 会执行 StartTLS 相关的操作。
 
 默认值：false, 不启用 StartTLS 。
+
+**ldap.supportAnonymous**
+
+如果设置为 false，在连接 gerrit 的时候需要进行认证，并且 `LDAP` 不允许匿名用户绑定 StartTLS 或者重新认证。
+
+默认值：true
 
 **ldap.sslVerify**
 

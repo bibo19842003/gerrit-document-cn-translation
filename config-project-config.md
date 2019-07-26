@@ -323,5 +323,6 @@ change 合入到代码库的方式可以被修改，相关的参数值如下：
 
  此操作会生成新的 patch-set，与 cherry-pick 类似，但 rebase 不能忽略 commit 间的依赖关系。
 
- 如果启用 `Allow content merges`，那么 gerrit 会自动解决冲突，但不保证结果的质量。
+### Allow content merges
+如果启用 `Allow content merges`，那么 gerrit 会自动解决冲突，但不保证结果的质量。
 

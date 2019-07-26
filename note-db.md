@@ -1,6 +1,6 @@
 # Gerrit Code Review - NoteDb Backend
 
-NoteDb 是下一代的 gerrit 后台存储，用来取代 change 和 用户元数据的传统 SQL 后台存储。
+NoteDb 是下一代的 gerrit 后台存储，用来取代 change，账户和群组元数据的传统 SQL 后台存储。
 
 _优势_
 - *简单*: 所有的数据都存储在本地的 project 中。一些数据不在存储在外部的数据库中。
@@ -16,16 +16,14 @@ _优势_
 - 在发布的 2.15 版本中，已实现 notedb 对 用户元数据的存储。在执行 gerrit 升级过程中，用户的元数据从 ReviewDb 自动迁移到 notedb。
 - 在发布的 2.16 版本中，已实现 notedb 对 群组元数据的存储。在执行 gerrit 升级过程中，群组的元数据从 ReviewDb 自动迁移到 notedb。
 - `googlesource.com` 上的账户, 群组 和 change 的元数据已经集成到了 notedb。换句话说，[gerrit-review](https://gerrit-review.googlesource.com/) 已经在使用 notedb 了。
+- NoteDb 目前只有 Gerrit 3.0 支持。change 数据的迁移工具只存在于 Gerrit 2.15 和 2.16 版本中，Gerrit 3.0 不包含此工具。
 
 例如，对应 notedb 中 change ，下载命令为:
+
 ```
   git fetch https://gerrit.googlesource.com/gerrit refs/changes/70/98070/meta \
       && git log -p FETCH_HEAD
 ```
-
-## Future Work ("Gerrit 3.0")
-
-- 从 gerrit 3.0 开始，将使用 NoteDb，不再支持其他的数据库；只支持线下的数据迁移，不支持在线的数据迁移。
 
 ## Migration
 
@@ -34,6 +32,9 @@ _优势_
 只有 change 的 元数据需要手动进行迁移；账户和群组的元数据在 `gerrit.war init` 时会自动迁移。
 
 ### Online
+
+**NOTE:**
+*只有可以在 2.x 版本中可以执行在线数据迁移。若 2.14.x 或 2.15.x 要升级到到 3.0，需要先升级到 2.16.x*
 
 启动在线迁移，需要在 `gerrit.config` 文件中设置 `noteDb.changes.autoMigrate` 参数，并重启 gerrit 服务：
 
@@ -76,10 +77,10 @@ _优势_
 
 * 可以多线程执行，比线上操作要快。
 * 不会影响服务器的性能，因为只往一个地方写入数据
-* Gerrit 2.x 和 3.0 都可以使用
 
-*Disadvantages*
+_劣势_
 
+* 只有 gerrit 2.15 和 2.16 可以使用
 * 需要大量的停机时间。差不多是 [offline reindex](pgm-reindex.md) 两倍的时间。
 
 #### Trial mode

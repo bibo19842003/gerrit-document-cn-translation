@@ -160,16 +160,15 @@ REST API 通过使用每个账户的序列号来识别 SSH keys。这是因为 `
 
 ## External IDs
 
-`External IDs` 用来链接外部的身份标识，例如：LDAP 账户，或者 OAUTH 账户。
+`External IDs` 用来链接内部的身份标识（如：username email）和外部的身份标识（如：LDAP 账户，或者 OAUTH 账户）。
 
 `External IDs` 作为 `Git Notes` 存储在 `All-Users` 的 `refs/meta/external-ids` 分支中。
 
-`external ID` 的 SHA1 作为 note key 来使用。确保 `external ID` 只能使用一次。因为 `external ID` 不能同一时间分配给多个账户使用。
+`external ID` 的 SHA1 作为 note key 来使用，例如：`external ID` `username:jdoe` 对应的 note key 是 `e0b751ae90ef039f320e097d7d212f490e933706`。确保 `external ID` 只能使用一次，因为 `external ID` 不能同一时间分配给多个账户使用。
 
-```
-**重要：**
-如果手动更改了 `external ID`，那么需要手动用新的 SHA1 适配 note key，否则 `external ID` 会与 note key 不一致，进而会被 gerrit 忽略。
-```
+**IMPORTANT:**
+*如果手动更改了 `external ID`，那么需要手动用新的 SHA1 适配 note key，否则 `external ID` 会与 note key 不一致，进而会被 gerrit 忽略。*
+
 note 是 git 风格的文件，格式如下：
 
 ```

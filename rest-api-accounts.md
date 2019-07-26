@@ -437,6 +437,8 @@ _Response_
 
 请求主体中的格式，请参考本文的 HttpPasswordInput 。
 
+需要指定用户名。
+
 _Request_
 ```
   PUT /accounts/self/password.http HTTP/1.0
@@ -2298,6 +2300,7 @@ The `GpgKeyInfo` ，GPG public key 的相关信息
 `HttpPasswordInput` ，用于设置 HTTP password 。
 
 |Field Name     ||Description
+| :------| :------| :------|
 |`generate`     |如果不显示，则为 `false`|是否需要生成新的 HTTP password
 |`http_password`|可选|新的 HTTP password。只有管理员在设置新 HTTP password 时会显示。如果此字段为空或者不设置，并且 `generate` 为 false 或不设置，那么 HTTP password 会被删除。
 
