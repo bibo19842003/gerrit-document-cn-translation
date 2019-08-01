@@ -2857,6 +2857,7 @@ The `BranchInfo` entity contains information about a branch.
 The `BranchInput` entity contains information for the creation of a new branch.
 
 |Field Name||Description
+| :------| :------| :------|
 |`ref`     |optional|The name of the branch. The prefix `refs/heads/` can be omitted. If set, must match the branch ID in the URL.
 |`revision`|optional|The base revision of the new branch. If not set, `HEAD` will be used as base revision.
 
@@ -2938,8 +2939,7 @@ The `ConfigParameterInfo` entity describes a project configuration parameter.
 |`description`     |optional|The description of the configuration parameter.
 |`warning`         |optional|Warning message for the configuration parameter.
 |`type`            ||The type of the configuration parameter. Can be `STRING`, `INT`,`LONG`, `BOOLEAN`, `LIST` or `ARRAY`.
-|`value`           |optional|The value of the configuration parameter as string. If the parameter is inheritable this is the effective value which is deduced from
-`configured_value` and `inherited_value`.
+|`value`           |optional|The value of the configuration parameter as string. If the parameter is inheritable this is the effective value which is deduced from `configured_value` and `inherited_value`.
 |`values`          |optional|The list of values. Only set if the `type` is `ARRAY`.
 |`editable`         |`false` if not set|Whether the value is editable.
 |`permitted_values`|optional|The list of permitted values. Only set if the `type` is `LIST`.
@@ -3060,6 +3060,7 @@ The `ProjectAccessInput` describes changes that should be applied to a project a
 The `ProjectDescriptionInput` entity contains information for setting a project description.
 
 |Field Name      ||Description
+| :------| :------| :------|
 |`description`   |optional|The project description. The project description will be deleted if not set.
 |`commit_message`|optional|Message that should be used to commit the change of the project description in the `project.config` file to the `refs/meta/config` branch.
 
@@ -3155,8 +3156,7 @@ The `TagInfo` entity contains information about a tag.
 |`object`|Only set for annotated tags.|The revision of the object to which the tag points.
 |`message`|Only set for annotated tags.|The tag message. For signed tags, includes the signature.
 |`tagger`|Only set for annotated tags, if present in the tag.|The tagger as a `GitPersonInfo` entity.
-|`created`|optional|The `timestamp` of when the tag was created. For annotated and signed tags, this is the timestamp of the tag object and is the same as the `date` field in the `tagger`. For lightweight tags, it is the commit timestamp of the commit to which the tag points, when the object is a
-commit. It is not set when the object is any other type.
+|`created`|optional|The `timestamp` of when the tag was created. For annotated and signed tags, this is the timestamp of the tag object and is the same as the `date` field in the `tagger`. For lightweight tags, it is the commit timestamp of the commit to which the tag points, when the object is a commit. It is not set when the object is any other type.
 |`can_delete`|not set if `false`|Whether the calling user can delete this tag.
 |`web_links` |optional|Links to the tag in external sites as a list of `WebLinkInfo` entries.
 

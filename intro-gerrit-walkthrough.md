@@ -160,13 +160,15 @@ Hannah 打的 `+2` 意味着 Max 的 change 满足 *Needs Review*　审核．不
 
 Verified 此项审核意味着 change 可以正常工作．这种类型的审核一般涉及的任务如下：编译成功，单元测试通过等．一个 Verified 审核可以根据实际情况配置多个任务．
 
-说明: 此案例是 Gerrit 默认的工作流程. Verified 审核可以定制也可以移除．
+**NOTE:**
+*此案例是 Gerrit 默认的工作流程. Verified 审核可以定制也可以移除．*
 
-Verified 通常使用自动化的方式来处理，如：[Gerrit Trigger Jenkins Plugin](https://wiki.jenkins-ci.org/display/JENKINS/Gerrit+Trigger)．然而，有的时候需要手动执行验证，比如评审人员需要了解 change 的运行机制．为了适应类似的情况，Gerrit 让每个 change 作为一个分支来存在．Gerrit UI 包含一个链接：[*download*](user-review-us.md#download) 可以让评审人员方便下载 change．
-如果要手动执行 Verified ,　需要有 [Verified] permission(config-labels.html#label_Verified) 权限．
+Verified 通常使用自动化的方式来处理，如：[Gerrit Trigger Jenkins Plugin](https://wiki.jenkins-ci.org/display/JENKINS/Gerrit+Trigger)．然而，有的时候需要手动执行验证，比如评审人员需要了解 change 的运行机制．为了适应类似的情况，Gerrit 让每个 change 作为一个分支来存在．Gerrit UI 包含一个链接，可以让评审人员方便下载 change．
+如果要手动执行 Verified ,　需要有 Verified 权限．
 Hannah 有这个权限，所有她可以对Max 的 change 手动给 Verified 打分．
 
-注意: 有 Verified 权限的人员可以看作是验证人员，验证人员和评审人员可以是同一个人，也可以是不同的人．
+**NOTE:**
+*有 Verified 权限的人员可以看作是验证人员，验证人员和评审人员可以是同一个人，也可以是不同的人．*
 
 Verifying the Change
 [Verifying the Change](images/intro-quick-verifying.png)

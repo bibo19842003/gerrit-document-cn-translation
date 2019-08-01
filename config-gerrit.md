@@ -894,12 +894,10 @@ open 状态的 change 自动被 abandon。
 
 默认值：0 ，不自动 abandon change。
 
-```
-**警告：**
-有的时候，启用自动 abandon change 功能会使用户困惑，启用之前，需要先和用户做好沟通。
-```
+**WARNING:**
+*有的时候，启用自动 abandon change 功能会使用户困惑，启用之前，需要先和用户做好沟通。*
 
-下面是支持的单位：
+支持的单位如下：
 
 * `d, day, days`
 * `w, week, weeks` (`1 week` 看作 `7 days`)
@@ -2276,7 +2274,7 @@ plugin 的名称，此 plugin 用于为 `<project-name>/info/lfs/objects/batch` 
 
 **mimetype.<name>.safe**
 
-如果设置为 true, mimetype `<name>` 的文件可以通过浏览器直接下载，而不是压缩包下载。`<name>` 需要指定具体的文件类型，如：`image/gif`, 或者使用通配类型：`+image/*+`，或者使用通配符适配所有类型：`+*/*+`。
+如果设置为 true, mimetype `<name>` 的文件可以通过浏览器直接下载，而不是压缩包下载。`<name>` 需要指定具体的文件类型，如：`image/gif`, 或者使用通配类型：`image/*`，或者使用通配符适配所有类型：`*/*`。
 
 默认值：false
 
@@ -2894,7 +2892,7 @@ Apache SSHD 项目从 version 0.9.0 开始，添加了 NIO2 功能的支持。�
 * `'hostname':'port'` (例如 `review.example.com:29418`)
 * `'IPv4':'port'` (例如 `10.0.0.1:29418`)
 * `['IPv6']:'port'` (例如 `[ff02**1]:29418`)
-* `+*:'port'+` (例如 `+*:29418+`)
+* `*:'port'` (例如 `*:29418`)
 
 如果配置了多个值，daemon 会全都进行监听。
 

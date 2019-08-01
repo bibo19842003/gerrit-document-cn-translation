@@ -715,7 +715,7 @@ new `has:sample_pluginName` operand is shown below:
       @Override
       protected void configure() {
         bind(ChangeHasOperandFactory.class)
-            .annotatedWith(Exports.named("sample")
+            .annotatedWith(Exports.named("sample"))
             .to(SampleHasOperand.class);
       }
     }
@@ -725,6 +725,7 @@ new `has:sample_pluginName` operand is shown below:
         throws QueryParseException {
       return new HasSamplePredicate();
     }
+  }
 ```
 
 ### Command Options
@@ -755,6 +756,7 @@ public class SshModule extends AbstractModule {
       logger.atSevere().log("Say Hello in the Log %s", arg);
     }
   }
+}
 ```
 
 ### Calling Command Options
@@ -1417,7 +1419,7 @@ public class MyPlugin extends PluginEntryPoint {
           @Override
           public void onLoad(Panel panel) {
             panel.setWidget(new InlineLabel("My Panel for change "
-                + panel.getInt(GerritUiExtensionPoint.Key.CHANGE_ID, -1));
+                + panel.getInt(GerritUiExtensionPoint.Key.CHANGE_ID, -1)));
           }
         });
   }
@@ -1905,7 +1907,7 @@ class HelloServlet extends HttpServlet {
 ```
 
 The auto registration only works for standard servlet mappings like
-`/foo` or `+/foo/*+`. Regex style bindings must use a Guice ServletModule
+`/foo` or `/foo/*`. Regex style bindings must use a Guice ServletModule
 to register the HTTP servlets and declare it explicitly in the manifest
 with the `Gerrit-HttpModule` attribute:
 
@@ -2230,7 +2232,7 @@ public class MultiMasterAccountPatchReviewStore
 ## Documentation
 
 If a plugin does not register a filter or servlet to handle URLs
-`+/Documentation/*+` or `+/static/*+`, the core Gerrit server will
+`/Documentation/*` or `/static/*`, the core Gerrit server will
 automatically export these resources over HTTP from the plugin JAR.
 
 Static resources under the `static/` directory in the JAR will be
@@ -2454,6 +2456,7 @@ class MyCommandInterceptor implements SshCreateCommandInterceptor {
   @Override
   public String intercept(String in) {
     return pluginName + " mycommand";
+  }
 ```
 
 ## SSH Command Execution Interception

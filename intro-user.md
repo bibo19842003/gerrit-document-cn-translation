@@ -380,7 +380,7 @@ Gerrit 的 code-review 不是强制的．
 
 ### User-Ref
 
-User 的数据在 `All-Users` 中的 User-Ref 存储．User-Ref 是根据帐号的 account-id 命名的．User-Ref 格式为: `+refs/users/nn/accountid+` ,其中 `+nn+` 是 account-id 的后两位．
+User 的数据在 `All-Users` 中的 User-Ref 存储．User-Ref 是根据帐号的 account-id 命名的．User-Ref 格式为: `refs/users/nn/accountid` ,其中 `nn` 是 account-id 的后两位．
 
 ### Preferences
 

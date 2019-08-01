@@ -98,7 +98,7 @@ _ssh_ -p <port> <host> _gerrit review_
 $ ssh -p 29418 review.example.com gerrit review --verified +1 8242,2
 ```
 
-给 change 号 8242 的第二个 patch-set) 打分 "Code-Review +2"
+给 change 号 8242 的第二个 patch-set 打分 "Code-Review +2"
 ```
 $ ssh -p 29418 review.example.com gerrit review --code-review +2 8242,2
 ```

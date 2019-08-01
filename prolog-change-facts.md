@@ -2,10 +2,8 @@
 
 在为 change 调用 `submit_rule(X)` 查询之前，Gerrit 使用 change 的属性信息（当前数据）初始化 Prolog。下表提供了供属性的描述。
 
-```
-**重要：**
-下面列出的术语在 `gerrit` package 中有定义，要使用它们中的任何一个，必须使用像 `gerrit:change_branch(X)` 这样规范的名称。
-```
+**IMPORTANT:**
+*下面列出的术语在 `gerrit` package 中有定义，要使用它们中的任何一个，必须使用像 `gerrit:change_branch(X)` 这样规范的名称。*
 
 Prolog facts about the current change
 

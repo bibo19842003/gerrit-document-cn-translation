@@ -4,7 +4,7 @@
 
 ## Project-Owner
 
-project-owner 的职责是在 Gerrit 中管理所在的 project，可以对 `+refs/*+` 进行权限控制．project-owner 有权限对 project 实施权限控制和一些其他的配置．
+project-owner 的职责是在 Gerrit 中管理所在的 project，可以对 `refs/*` 进行权限控制．project-owner 有权限对 project 实施权限控制和一些其他的配置．
 
 project-owner 是 project 的管理员，需要比普通用户具备更多的 Git/Gerrit 相关知识．通常，一个团队有 2-3 名 project-owner 就可以了．
 
@@ -53,9 +53,9 @@ project 的网页中，会显示 access-right 权限，如果要查看 parent-pr
 
 access-right 可以为具体的命名空间配置权限，如：`refs/heads/master` ，也可以用正则表达式配置权限．
 
-ref 如果以 `+/*+` 结尾，那么此 ref 包含了子目录的所有的命名空间，如： `+refs/heads/*+` 表示包含所有的分支．
+ref 如果以 `/*` 结尾，那么此 ref 包含了子目录的所有的命名空间，如： `refs/heads/*` 表示包含所有的分支．
 
-正则表达式必须以 `^` 开头，`+^refs/heads/rel-.*+` 表明所有以 `+rel-*+` 开头的分支．
+正则表达式必须以 `^` 开头，`^refs/heads/rel-.*` 表明所有以 `rel-*` 开头的分支．
 
 ### Groups
 
@@ -226,7 +226,7 @@ comment-link 用来将 commit-msg 中的 ID 与 Issue-Tracker 系统的 ID 相�
 
 如果 change 的作者需要特殊的人员帮忙 review ,那么可以手动的将其添加到评审人员列表中，添加后，Gerrit 会给此评审人员发邮件提醒．
 
-plugin: reviewers](https://gerrit-review.googlesource.com/admin/repos/plugins/reviewers) 可以为 change 添加默认的评审人员．安装此 plugin 后，可以在网页 `reviewers Plugin` 部分进行配置． `Projects` > `List` > <your project> > `General` 
+plugin: [reviewers](https://gerrit-review.googlesource.com/admin/repos/plugins/reviewers) 可以为 change 添加默认的评审人员．安装此 plugin 后，可以在网页 `reviewers Plugin` 部分进行配置． `Projects` > `List` > <your project> > `General`
 
 plugin:[reviewers-by-blame](https://gerrit-review.googlesource.com/admin/repos/plugins/reviewers-by-blame) 基于 [git blame](https://www.kernel.org/pub/software/scm/git/docs/git-blame.html) 为 change 自动添加评审人员．plugin 先识别出文件修改处的作者，然后将作者自动添加到评审人员列表．安装此 plugin 后，可以在网页 `reviewers-by-blame Plugin` 部分进行配置． 
 

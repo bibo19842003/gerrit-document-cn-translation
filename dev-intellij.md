@@ -128,10 +128,8 @@ Bazel 的安装可以参考 [使用 Bazel 构建](dev-bazel.md) 的 `Prerequisit
 
 #### Gerrit Daemon
 
-```
-**警告：**
-运行 configuration 的时候，`java.io.FileNotFoundException` 会输出相关结果。为了使用 IntelliJ 调试本地的 gerrit，可以参考 [开发者指导](dev-readme.md) 的 `Running the Daemon` 部分和本文的 `Debugging a remote Gerrit server` 部分。
-```
+**WARNING:**
+*运行 configuration 的时候，`java.io.FileNotFoundException` 会输出相关结果。为了使用 IntelliJ 调试本地的 gerrit，可以参考 [开发者指导](dev-readme.md) 的 `Running the Daemon` 部分和本文的 `Debugging a remote Gerrit server` 部分。*
 
 复制 `$(gerrit_source_code)/tools/intellij/gerrit_daemon.xml` 到 `$(project_data_directory)/.idea/runConfigurations/`，可以运行 gerrit 服务，此服务运行的方式和 [开发者指导](dev-readme.md) 的 `Running the Daemon` 方式类似。
 

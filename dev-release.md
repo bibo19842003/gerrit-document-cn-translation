@@ -153,10 +153,8 @@ plugin 也要打 tag：
 
 `staging repository` 的发布可以参考 [Sonatype OSS Maven Repository 使用指导](https://docs.sonatype.org/display/Repository/Sonatype+OSS+Maven+Repository+Usage+Guide#SonatypeOSSMavenRepositoryUsageGuide-8.a.2.ReleasingaStagingRepository)。
 
-```
-**警告：**
-发布到 Maven 中心库的 artifacts 不能被回退！
-```
+**WARNING:**
+*发布到 Maven 中心库的 artifacts 不能被回退！*
 
     在 [Sonatype Nexus Server](https://oss.sonatype.org/) 找到关闭的 `staging repository`，点击 `Release`。
 

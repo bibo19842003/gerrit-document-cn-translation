@@ -148,7 +148,7 @@ Gerrit 包含验收测试，如：通过 REST, SSH, Git protocol 验证 gerrit �
 
 当 `Inspector` 启动的时候，可以像正常一样使用 gerrit 的所有端口，如：SSH，HTTP。
 
-**NOTE:**
+**CATUTION:**
 *使用 `Inspector` 的时候，不要修改系统的内部状态。*
 
 ## Switching between branches
@@ -160,7 +160,7 @@ Gerrit 包含验收测试，如：通过 REST, SSH, Git protocol 验证 gerrit �
 
 切换分支后，确保子模块的版本是正确的：
 
-**NOTE:**
+**CAUTION:**
 *如果在 gerrit 源码中存放了 Eclipse 或 IntelliJ 的 project 文件，不要执行 `git clean -fdx`。因为这个命令会移除 untracked 文件，并且会毁坏 project。更多信息 请参考 [git-clean](https://git-scm.com/docs/git-clean) 。*
 执行下面命令:
 

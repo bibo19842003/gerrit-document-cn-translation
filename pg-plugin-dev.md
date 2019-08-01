@@ -1,6 +1,6 @@
 # Gerrit Code Review - PolyGerrit Plugin Development
 
-**NOTE:**
+**CAUTION:**
 *此文还有多出地方未完成，暂不进行翻译。*
 
 CAUTION: Work in progress. Hard hat area. Please

@@ -245,7 +245,7 @@ Apache2.0
       origin of the Work and reproducing the content of the NOTICE file.
 
    7. Disclaimer of Warranty. Unless required by applicable law or
-      agreed to in writing, Licensor provides the Work (and each
+      agreed to in writing, Licensor provides the Work and each
       Contributor provides its Contributions) on an "AS IS" BASIS,
       WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
       implied, including, without limitation, any warranties or conditions
@@ -547,9 +547,9 @@ MPL1.1
           Original Code under the terms of this License.
 
           (d) Notwithstanding Section 2.1(b) above, no patent license is
-          granted: 1) for code that You delete from the Original Code; 2)
-          separate from the Original Code;  or 3) for infringements caused
-          by: i) the modification of the Original Code or ii) the
+          granted: (1) for code that You delete from the Original Code; (2)
+          separate from the Original Code;  or (3) for infringements caused
+          by: (i) the modification of the Original Code or (ii) the
           combination of the Original Code with other software or devices.
 
      2.2. Contributor Grant.
@@ -567,8 +567,8 @@ MPL1.1
           selling of  Modifications made by that Contributor either alone
           and/or in combination with its Contributor Version (or portions
           of such combination), to make, use, sell, offer for sale, have
-          made, and/or otherwise dispose of: 1) Modifications made by that
-          Contributor (or portions thereof); and 2) the combination of
+          made, and/or otherwise dispose of: (1) Modifications made by that
+          Contributor (or portions thereof); and (2) the combination of
           Modifications made by that Contributor with its Contributor
           Version (or portions of such combination).
 
@@ -577,12 +577,12 @@ MPL1.1
           the Covered Code.
 
           (d)    Notwithstanding Section 2.2(b) above, no patent license is
-          granted: 1) for any code that Contributor has deleted from the
-          Contributor Version; 2)  separate from the Contributor Version;
-          3)  for infringements caused by: i) third party modifications of
-          Contributor Version or ii)  the combination of Modifications made
+          granted: (1) for any code that Contributor has deleted from the
+          Contributor Version; (2)  separate from the Contributor Version;
+          (3)  for infringements caused by: (i) third party modifications of
+          Contributor Version or (ii)  the combination of Modifications made
           by that Contributor with other software  (except as part of the
-          Contributor Version) or other devices; or 4) under Patent Claims
+          Contributor Version) or other devices; or (4) under Patent Claims
           infringed by Covered Code in the absence of Modifications made by
           that Contributor.
 
@@ -1372,9 +1372,9 @@ claims:
        Original Code under the terms of this License.
 
 2.1.d. Notwithstanding Section 2.1 (b) above, no patent license is
-       granted: 1) for code that You delete from the Original Code;
-       2) separate from the Original Code; or 3) for infringements
-       caused by: i) the modification of the Original Code or ii)
+       granted: (1) for code that You delete from the Original Code;
+       (2) separate from the Original Code; or (3) for infringements
+       caused by: (i) the modification of the Original Code or (ii)
        the combination of the Original Code with other software
        or devices.
 
@@ -1395,8 +1395,8 @@ hereby grants You a world-wide, royalty-free, non-exclusive license
        of Modifications made by that Contributor either alone and/or
        in combination with its Contributor Version (or portions
        of such combination), to make, use, sell, offer for sale,
-       have made, and/or otherwise dispose of: 1) Modifications
-       made by that Contributor (or portions thereof); and 2) the
+       have made, and/or otherwise dispose of: (1) Modifications
+       made by that Contributor (or portions thereof); and (2) the
        combination of Modifications made by that Contributor with
        its Contributor Version (or portions of such combination).
 
@@ -1405,13 +1405,13 @@ hereby grants You a world-wide, royalty-free, non-exclusive license
        Use of the Covered Code.
 
 2.2.c. Notwithstanding Section 2.2 (b) above, no patent license is
-       granted: 1) for any code that Contributor has deleted from
-       the Contributor Version; 2) separate from the Contributor
-       Version; 3) for infringements caused by: i) third party
-       modifications of Contributor Version or ii) the combination
+       granted: (1) for any code that Contributor has deleted from
+       the Contributor Version; (2) separate from the Contributor
+       Version; (3) for infringements caused by: (i) third party
+       modifications of Contributor Version or (ii) the combination
        of Modifications made by that Contributor with other software
        (except as part of the Contributor Version) or other devices;
-       or 4) under Patent Claims infringed by Covered Code in the
+       or (4) under Patent Claims infringed by Covered Code in the
        absence of Modifications made by that Contributor.
 
 3. Distribution Obligations
@@ -1737,13 +1737,13 @@ OF THE PROGRAM CONSTITUTES RECIPIENT'S ACCEPTANCE OF THIS AGREEMENT.
 
 "Contribution" means:
 
-a) in the case of the initial Contributor, the initial code and
+(a) in the case of the initial Contributor, the initial code and
    documentation distributed under this Agreement, and
-b) in the case of each subsequent Contributor:
+(b) in the case of each subsequent Contributor:
 
-i) changes to the Program, and
+(i) changes to the Program, and
 
-ii) additions to the Program;
+(ii) additions to the Program;
 
 where such changes and/or additions to the Program originate from
 and are distributed by that particular Contributor. A Contribution
@@ -1768,14 +1768,14 @@ Agreement, including all Contributors.
 
 2. GRANT OF RIGHTS
 
-a) Subject to the terms of this Agreement, each Contributor hereby
+(a) Subject to the terms of this Agreement, each Contributor hereby
    grants Recipient a non-exclusive, worldwide, royalty-free copyright
    license to reproduce, prepare derivative works of, publicly display,
    publicly perform, distribute and sublicense the Contribution of such
    Contributor, if any, and such derivative works, in source code and
    object code form.
 
-b) Subject to the terms of this Agreement, each Contributor hereby
+(b) Subject to the terms of this Agreement, each Contributor hereby
    grants Recipient a non-exclusive, worldwide, royalty-free patent
    license under Licensed Patents to make, use, sell, offer to sell,
    import and otherwise transfer the Contribution of such Contributor,
@@ -1787,7 +1787,7 @@ b) Subject to the terms of this Agreement, each Contributor hereby
    other combinations which include the Contribution. No hardware per
    se is licensed hereunder.
 
-c) Recipient understands that although each Contributor grants the
+(c) Recipient understands that although each Contributor grants the
    licenses to its Contributions set forth herein, no assurances are
    provided by any Contributor that the Program does not infringe
    the patent or other intellectual property rights of any other
@@ -1801,7 +1801,7 @@ c) Recipient understands that although each Contributor grants the
    it is Recipient's responsibility to acquire that license before
    distributing the Program.
 
-d) Each Contributor represents that to its knowledge it has
+(d) Each Contributor represents that to its knowledge it has
    sufficient copyright rights in its Contribution, if any, to grant
    the copyright license set forth in this Agreement.
 
@@ -1810,32 +1810,32 @@ d) Each Contributor represents that to its knowledge it has
 A Contributor may choose to distribute the Program in object code
   form under its own license agreement, provided that:
 
-a) it complies with the terms and conditions of this Agreement; and
+(a) it complies with the terms and conditions of this Agreement; and
 
-b) its license agreement:
+(b) its license agreement:
 
-i) effectively disclaims on behalf of all Contributors all warranties
+(i) effectively disclaims on behalf of all Contributors all warranties
    and conditions, express and implied, including warranties or
    conditions of title and non-infringement, and implied warranties or
    conditions of merchantability and fitness for a particular purpose;
 
-ii) effectively excludes on behalf of all Contributors all liability
+(ii) effectively excludes on behalf of all Contributors all liability
     for damages, including direct, indirect, special, incidental and
     consequential damages, such as lost profits;
 
-iii) states that any provisions which differ from this Agreement
+(iii) states that any provisions which differ from this Agreement
      are offered by that Contributor alone and not by any other
      party; and
 
-iv) states that source code for the Program is available from such
+(iv) states that source code for the Program is available from such
     Contributor, and informs licensees how to obtain it in a reasonable
     manner on or through a medium customarily used for software exchange.
 
 When the Program is made available in source code form:
 
-a) it must be made available under this Agreement; and
+(a) it must be made available under this Agreement; and
 
-b) a copy of this Agreement must be included with each copy of the Program.
+(b) a copy of this Agreement must be included with each copy of the Program.
 
 Contributors may not remove or alter any copyright notices contained
 within the Program.
@@ -1863,8 +1863,8 @@ with its distribution of the Program in a commercial product
 offering. The obligations in this section do not apply to any claims
 or Losses relating to any actual or alleged intellectual property
 infringement. In order to qualify, an Indemnified Contributor must:
-a) promptly notify the Commercial Contributor in writing of such
-claim, and b) allow the Commercial Contributor to control, and
+(a) promptly notify the Commercial Contributor in writing of such
+claim, and (b) allow the Commercial Contributor to control, and
 cooperate with the Commercial Contributor in, the defense and any
 related settlement negotiations. The Indemnified Contributor may
 participate in any such claim at its own expense.
@@ -2802,15 +2802,15 @@ of it, thus forming a work based on the Program, and copy and
 distribute such modifications or work under the terms of Section 1
 above, provided that you also meet all of these conditions:
 
-    a) You must cause the modified files to carry prominent notices
+    (a) You must cause the modified files to carry prominent notices
     stating that you changed the files and the date of any change.
 
-    b) You must cause any work that you distribute or publish, that in
+    (b) You must cause any work that you distribute or publish, that in
     whole or in part contains or is derived from the Program or any
     part thereof, to be licensed as a whole at no charge to all third
     parties under the terms of this License.
 
-    c) If the modified program normally reads commands interactively
+    (c) If the modified program normally reads commands interactively
     when run, you must cause it, when started running for such
     interactive use in the most ordinary way, to print or display an
     announcement including an appropriate copyright notice and a
@@ -2842,21 +2842,21 @@ a storage or distribution medium does not bring the other work under
 the scope of this License.
 
   3. You may copy and distribute the Program (or a work based on it,
-under Section 2) in object code or executable form under the terms of
+under Section (2) in object code or executable form under the terms of
 Sections 1 and 2 above provided that you also do one of the following:
 
-    a) Accompany it with the complete corresponding machine-readable
+    (a) Accompany it with the complete corresponding machine-readable
     source code, which must be distributed under the terms of Sections
     1 and 2 above on a medium customarily used for software interchange; or,
 
-    b) Accompany it with a written offer, valid for at least three
+    (b) Accompany it with a written offer, valid for at least three
     years, to give any third party, for a charge no more than your
     cost of physically performing source distribution, a complete
     machine-readable copy of the corresponding source code, to be
     distributed under the terms of Sections 1 and 2 above on a medium
     customarily used for software interchange; or,
 
-    c) Accompany it with the information you received as to the offer
+    (c) Accompany it with the information you received as to the offer
     to distribute corresponding source code.  (This alternative is
     allowed only for noncommercial distribution and only if you
     received the program in object code or executable form with such
@@ -3060,13 +3060,13 @@ OF THE PROGRAM CONSTITUTES RECIPIENT'S ACCEPTANCE OF THIS AGREEMENT.
 
 "Contribution" means:
 
-a) in the case of the initial Contributor, the initial code and
+(a) in the case of the initial Contributor, the initial code and
    documentation distributed under this Agreement, and
-b) in the case of each subsequent Contributor:
+(b) in the case of each subsequent Contributor:
 
-i) changes to the Program, and
+(i) changes to the Program, and
 
-ii) additions to the Program;
+(ii) additions to the Program;
 
 where such changes and/or additions to the Program originate from
 and are distributed by that particular Contributor. A Contribution
@@ -3091,14 +3091,14 @@ Agreement, including all Contributors.
 
 2. GRANT OF RIGHTS
 
-a) Subject to the terms of this Agreement, each Contributor hereby
+(a) Subject to the terms of this Agreement, each Contributor hereby
    grants Recipient a non-exclusive, worldwide, royalty-free copyright
    license to reproduce, prepare derivative works of, publicly display,
    publicly perform, distribute and sublicense the Contribution of such
    Contributor, if any, and such derivative works, in source code and
    object code form.
 
-b) Subject to the terms of this Agreement, each Contributor hereby
+(b) Subject to the terms of this Agreement, each Contributor hereby
    grants Recipient a non-exclusive, worldwide, royalty-free patent
    license under Licensed Patents to make, use, sell, offer to sell,
    import and otherwise transfer the Contribution of such Contributor,
@@ -3110,7 +3110,7 @@ b) Subject to the terms of this Agreement, each Contributor hereby
    other combinations which include the Contribution. No hardware per
    se is licensed hereunder.
 
-c) Recipient understands that although each Contributor grants the
+(c) Recipient understands that although each Contributor grants the
    licenses to its Contributions set forth herein, no assurances are
    provided by any Contributor that the Program does not infringe
    the patent or other intellectual property rights of any other
@@ -3124,7 +3124,7 @@ c) Recipient understands that although each Contributor grants the
    it is Recipient's responsibility to acquire that license before
    distributing the Program.
 
-d) Each Contributor represents that to its knowledge it has
+(d) Each Contributor represents that to its knowledge it has
    sufficient copyright rights in its Contribution, if any, to grant
    the copyright license set forth in this Agreement.
 
@@ -3133,32 +3133,32 @@ d) Each Contributor represents that to its knowledge it has
 A Contributor may choose to distribute the Program in object code
   form under its own license agreement, provided that:
 
-a) it complies with the terms and conditions of this Agreement; and
+(a) it complies with the terms and conditions of this Agreement; and
 
-b) its license agreement:
+(b) its license agreement:
 
-i) effectively disclaims on behalf of all Contributors all warranties
+(i) effectively disclaims on behalf of all Contributors all warranties
    and conditions, express and implied, including warranties or
    conditions of title and non-infringement, and implied warranties or
    conditions of merchantability and fitness for a particular purpose;
 
-ii) effectively excludes on behalf of all Contributors all liability
+(ii) effectively excludes on behalf of all Contributors all liability
     for damages, including direct, indirect, special, incidental and
     consequential damages, such as lost profits;
 
-iii) states that any provisions which differ from this Agreement
+(iii) states that any provisions which differ from this Agreement
      are offered by that Contributor alone and not by any other
      party; and
 
-iv) states that source code for the Program is available from such
+(iv) states that source code for the Program is available from such
     Contributor, and informs licensees how to obtain it in a reasonable
     manner on or through a medium customarily used for software exchange.
 
 When the Program is made available in source code form:
 
-a) it must be made available under this Agreement; and
+(a) it must be made available under this Agreement; and
 
-b) a copy of this Agreement must be included with each copy of the Program.
+(b) a copy of this Agreement must be included with each copy of the Program.
 
 Contributors may not remove or alter any copyright notices contained
 within the Program.
@@ -3186,8 +3186,8 @@ with its distribution of the Program in a commercial product
 offering. The obligations in this section do not apply to any claims
 or Losses relating to any actual or alleged intellectual property
 infringement. In order to qualify, an Indemnified Contributor must:
-a) promptly notify the Commercial Contributor in writing of such
-claim, and b) allow the Commercial Contributor to control, and
+(a) promptly notify the Commercial Contributor in writing of such
+claim, and (b) allow the Commercial Contributor to control, and
 cooperate with the Commercial Contributor in, the defense and any
 related settlement negotiations. The Indemnified Contributor may
 participate in any such claim at its own expense.

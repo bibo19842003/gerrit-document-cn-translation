@@ -79,6 +79,7 @@ Apache 服务器使用 'mod_proxy'，需要确保启用了必要的 Apache2 模�
 	    proxy_pass        http://127.0.0.1:8081;
 	    proxy_set_header  X-Forwarded-For $remote_addr;
 	    proxy_set_header  Host $host;
+          }
 	}
 ```
 

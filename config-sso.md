@@ -40,10 +40,9 @@ Gerrit 可以配置两种格式来匹配网络上的任一一家 OpenID 提供�
 
 同一个 gerrit 账户有可能关联多个 OpenID，换句话说，登录 gerrit 的时候，使用了不同的 OpenID。
 
-```
-**警告：**
-有时，用户希望关联另外一个 OpenID，但这个 OpenID 不能单独的进行登录。如果单独登录的话，系统会生成一个新帐号，再次关联此 OpenID 的时候，会失败。如果发生这种情况，管理员需要手动操作合并帐号。如要了解更多，请参考 [Merging Gerrit User Accounts](https://gerrit.googlesource.com/homepage/+/md-pages/docs/SqlMergeUserAccounts.md)。
-```
+**WARNING:**
+*有时，用户希望关联另外一个 OpenID，但这个 OpenID 不能单独的进行登录。如果单独登录的话，系统会生成一个新帐号，再次关联此 OpenID 的时候，会失败。如果发生这种情况，管理员需要手动操作合并帐号。如要了解更多，请参考 [Merging Gerrit User Accounts](https://gerrit.googlesource.com/homepage/+/md-pages/docs/SqlMergeUserAccounts.md)。*
+
 如果 OpenID 提供商停止了服务，那么用户关联其他的 OpenID 是有必要的。
 
 关联一个已经存在的帐号：

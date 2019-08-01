@@ -2,10 +2,8 @@
 
 Gerrit 使用 [Closure Templates](https://developers.google.com/closure/templates/) (Soy) 作为邮件标准，用来发送邮件。如果标准不重载，可以使用内置的默认模板。这些默认的模板可以当作例子来使用，管理员可以复制并进行简单的修改。
 
-```
-**兼容性说明：**
-之前，Velocity Template Language（VTL）被用作 Gerrit 电子邮件的模板语言。现在已经移除了对 VTL 的支持，转而使用 Soy，并且不再支持 Velocity 模板。
-```
+**NOTE:**
+*之前，Velocity Template Language（VTL）被用作 Gerrit 电子邮件的模板语言。现在已经移除了对 VTL 的支持，转而使用 Soy，并且不再支持 Velocity 模板。*
 
 ## Template Locations and Extensions
 

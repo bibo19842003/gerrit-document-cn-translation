@@ -1,271 +1,221 @@
-# Gerrit Code Review for Git (v3.0.0-rc0) 中文翻译
+# Gerrit Code Review for Git (v3.0.1) 中文翻译
 
-## 翻译说明
-
-  * [翻译说明](README.md)
-
-
-## 快速入门
-
-  * [Gerrit 在 Linux 上的快速入门](linux-quickstart.md)
-
-
-## 关于 Gerrit
-
-  * [为什么要 Code Review?](intro-rockstar.md)
-  * [概述说明](intro-quick.md)
-  * [Gerrit 是如何运行的](intro-how-gerrit-works.md)
-  * [Gerrit 演示](intro-gerrit-walkthrough.md)
-
-
-## 指南
-
-  * [用户基本指南](intro-user.md)
-  * [Project-Owner 指南](intro-project-owner.md)
-  * [Android 默认工作流程](Default-Android-Workflow.md)
-
-
-## 教程
-
-#### Web 页面
-
-  * [changes 评审](user-review-ui.md)
-  * [changes 搜索](user-search.md)
-  * [线上编辑 change](user-inline-edit.md)
-  * [邮件订阅](user-notify.md)
-
-#### SSH
-
-  * [SSH 链接说明](user-upload.md)
-  * [命令行工具](cmd-index.md)
-
-#### Git
-
-**命令行使用场景**
-  * [上传 changes](user-upload.md)
-  * [报错信息](error-messages.md)
-
-**Changes**
-  * [change-id](user-changeid.md)
-  * [用户签名](user-signedoffby.md)
-  * [清除 change](user-change-cleanup.md)
-
-
-## Project 管理
-
-  * [Project 配置](project-configuration.md)
-  * [Labels 配置](config-labels.md)
-  * [Project 的配置文件](config-project-config.md)
-  * [访问控制](access-control.md)
-
-#### Multi-project 管理
-
-  * [Submodules](user-submodules.md)
-  * [Repo(外部链接)](https://source.android.com/source/using-repo.html)
-
-#### Prolog 规则
-
-  * [Prolog 说明](prolog-cookbook.md)
-  * [prolog 与 Change](prolog-change-facts.md)
-  * [删除 Project](intro-project-owner.md)
-
-
-##  Customization and Integration
-
-  * [Dashboards](user-dashboards.md)
-  * [REST API](rest-api.md)
-  * [集成 gitweb](config-gitweb.md)
-  * [主题配置](config-themes.md)
-  * [单点登录系统](config-sso.md)
-  * [Hooks](config-hooks.md)
-  * [邮件模板](config-mail.md)
-  * [贡献声明](config-cla.md)
-  * [自动评论](config-robot-comments.md)
-
-
-## 服务器管理员
-
-  * [安装指导](install.md)
-  * [系统配置](config-gerrit.md)
-  * [命令行](cmd-index.md)
-  * [Replication](aaaaaa.md)
-  * [Plugins](config-plugins.md)
-  * [Metrics](metrics.md)
-  * [反向代理](config-reverseproxy.md)
-  * [启动阶段的站点自动初始化](config-auto-site-initialization.md)
-  * [服务器端管理员工具](pgm-index.md)
-  * [请求跟踪](user-request-tracing.md)
-  * [NoteDb](note-db.md)
-  * [NoteDb 中的账户](config-accounts.md)
-  * [NoteDb 中的群组](config-groups.md)
-
-
-## 开发者说明
-
-#### 准备
-
-  * [开发者指导](dev-readme.md)
-  * [使用 Bazel 构建](dev-bazel.md)
-  * [Eclipse 设置](dev-eclipse.md)
-  * [IntelliJ 设置](dev-intellij.md)
-  * [向 Gerrit 社区贡献](dev-contributing.md)
-
-#### Plugin 开发
-
-  * [Plugins 开发说明](dev-plugins.md)
-  * [Gerrit plugins 构建](dev-build-plugins.md)
-  * [JavaScript Plugin API](js-api.md)
-  * [校验](config-validation.md)
-  * [星标 changes](dev-stars.md)
-  * [配额](quota.md)
-  * [系统设计](dev-design.md)
-  * [i18n 支持](i18n-readme.md)
-
-
-## 维护者
-
-  * [发布 Gerrit](dev-release.md)
-  * [发布 Gerrit 子项目](dev-release-subproject.md)
-  * [发布 JGit](dev-release-jgit.md)
-
-
-## 概念
-
-  * [Review Labels](config-labels.md)
-  * [访问控制](access-control.md)
-  * [Changes](concept-changes.md)
-  * [refs/for 命名空间](concept-refs-for-namespace.md)
-  * [Patch 设置](concept-patch-set.md)
-
-
-## 资源
-
-  * [Licenses and Notices](licenses.md)
-  * [Gerrit 主页](https://www.gerritcodereview.com)
-  * [下载](https://www.gerritcodereview.com/download/index.html)
-  * [Issue 跟踪](https://bugs.chromium.org/p/gerrit/issues/list)
-  * [Gerrit 源码](https://gerrit.googlesource.com/gerrit)
-  * [Gerrit Code Review 历史说明](https://www.gerritcodereview.com/about.html)
-
-
-## gerrit 其余文档列表
-  * [cmd-apropos.md](cmd-apropos.md)
-  * [cmd-ban-commit.md](cmd-ban-commit.md)
-  * [cmd-cherry-pick.md](cmd-cherry-pick.md)
-  * [cmd-close-connection.md](cmd-close-connection.md)
-  * [cmd-create-account.md](cmd-create-account.md)
-  * [cmd-create-branch.md](cmd-create-branch.md)
-  * [cmd-create-group.md](cmd-create-group.md)
-  * [cmd-create-project.md](cmd-create-project.md)
-  * [cmd-flush-caches.md](cmd-flush-caches.md)
-  * [cmd-gc.md](cmd-gc.md)
-  * [cmd-hook-commit-msg.md](cmd-hook-commit-msg.md)
-  * [cmd-index-activate.md](cmd-index-activate.md)
-  * [cmd-index-changes-in-project.md](cmd-index-changes-in-project.md)
-  * [cmd-index-changes.md](cmd-index-changes.md)
-  * [cmd-index-start.md](cmd-index-start.md)
-  * [cmd-kill.md](cmd-kill.md)
-  * [cmd-logging-ls-level.md](cmd-logging-ls-level.md)
-  * [cmd-logging-set-level.md](cmd-logging-set-level.md)
-  * [cmd-ls-groups.md](cmd-ls-groups.md)
-  * [cmd-ls-members.md](cmd-ls-members.md)
-  * [cmd-ls-projects.md](cmd-ls-projects.md)
-  * [cmd-ls-user-refs.md](cmd-ls-user-refs.md)
-  * [cmd-plugin-enable.md](cmd-plugin-enable.md)
-  * [cmd-plugin-install.md](cmd-plugin-install.md)
-  * [cmd-plugin-ls.md](cmd-plugin-ls.md)
-  * [cmd-plugin-reload.md](cmd-plugin-reload.md)
-  * [cmd-plugin-remove.md](cmd-plugin-remove.md)
-  * [cmd-query.md](cmd-query.md)
-  * [cmd-receive-pack.md](cmd-receive-pack.md)
-  * [cmd-reload-config.md](cmd-reload-config.md)
-  * [cmd-rename-group.md](cmd-rename-group.md)
-  * [cmd-review.md](cmd-review.md)
-  * [cmd-set-account.md](cmd-set-account.md)
-  * [cmd-set-head.md](cmd-set-head.md)
-  * [cmd-set-members.md](cmd-set-members.md)
-  * [cmd-set-project.md](cmd-set-project.md)
-  * [cmd-set-project-parent.md](cmd-set-project-parent.md)
-  * [cmd-set-reviewers.md](cmd-set-reviewers.md)
-  * [cmd-show-caches.md](cmd-show-caches.md)
-  * [cmd-show-connections.md](cmd-show-connections.md)
-  * [cmd-show-queue.md](cmd-show-queue.md)
-  * [cmd-stream-events.md](cmd-stream-events.md)
-  * [cmd-suexec.md](cmd-suexec.md)
-  * [cmd-test-submit-rule.md](cmd-test-submit-rule.md)
-  * [cmd-test-submit-type.md](cmd-test-submit-type.md)
-  * [cmd-version.md](cmd-version.md)
-  * [concept-patch-sets.md](concept-patch-sets.md)
-  * [config-login-register.md](config-login-register.md)
-  * [Default-Android-Workflow.md](Default-Android-Workflow.md)
-  * [dev-inspector.md](dev-inspector.md)
-  * [dev-release-deploy-config.md](dev-release-deploy-config.md)
-  * [dev-rest-api.md](dev-rest-api.md)
-  * [error-branch-not-found.md](error-branch-not-found.md)
-  * [error-change-closed.md](error-change-closed.md)
-  * [error-change-does-not-belong-to-project.md](error-change-does-not-belong-to-project.md)
-  * [error-changeid-above-footer.md](error-changeid-above-footer.md)
-  * [error-change-not-found.md](error-change-not-found.md)
-  * [error-change-upload-blocked.md](error-change-upload-blocked.md)
-  * [error-commit-already-exists.md](error-commit-already-exists.md)
-  * [error-contains-banned-commit.md](error-contains-banned-commit.md)
-  * [error-has-duplicates.md](error-has-duplicates.md)
-  * [error-invalid-author.md](error-invalid-author.md)
-  * [error-invalid-changeid-line.md](error-invalid-changeid-line.md)
-  * [error-invalid-committer.md](error-invalid-committer.md)
-  * [error-messages.md](error-messages.md)
-  * [error-missing-changeid.md](error-missing-changeid.md)
-  * [error-missing-subject.md](error-missing-subject.md)
-  * [error-multiple-changeid-lines.md](error-multiple-changeid-lines.md)
-  * [error-no-common-ancestry.md](error-no-common-ancestry.md)
-  * [error-no-new-changes.md](error-no-new-changes.md)
-  * [error-non-fast-forward.md](error-non-fast-forward.md)
-  * [error-not-a-gerrit-administrator.md](error-not-a-gerrit-administrator.md)
-  * [error-not-allowed-to-upload-merges.md](error-not-allowed-to-upload-merges.md)
-  * [error-not-permitted-to-create.md](error-not-permitted-to-create.md)
-  * [error-not-signed-off-by.md](error-not-signed-off-by.md)
-  * [error-not-valid-ref.md](error-not-valid-ref.md)
-  * [error-permission-denied.md](error-permission-denied.md)
-  * [error-prohibited-by-gerrit.md](error-prohibited-by-gerrit.md)
-  * [error-project-not-found.md](error-project-not-found.md)
-  * [error-push-fails-due-to-commit-message.md](error-push-fails-due-to-commit-message.md)
-  * [error-push-refschanges-not-allowed.md](error-push-refschanges-not-allowed.md)
-  * [error-same-change-id-in-multiple-changes.md](error-same-change-id-in-multiple-changes.md)
-  * [error-too-many-commits.md](error-too-many-commits.md)
-  * [error-upload-denied.md](error-upload-denied.md)
-  * [install-j2ee.md](install-j2ee.md)
-  * [json.md](json.md)
-  * [pgm-daemon.md](pgm-daemon.md)
-  * [pgm-init.md](pgm-init.md)
-  * [pgm-LocalUsernamesToLowerCase.md](pgm-LocalUsernamesToLowerCase.md)
-  * [pgm-MigrateAccountPatchReviewDb.md](pgm-MigrateAccountPatchReviewDb.md)
-  * [pgm-passwd.md](pgm-passwd.md)
-  * [pgm-prolog-shell.md](pgm-prolog-shell.md)
-  * [pgm-reindex.md](pgm-reindex.md)
-  * [pgm-rulec.md](pgm-rulec.md)
-  * [pgm-SwitchSecureStore.md](pgm-SwitchSecureStore.md)
-  * [pg-plugin-admin-api.md](pg-plugin-admin-api.md)
-  * [pg-plugin-change-metadata-api.md](pg-plugin-change-metadata-api.md)
-  * [pg-plugin-dev.md](pg-plugin-dev.md)
-  * [pg-plugin-endpoints.md](pg-plugin-endpoints.md)
-  * [pg-plugin-migration.md](pg-plugin-migration.md)
-  * [pg-plugin-repo-api.md](pg-plugin-repo-api.md)
-  * [pg-plugin-rest-api.md](pg-plugin-rest-api.md)
-  * [pg-plugin-settings-api.md](pg-plugin-settings-api.md)
-  * [pg-plugin-styling.md](pg-plugin-styling.md)
-  * [README.md](README.md)
-  * [rest-api-access.md](rest-api-access.md)
-  * [rest-api-accounts.md](rest-api-accounts.md)
-  * [rest-api-changes.md](rest-api-changes.md)
-  * [rest-api-config.md](rest-api-config.md)
-  * [rest-api-documentation.md](rest-api-documentation.md)
-  * [rest-api-groups.md](rest-api-groups.md)
-  * [rest-api-plugins.md](rest-api-plugins.md)
-  * [rest-api-projects.md](rest-api-projects.md)
-  * [SUMMARY.md](SUMMARY.md)
-  * [user-named-destinations.md](user-named-destinations.md)
-  * [user-named-queries.md](user-named-queries.md)
-  * [user-search-accounts.md](user-search-accounts.md)
-  * [user-search-groups.md](user-search-groups.md)
-  * [user-search-projects.md](user-search-projects.md)
+* 翻译说明
+    * [翻译说明](README.md)
+* 快速入门
+    * [Gerrit 在 Linux 上的快速入门](linux-quickstart.md)
+* 关于 Gerrit
+    * [为什么要 Code Review?](intro-rockstar.md)
+    * [概述说明](intro-quick.md)
+    * [Gerrit 是如何运行的](intro-how-gerrit-works.md)
+    * [Gerrit 演示](intro-gerrit-walkthrough.md)
+* 指南
+    * [用户基本指南](intro-user.md)
+    * [Project-Owner 指南](intro-project-owner.md)
+    * [Android 默认工作流程](Default-Android-Workflow.md)
+* 教程
+    * Web 页面
+        * [changes 评审](user-review-ui.md)
+        * [changes 搜索](user-search.md)
+        * [线上编辑 change](user-inline-edit.md)
+        * [邮件订阅](user-notify.md)
+    * SSH
+        * [SSH 链接说明](user-upload.md)
+        * [命令行工具](cmd-index.md)
+    * Git
+        * 命令行使用场景
+            * [上传 changes](user-upload.md)
+            * [报错信息](error-messages.md)
+        * Changes
+            * [change-id](user-changeid.md)
+            * [用户签名](user-signedoffby.md)
+            * [清除 change](user-change-cleanup.md)
+* Project 管理
+    * [Project 配置](project-configuration.md)
+        * [Labels 配置](config-labels.md)
+        * [Project 的配置文件](config-project-config.md)
+    * [访问控制](access-control.md)
+    * Multi-project 管理
+        * [Submodules](user-submodules.md)
+        * [Repo(外部链接)](https://source.android.com/source/using-repo.html)
+    * Prolog 规则
+        * [Prolog 说明](prolog-cookbook.md)
+        * [prolog 与 Change](prolog-change-facts.md)
+    * [删除 Project](intro-project-owner.md)
+* Customization and Integration
+    * [Dashboards](user-dashboards.md)
+    * [REST API](rest-api.md)
+    * [集成 gitweb](config-gitweb.md)
+    * [主题配置](config-themes.md)
+    * [单点登录系统](config-sso.md)
+    * [Hooks](config-hooks.md)
+    * [邮件模板](config-mail.md)
+    * [贡献声明](config-cla.md)
+    * [自动评论](config-robot-comments.md)
+* 服务器管理员
+    * [安装指导](install.md)
+    * [系统配置](config-gerrit.md)
+    * [命令行](cmd-index.md)
+    * [Replication](aaaaaa.md)
+    * [Plugins](config-plugins.md)
+    * [Metrics](metrics.md)
+    * [反向代理](config-reverseproxy.md)
+    * [启动阶段的站点自动初始化](config-auto-site-initialization.md)
+    * [服务器端管理员工具](pgm-index.md)
+    * [请求跟踪](user-request-tracing.md)
+    * [NoteDb](note-db.md)
+    * [NoteDb 中的账户](config-accounts.md)
+    * [NoteDb 中的群组](config-groups.md)
+* 开发者说明
+    * 准备
+        * [开发者指导](dev-readme.md)
+        * [使用 Bazel 构建](dev-bazel.md)
+        * [Eclipse 设置](dev-eclipse.md)
+        * [IntelliJ 设置](dev-intellij.md)
+        * [向 Gerrit 社区贡献](dev-contributing.md)
+    * Plugin 开发
+        * [Plugins 开发说明](dev-plugins.md)
+        * [Gerrit plugins 构建](dev-build-plugins.md)
+        * [JavaScript Plugin API](js-api.md)
+        * [校验](config-validation.md)
+        * [星标 changes](dev-stars.md)
+        * [配额](quota.md)
+    * [系统设计](dev-design.md)
+    * [i18n 支持](i18n-readme.md)
+* 维护者
+    * [发布 Gerrit](dev-release.md)
+    * [发布 Gerrit 子项目](dev-release-subproject.md)
+    * [发布 JGit](dev-release-jgit.md)
+* 概念
+    * [Review Labels](config-labels.md)
+    * [访问控制](access-control.md)
+    * [Changes](concept-changes.md)
+    * [refs/for 命名空间](concept-refs-for-namespace.md)
+    * [Patch 设置](concept-patch-set.md)
+* 资源
+    * [Licenses and Notices](licenses.md)
+    * [Gerrit 主页](https://www.gerritcodereview.com)
+    * [下载](https://www.gerritcodereview.com/download/index.html)
+    * [Issue 跟踪](https://bugs.chromium.org/p/gerrit/issues/list)
+    * [Gerrit 源码](https://gerrit.googlesource.com/gerrit)
+    * [Gerrit Code Review 历史说明](https://www.gerritcodereview.com/about.html)
+* gerrit 其余文档列表
+    * [cmd-apropos.md](cmd-apropos.md)
+    * [cmd-ban-commit.md](cmd-ban-commit.md)
+    * [cmd-cherry-pick.md](cmd-cherry-pick.md)
+    * [cmd-close-connection.md](cmd-close-connection.md)
+    * [cmd-create-account.md](cmd-create-account.md)
+    * [cmd-create-branch.md](cmd-create-branch.md)
+    * [cmd-create-group.md](cmd-create-group.md)
+    * [cmd-create-project.md](cmd-create-project.md)
+    * [cmd-flush-caches.md](cmd-flush-caches.md)
+    * [cmd-gc.md](cmd-gc.md)
+    * [cmd-hook-commit-msg.md](cmd-hook-commit-msg.md)
+    * [cmd-index-activate.md](cmd-index-activate.md)
+    * [cmd-index-changes-in-project.md](cmd-index-changes-in-project.md)
+    * [cmd-index-changes.md](cmd-index-changes.md)
+    * [cmd-index-start.md](cmd-index-start.md)
+    * [cmd-kill.md](cmd-kill.md)
+    * [cmd-logging-ls-level.md](cmd-logging-ls-level.md)
+    * [cmd-logging-set-level.md](cmd-logging-set-level.md)
+    * [cmd-ls-groups.md](cmd-ls-groups.md)
+    * [cmd-ls-members.md](cmd-ls-members.md)
+    * [cmd-ls-projects.md](cmd-ls-projects.md)
+    * [cmd-ls-user-refs.md](cmd-ls-user-refs.md)
+    * [cmd-plugin-enable.md](cmd-plugin-enable.md)
+    * [cmd-plugin-install.md](cmd-plugin-install.md)
+    * [cmd-plugin-ls.md](cmd-plugin-ls.md)
+    * [cmd-plugin-reload.md](cmd-plugin-reload.md)
+    * [cmd-plugin-remove.md](cmd-plugin-remove.md)
+    * [cmd-query.md](cmd-query.md)
+    * [cmd-receive-pack.md](cmd-receive-pack.md)
+    * [cmd-reload-config.md](cmd-reload-config.md)
+    * [cmd-rename-group.md](cmd-rename-group.md)
+    * [cmd-review.md](cmd-review.md)
+    * [cmd-set-account.md](cmd-set-account.md)
+    * [cmd-set-head.md](cmd-set-head.md)
+    * [cmd-set-members.md](cmd-set-members.md)
+    * [cmd-set-project.md](cmd-set-project.md)
+    * [cmd-set-project-parent.md](cmd-set-project-parent.md)
+    * [cmd-set-reviewers.md](cmd-set-reviewers.md)
+    * [cmd-show-caches.md](cmd-show-caches.md)
+    * [cmd-show-connections.md](cmd-show-connections.md)
+    * [cmd-show-queue.md](cmd-show-queue.md)
+    * [cmd-stream-events.md](cmd-stream-events.md)
+    * [cmd-suexec.md](cmd-suexec.md)
+    * [cmd-test-submit-rule.md](cmd-test-submit-rule.md)
+    * [cmd-test-submit-type.md](cmd-test-submit-type.md)
+    * [cmd-version.md](cmd-version.md)
+    * [concept-patch-sets.md](concept-patch-sets.md)
+    * [config-login-register.md](config-login-register.md)
+    * [Default-Android-Workflow.md](Default-Android-Workflow.md)
+    * [dev-inspector.md](dev-inspector.md)
+    * [dev-release-deploy-config.md](dev-release-deploy-config.md)
+    * [dev-rest-api.md](dev-rest-api.md)
+    * [error-branch-not-found.md](error-branch-not-found.md)
+    * [error-change-closed.md](error-change-closed.md)
+    * [error-change-does-not-belong-to-project.md](error-change-does-not-belong-to-project.md)
+    * [error-changeid-above-footer.md](error-changeid-above-footer.md)
+    * [error-change-not-found.md](error-change-not-found.md)
+    * [error-change-upload-blocked.md](error-change-upload-blocked.md)
+    * [error-commit-already-exists.md](error-commit-already-exists.md)
+    * [error-contains-banned-commit.md](error-contains-banned-commit.md)
+    * [error-has-duplicates.md](error-has-duplicates.md)
+    * [error-invalid-author.md](error-invalid-author.md)
+    * [error-invalid-changeid-line.md](error-invalid-changeid-line.md)
+    * [error-invalid-committer.md](error-invalid-committer.md)
+    * [error-messages.md](error-messages.md)
+    * [error-missing-changeid.md](error-missing-changeid.md)
+    * [error-missing-subject.md](error-missing-subject.md)
+    * [error-multiple-changeid-lines.md](error-multiple-changeid-lines.md)
+    * [error-no-common-ancestry.md](error-no-common-ancestry.md)
+    * [error-no-new-changes.md](error-no-new-changes.md)
+    * [error-non-fast-forward.md](error-non-fast-forward.md)
+    * [error-not-a-gerrit-administrator.md](error-not-a-gerrit-administrator.md)
+    * [error-not-allowed-to-upload-merges.md](error-not-allowed-to-upload-merges.md)
+    * [error-not-permitted-to-create.md](error-not-permitted-to-create.md)
+    * [error-not-signed-off-by.md](error-not-signed-off-by.md)
+    * [error-not-valid-ref.md](error-not-valid-ref.md)
+    * [error-permission-denied.md](error-permission-denied.md)
+    * [error-prohibited-by-gerrit.md](error-prohibited-by-gerrit.md)
+    * [error-project-not-found.md](error-project-not-found.md)
+    * [error-push-fails-due-to-commit-message.md](error-push-fails-due-to-commit-message.md)
+    * [error-push-refschanges-not-allowed.md](error-push-refschanges-not-allowed.md)
+    * [error-same-change-id-in-multiple-changes.md](error-same-change-id-in-multiple-changes.md)
+    * [error-too-many-commits.md](error-too-many-commits.md)
+    * [error-upload-denied.md](error-upload-denied.md)
+    * [install-j2ee.md](install-j2ee.md)
+    * [json.md](json.md)
+    * [pgm-daemon.md](pgm-daemon.md)
+    * [pgm-init.md](pgm-init.md)
+    * [pgm-LocalUsernamesToLowerCase.md](pgm-LocalUsernamesToLowerCase.md)
+    * [pgm-MigrateAccountPatchReviewDb.md](pgm-MigrateAccountPatchReviewDb.md)
+    * [pgm-passwd.md](pgm-passwd.md)
+    * [pgm-prolog-shell.md](pgm-prolog-shell.md)
+    * [pgm-reindex.md](pgm-reindex.md)
+    * [pgm-rulec.md](pgm-rulec.md)
+    * [pgm-SwitchSecureStore.md](pgm-SwitchSecureStore.md)
+    * [pg-plugin-admin-api.md](pg-plugin-admin-api.md)
+    * [pg-plugin-change-metadata-api.md](pg-plugin-change-metadata-api.md)
+    * [pg-plugin-dev.md](pg-plugin-dev.md)
+    * [pg-plugin-endpoints.md](pg-plugin-endpoints.md)
+    * [pg-plugin-migration.md](pg-plugin-migration.md)
+    * [pg-plugin-repo-api.md](pg-plugin-repo-api.md)
+    * [pg-plugin-rest-api.md](pg-plugin-rest-api.md)
+    * [pg-plugin-settings-api.md](pg-plugin-settings-api.md)
+    * [pg-plugin-styling.md](pg-plugin-styling.md)
+    * [README.md](README.md)
+    * [rest-api-access.md](rest-api-access.md)
+    * [rest-api-accounts.md](rest-api-accounts.md)
+    * [rest-api-changes.md](rest-api-changes.md)
+    * [rest-api-config.md](rest-api-config.md)
+    * [rest-api-documentation.md](rest-api-documentation.md)
+    * [rest-api-groups.md](rest-api-groups.md)
+    * [rest-api-plugins.md](rest-api-plugins.md)
+    * [rest-api-projects.md](rest-api-projects.md)
+    * [user-named-destinations.md](user-named-destinations.md)
+    * [user-named-queries.md](user-named-queries.md)
+    * [user-search-accounts.md](user-search-accounts.md)
+    * [user-search-groups.md](user-search-groups.md)
+    * [user-search-projects.md](user-search-projects.md)
 

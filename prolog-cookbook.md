@@ -108,10 +108,8 @@ change 的完整的属性信息可以参考：[Prolog Facts for Gerrit Change](p
 **NOTE:**
 *只有所有的打分项的 `submit` 返回值是 `ok` 或 `may` 状态，change 才可以合入。*
 
-```
-**重要：**
-Gerrit 会让 Prolog 引擎持续搜索 `submit_rule(X)` 的结果，直到搜索到打分项的状态为 `ok` 或 `may` 或没有结果为止。如果所有的打分项的状态都是 `ok` ，那么之前的搜索出的结果会被忽略。否则，gerrit 页面上打分项会有 `need` 的显示，直到 change 变为可提交状态。
-```
+**IMPORTANT:**
+*Gerrit 会让 Prolog 引擎持续搜索 `submit_rule(X)` 的结果，直到搜索到打分项的状态为 `ok` 或 `may` 或没有结果为止。如果所有的打分项的状态都是 `ok` ，那么之前的搜索出的结果会被忽略。否则，gerrit 页面上打分项会有 `need` 的显示，直到 change 变为可提交状态。*
 
 下面是 `submit_rule` 判断的可能返回值:
 
@@ -119,7 +117,7 @@ Gerrit 会让 Prolog 引擎持续搜索 `submit_rule(X)` 的结果，直到搜�
   submit(label('Code-Review', ok(user(ID))))                        <1>
   submit(label('Code-Review', ok(user(ID))),
       label('Verified', reject(user(ID))))                          <2>
-  submit(label('Author-is-John-Doe', need(_))                       <3>
+  submit(label('Author-is-John-Doe', need(_)))                      <3>
 ```
 
 <1> label `'Code-Review'` 通过，因为没有其他的打分项，所以 change 为可提交状态。
@@ -142,10 +140,9 @@ submit-filter 的目的在于过滤 `submit_rule`，因此 `submit_filter` 函�
 Gerrit 调用 `submit_filter` 时，把 `In` 参数包含了 `submit_rule` 所产生的 `submit` 规则，而 `Out` 参数则为相应的输出结果。
 
 `submit_filter` 的 `Out` 值会成为其下一个父 project 的 `submit_filter` 的 `In` 值。最后一个执行的 `submit_filter` 的 `Out` 参数值，用来表示 change 是否可以提交。
-```
-**重要：**
-`submit_filter` 是 Gerrit 管理员对所有 project 的 submit-rule 的一个管理机制，而 `submit_rule` 是 project-owner 对某 project 的 submit-rule 的一个管理机制。然而，project-owner 管理多个 project 的时候，可以设置一个父 project，然后在这个父 project 中实施 `submit_filter`，这样可以避免所有的 project 中都重复的配置 `submit_rule`。
-```
+
+**IMPORTANT:**
+*`submit_filter` 是 Gerrit 管理员对所有 project 的 submit-rule 的一个管理机制，而 `submit_rule` 是 project-owner 对某 project 的 submit-rule 的一个管理机制。然而，project-owner 管理多个 project 的时候，可以设置一个父 project，然后在这个父 project 中实施 `submit_filter`，这样可以避免所有的 project 中都重复的配置 `submit_rule`。*
 
 下面的 "drawing" 描述了 `submit_rule` 和 `submit_filter` 调用的顺序和结果。
 
@@ -420,7 +417,6 @@ starts_with(L, []).
 starts_with([H|T1], [H|T2]) :- starts_with(T1, T2).
 ```
 
-```
 **NOTE:**
 *`name/2` 内置函数用于转换成字符列表。如，字符串 `abc` 转换成字符列表为 `[97, 98, 99]`； 双引号的字符串 `"abc"` 会转换成 `[97, 98, 99]`。建议字符串用双引号。*
 
@@ -862,9 +858,9 @@ rules.pl
 submit_type(cherry_pick).
 ```
 
-### Example 2: `Fast Forward Only` for all `+refs/heads/stable*+` branches
+### Example 2: `Fast Forward Only` for all `refs/heads/stable*` branches
 
-对 `+refs/heads/stable*+` 命名空间，使用 `Fast Forward Only` 的 submit-type 。原因是不要破坏稳定分支的构建。对应其他并不匹配 `+refs/heads/stable*+` 格式的分支来说，使用 project 的默认 submit-type 。
+对 `refs/heads/stable*` 命名空间，使用 `Fast Forward Only` 的 submit-type 。原因是不要破坏稳定分支的构建。对应其他并不匹配 `refs/heads/stable*` 格式的分支来说，使用 project 的默认 submit-type 。
 
 `rules.pl`
 
@@ -875,5 +871,5 @@ submit_type(fast_forward_only) :-
 submit_type(T) :- gerrit:project_default_submit_type(T).
 ```
 
-第一个 `submit_type` 为 `+refs/heads/stable.*+` 定义了 submit-type  为 `Fast Forward Only`。第二个 `submit_type` 为默认的 submit-type 。
+第一个 `submit_type` 为 `refs/heads/stable.*` 定义了 submit-type  为 `Fast Forward Only`。第二个 `submit_type` 为默认的 submit-type 。
 

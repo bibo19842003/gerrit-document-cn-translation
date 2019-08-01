@@ -469,7 +469,7 @@ service-user 用来 gerrit 和其他系统的集成。比如与 jenkins 系统�
 
 Project-owner 可以配置对 commit 的校验，比如：根据文件名阻止文件的上传，commit-msg 需要有 footers 等。然后 gerrit 会拒绝 commit 的推送。
 
-[Project]https://gerrit-review.googlesource.com/admin/repos/plugins/uploadvalidator) |
+[Project](https://gerrit-review.googlesource.com/admin/repos/plugins/uploadvalidator) |
 [Documentation](https://gerrit.googlesource.com/plugins/uploadvalidator/+doc/master/src/main/resources/Documentation/about.md) |
 [Configuration](https://gerrit.googlesource.com/plugins/uploadvalidator/+doc/master/src/main/resources/Documentation/config.md)
 

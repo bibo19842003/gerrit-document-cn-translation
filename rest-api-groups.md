@@ -1490,8 +1490,8 @@ a Gerrit internal group, or an external group that is known to Gerrit.
 
 
 The type of a group can be deduced from the group's UUID:
-|Description
-| :------|
+|Description|group
+| :------|:------|
 |UUID matches "^[0-9a-f]\{40\}$"|Gerrit internal group
 |UUID starts with "global:"|Gerrit system group
 |UUID starts with "ldap:"|LDAP group

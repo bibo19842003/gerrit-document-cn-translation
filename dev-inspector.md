@@ -16,7 +16,7 @@ _java_ -jar gerrit.war _daemon_
 ## DESCRIPTION
 交互式 Jython 环境中 gerrit 的使用可以参考 [Daemon 文档](pgm-daemon.md)。
 
-**NOTE:**
+**CAUTION:**
 *`Gerrit Inspector` 直接工作在 JVM 对象的实例上面，并可以像调用 Java 函数一些读写实例的成员，甚至是 'private' 和 'protected' 成员。因此，有可能会改变系统的状态。所以使用时要小心，确保相关的数据不要被破坏。*
 
 ## INSTALLATION
@@ -134,7 +134,7 @@ java.lang.RuntimeException: java.lang.RuntimeException: Exiting
 [2012-04-17 13:57:29,611] ERROR com.google.gerrit.pgm.Daemon : Unable to start daemon
 com.google.inject.ProvisionException: Guice provision errors:
 
-1) Error injecting constructor, java.lang.UnsupportedOperationException: Cannot create Jython shell: Class org.python.util.InteractiveConsole not found
+(1) Error injecting constructor, java.lang.UnsupportedOperationException: Cannot create Jython shell: Class org.python.util.InteractiveConsole not found
      (You might need to install jython.jar in the lib directory)
   at com.google.gerrit.pgm.shell.JythonShell.<init>(JythonShell.java:47)
   while locating com.google.gerrit.pgm.shell.JythonShell

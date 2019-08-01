@@ -433,6 +433,7 @@ self.onAction('revision', 'start-build', function (c) {
         },
         function() { c.hide() });
     });
+  });
 });
 ```
 
@@ -679,7 +680,7 @@ class will explode the global stylesheet.
 Gerrit.install(function(self)) {
   var style = {
     name: Gerrit.css('background: #fff; color: #000;'),
-```
+  };
 });
 ```
 
@@ -811,7 +812,7 @@ will eventually leak browser memory.
 var options = {
   link: {
     onclick: function(e) { window.close() },
-```
+  };
 };
 Gerrit.html('<a href="javascript:;" id="{link}">Close</a>', options);
 ```

@@ -37,7 +37,7 @@ dashboard 的 URLs 的配置比较容易，采用键值对的方式，如： `ti
 
 ## Project Dashboards
 
-可以在 project 层级共享定制的 dashboard，不过需要在 project 的 `+refs/meta/dashboards/*+` 分支上进行定制。每个定制 dashboard 需要创建一个配置文件。文件的名称可以作为定制 dashboard 的 title。
+可以在 project 层级共享定制的 dashboard，不过需要在 project 的 `refs/meta/dashboards/*` 分支上进行定制。每个定制 dashboard 需要创建一个配置文件。文件的名称可以作为定制 dashboard 的 title。
 
 dashboard 参考的配置文件如下:
 

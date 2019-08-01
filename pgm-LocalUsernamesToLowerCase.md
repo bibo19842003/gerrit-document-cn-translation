@@ -12,10 +12,8 @@ _java_ -jar gerrit.war _LocalUsernamesToLowerCase_
 ## DESCRIPTION
 将用户名转换为小写。此用户名用于登录 gerrit 页面。
 
-```
-**重要：**
-此命令不修改 `username` scheme 中的用户名。
-```
+**IMPORTANT:**
+*此命令不修改 `username` scheme 中的用户名。*
 
 如果关联了 LDAP 系统，需要在 `gerrit.config` 文件中设置 `ldap.localUsernameToLowerCase` 属性值为 `true` 以后，再执行此命令。
 

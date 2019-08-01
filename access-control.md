@@ -98,11 +98,11 @@ LDAP groups 属于 Account Groups 并在 LDAP 系统中进行维护。LDAP group
 
 用户可以根据权限设置来对打分项进行打分。如，用户是 `Foo Leads` 群组成员，并且在 project 中配置了如下权限：
 
-|Group           |Reference Name |Label      |Range
-| :------| :------|
-|Anonymous Users |refs/heads/*   |Code-Review|-1..+1
-|Registered Users|refs/heads/*   |Code-Review|-1..+2
-|Foo Leads       |refs/heads/*   |Code-Review|-2..0
+|Group           |Reference Name |Label      |Range|
+| :------| :------| :------| :------|
+|Anonymous Users |refs/heads/*   |Code-Review|-1..+1|
+|Registered Users|refs/heads/*   |Code-Review|-1..+2|
+|Foo Leads       |refs/heads/*   |Code-Review|-2..0|
 
 上表中，如果打分范围是 `-2..+2`，那么 `Registered Users` 群组可以打最高分，`Foo Leads` 可以打最低分。
 
@@ -116,11 +116,11 @@ reference 可以使用用户名或者账户的 ID 进行动态命名，如：为
 
 为了确认用户是否有相关权限，gerrit 会检查所有配置文件的设置。如：用户在群组 `Foo Leads` 中，某 change 的待合入分支为 `refs/heads/qa`，相关权限设置如下：
 
-|Group            |Reference Name|Label      |Range   |Exclusive
-| :------| :------|
-|Registered Users |refs/heads/*  |Code-Review| -1..+1 |
-|Foo Leads        |refs/heads/*  |Code-Review| -2..+2 |
-|QA Leads         |refs/heads/qa |Code-Review| -2..+2 |
+|Group            |Reference Name|Label      |Range   |Exclusive|
+| :------| :------| :------| :------| :------|
+|Registered Users |refs/heads/*  |Code-Review| -1..+1 | |
+|Foo Leads        |refs/heads/*  |Code-Review| -2..+2 | |
+|QA Leads         |refs/heads/qa |Code-Review| -2..+2 | |
 
 上面的 reference 使用了通配符，所有群组 `Foo Leads` 有效的打分区间是 `-2..+2`。
 
@@ -130,22 +130,22 @@ Gerrit 在 reference 层级上支持 exclusive 的权限配置方式（取消父
 
 用户在 `Foo Leads` 群组中，某 change 的待合入分支为 `refs/heads/qa`，相关权限设置如下：
 
-|Group           |Reference Name|Label      |Range   |Exclusive
-| :------| :------|
-|Registered Users|refs/heads/*  |Code-Review| -1..+1 |
-|Foo Leads       |refs/heads/*  |Code-Review| -2..+2 |
-|QA Leads        |refs/heads/qa |Code-Review| -2..+2 |X
+|Group           |Reference Name|Label      |Range   |Exclusive|
+| :------| :------| :------| :------| :------|
+|Registered Users|refs/heads/*  |Code-Review| -1..+1 | |
+|Foo Leads       |refs/heads/*  |Code-Review| -2..+2 | |
+|QA Leads        |refs/heads/qa |Code-Review| -2..+2 |X|
 
 这时，此用户没有这个 change 的 `Code-Review` 打分权限，因为 `refs/heads/qa` 分支做了 exclusive 的标识。
 
 如果要给群组 `Foo Leads` 添加 `refs/heads/qa` 分支的 `Code-Review` 的权限，需要单独为此配置权限，如下：
 
-|Group           |Reference Name|Category   |Range   |Exclusive
-| :------| :------|
-|Registered Users|refs/heads/*  |Code-Review| -1..+1 |
-|Foo Leads       |refs/heads/*  |Code-Review| -2..+2 |
-|QA Leads        |refs/heads/qa |Code-Review| -2..+2 |X
-|Foo Leads       |refs/heads/qa |Code-Review| -2..+2 |
+|Group           |Reference Name|Category   |Range   |Exclusive|
+| :------| :------| :------| :------| :------|
+|Registered Users|refs/heads/*  |Code-Review| -1..+1 | |
+|Foo Leads       |refs/heads/*  |Code-Review| -2..+2 | |
+|QA Leads        |refs/heads/qa |Code-Review| -2..+2 |X|
+|Foo Leads       |refs/heads/qa |Code-Review| -2..+2 | |
 
 
 ### OpenID Authentication
@@ -189,7 +189,7 @@ git 使用了两个 reference 命名空间，一个是 branch，另一个是 tag
 
 #### refs/meta/config
 
-project 存放配置文件所使用的分支，此分支有几个重要的文件：`project.config`, `groups`, `+rules.pl`。这些文件实现了访问控制和 change 的 review 管理。
+project 存放配置文件所使用的分支，此分支有几个重要的文件：`project.config`, `groups`, `rules.pl`。这些文件实现了访问控制和 change 的 review 管理。
 
 #### refs/meta/dashboards/*
 
@@ -495,10 +495,8 @@ Integrators 角色有点像核心的开发人员，但有着更多的权限。�
 
 project-owner 角色比 Integrators 权限更大，可以删除 branch。并且可以管理 project 的权限。
 
-```
-**警告：**
-此角色需要对 git 比较了解，对配置管理有着深刻的理解。
-```
+**WARNING:**
+*此角色需要对 git 比较了解，对配置管理有着深刻的理解。*
 
 建议权限如下：
 
@@ -524,7 +522,7 @@ administrator 角色在 gerrit 中的权限是最大的。默认 `Administrators
 
 ## Enforcing site wide access policies
 
-如果某群组 `+refs/*+` 配置了 `Owner` 权限，那么这个群组的成员可以管理这个 project 的权限。
+如果某群组 `refs/*` 配置了 `Owner` 权限，那么这个群组的成员可以管理这个 project 的权限。
 
 在合作开发的过程中，需要配置一些必要的权限。比如，没有人可以更新或者删除 tag，即使管理员或者 project-owner 也不能这样操作。
 
@@ -535,7 +533,7 @@ administrator 角色在 gerrit 中的权限是最大的。默认 `Administrators
 例如，用户在 'Foo Users' 群组中，试图向 'refs/heads/mater' 进行推送，这个时候推送会被阻止，也就是失败。
 
 |Project      | Inherits From    |Reference Name |Permissions            |
-| :------| :------|
+| :------| :------| :------| :------|
 |All-Projects | -                |refs/*         |push = block Foo Users |
 |Foo          | All-Projects     |refs/heads/*   |push = Foo Users       |
 

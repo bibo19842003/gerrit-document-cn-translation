@@ -1,6 +1,6 @@
 # Gerrit Code Review - PolyGerrit Plugin Development
 
-**NOTE:**
+**CAUTION:**
 *此文还未完成。*
 
 ## Incremental migration of existing GWT UI plugins

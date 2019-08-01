@@ -1367,8 +1367,7 @@ The `CacheInfo` entity contains information about a cache.
 |`name`               |not set if returned in a map where the cache name is used as map key|The cache name. If the cache is defined by a plugin the cache name includes the plugin name: "<plugin-name>-<cache-name>".
 |`type`               ||The type of the cache (`MEM`: in memory cache, `DISK`: disk cache).
 |`entries`            ||Information about the entries in the cache as a `EntriesInfo` entity.
-|`average_get`        |optional|The average duration of getting one entry from the cache. The value is returned with a standard time unit abbreviation (`ns`: nanoseconds,
-`us`: microseconds, `ms`: milliseconds, `s`: seconds).
+|`average_get`        |optional|The average duration of getting one entry from the cache. The value is returned with a standard time unit abbreviation (`ns`: nanoseconds, `us`: microseconds, `ms`: milliseconds, `s`: seconds).
 |`hit_ratio`          ||Information about the hit ratio as a `HitRatioInfo` entity.
 
 ### CacheOperationInput
@@ -1530,8 +1529,7 @@ configuration from the `gerrit` section.
 |`all_projects_name` ||Name of the `root project`
 |`all_users_name`    ||Name of the `project in which meta data of all users is stored`
 |`doc_search`        ||Whether documentation search is available.
-|`doc_url`           |optional|Custom base URL where Gerrit server documentation is located.(Documentation may still be available at /Documentation relative to the
-Gerrit base path even if this value is unset.)
+|`doc_url`           |optional|Custom base URL where Gerrit server documentation is located.(Documentation may still be available at /Documentation relative to the Gerrit base path even if this value is unset.)
 |`edit_gpg_keys`     |not set if `false`|Whether to enable the web UI for editing GPG keys.
 |`report_bug_url`    |optional|`URL to report bugs`
 |`report_bug_text`   |optional, not set if default|`Display text for report bugs link`
@@ -1601,8 +1599,7 @@ The `ServerInfo` entity contains information about the configuration of the Gerr
 |`receive`                 |optional|Information about the receive-pack configuration as a `ReceiveInfo` entity.
 |`sshd`                    |optional|Information about the configuration from the `sshd` section as `SshdInfo` entity. Not set if SSHD is disabled.
 |`suggest`                 ||Information about the configuration from the `suggest` section as `SuggestInfo` entity.
-|`url_aliases`             |optional|A map of URL aliases, where a regular expression for an URL token is mapped to a target URL token. The target URL token can contain
-placeholders for the groups matched by the regular expression: `$1` for the first matched group, `$2` for the second matched group, etc.
+|`url_aliases`             |optional|A map of URL aliases, where a regular expression for an URL token is mapped to a target URL token. The target URL token can contain placeholders for the groups matched by the regular expression: `$1` for the first matched group, `$2` for the second matched group, etc.
 |`user`                    ||Information about the configuration from the `user` section as `UserConfigInfo` entity.
 |`default_theme`           |optional|URL to a default PolyGerrit UI theme plugin, if available.Located in `/static/gerrit-theme.html` by default.
 
