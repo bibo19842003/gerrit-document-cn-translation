@@ -1,4 +1,4 @@
-# Gerrit Code Review for Git (v3.0.1) 中文翻译
+# Gerrit Code Review for Git (v3.0.2) 中文翻译
 
 * 翻译说明
     * [翻译说明](README.md)

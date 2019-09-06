@@ -910,6 +910,12 @@ open 状态的 change 自动被 abandon。
 
 默认值：`true`
 
+**changeCleanup.cleanupAccountPatchReview**
+
+change 自动 abondan 的时候，accountPatchReview 的数据是否被移除。
+
+默认值：`false`
+
 **changeCleanup.abandonMessage**
 
 change 被自动清理后，系统发布的相关信息。
@@ -1413,6 +1419,12 @@ PolyGerrit 的 favicon 的路径，包括 icon 名称和扩展名。
 **NOTE:**
 *如果此值与现有 NoteDb 使用的 serverId 不匹配，那么 gerrit 无法使用此 NoteDb，并显示相关异常信息。*
 
+**gerrit.ui**
+
+默认 UI 的配置。有效值为 `polygerrit` 和 `gwt`。
+
+默认值：`polygerrit`
+
 ### Section gitweb
 
 Gerrit 可以将请求转发到内部或外部的 gitweb 上面，可以参考 [Gitweb 集成](config-gitweb.md)。
@@ -1690,10 +1702,8 @@ chmod 600 keystore
 
 默认值：25, 适合于大多数负载不是很高的站点。
 
-```
-NOTE
-除非禁用 SSH daemon，否则可以接受的 Git 请求还包括 SSH 协议，如 `sshd.threads`，`sshd.batchThreads`。
-```
+**NOTE**
+*除非禁用 SSH daemon，否则可以接受的 Git 请求还包括 SSH 协议，如 `sshd.threads`，`sshd.batchThreads`。*
 
 **httpd.maxQueued**
 
@@ -2523,10 +2533,8 @@ repository 在此章节等同于 project。
   defaultSubmitType = CHERRY_PICK
 ```
 
-```
-NOTE
-可以配置多个属性。另外，对于上面的示例来说，`project/plugins/\*` 不会从 `project/*` 继承任何属性配置。
-```
+**NOTE**
+*可以配置多个属性。另外，对于上面的示例来说，`project/plugins/\*` 不会从 `project/*` 继承任何属性配置。*
 
 **repository.<name>.basePath**
 
@@ -2924,12 +2932,10 @@ Apache SSHD 项目从 version 0.9.0 开始，添加了 NIO2 功能的支持。�
 
 用于处理 SSH 命令的线程数量，如果实际的请求超过了此值，那么会使用先到先得的方式进行排队。
 
-默认的线程值为 2 倍的 CPU 数量。
+默认的线程值为 2 倍的 CPU 数量（最少为 4 个线程）。
 
-```
-NOTE
-当启用 SSH daemon 时，同时处理用户 git 请求的最大值是 SSH 和 HTTP 线程的总和。
-```
+**NOTE**
+*当启用 SSH daemon 时，同时处理用户 git 请求的最大值是 SSH 和 HTTP 线程的总和。*
 
 **sshd.batchThreads**
 
@@ -2939,10 +2945,8 @@ NOTE
 
 如果是单核服务器，默认线程数为 1，其他情况下，默认线程数为 2。
 
-```
-NOTE
-当启用 SSH daemon 时，同时处理用户 git 请求的最大值是 SSH 和 HTTP 线程的总和。
-```
+**NOTE**
+*当启用 SSH daemon 时，同时处理用户 git 请求的最大值是 SSH 和 HTTP 线程的总和。*
 
 **sshd.streamThreads**
 

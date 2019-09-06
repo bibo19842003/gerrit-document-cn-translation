@@ -8,7 +8,7 @@
 * Java 版本：8|9|10|11|...
 * Python 2 or 3
 * Node.js
-* [Bazel](https://www.bazel.io/versions/master/docs/install.html)
+* [Bazel](https://docs.bazel.build/versions/master/install.html)
 * Maven
 * zip, unzip
 * gcc
@@ -194,7 +194,7 @@ JAR 文件会被打包在:
 
 ### IntelliJ
 
-构建 gerrit 使用 bazel 的 [IntelliJ plugin](https://ij.bazel.io)，请参考 [IntelliJ 设置](dev-intellij.md) 。
+构建 gerrit 使用 bazel 的 [IntelliJ plugin](https://ij.bazel.build)，请参考 [IntelliJ 设置](dev-intellij.md) 。
 
 ### Eclipse
 
@@ -210,7 +210,7 @@ JAR 文件会被打包在:
 
 #### Refreshing the Classpath
 
-如果 classpath 需要更新，Eclipse 项目会通过执行 `project.py` 来刷新并下载依赖的 JARs 文件。对于 IntelliJ，需要点击 [IntelliJ plugin](https://ij.bazel.io) 的 `Sync Project with BUILD Files` 按钮。
+如果 classpath 需要更新，Eclipse 项目会通过执行 `project.py` 来刷新并下载依赖的 JARs 文件。对于 IntelliJ，需要点击 [IntelliJ plugin](https://ij.bazel.build) 的 `Sync Project with BUILD Files` 按钮。
 
 ### Documentation
 

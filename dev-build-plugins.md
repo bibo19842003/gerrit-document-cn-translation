@@ -104,15 +104,23 @@ CUSTOM_PLUGINS_TEST_DEPS = [
 ]
 ```
 
-如果打包到 release.war 中的 plugin 有外部的依赖，那么这些依赖要添加到 `plugins/external_plugin_deps`。可以给 `external_plugin_deps()` 命名成其他的名字，这样可以被更多的 plugin 导入，例如：
+如果打包到 release.war 中的 plugin 有外部的依赖，那么这些依赖要添加到 `plugins/external_plugin_deps`。在 plugin 目录中，根据 plugin 的 `external_plugin_deps()` 所在文件来创建链接文件，链接文件需要以 plugin 的名称开头，例如：
 
 ```
-load(":my-plugin/external_plugin_deps.bzl", my_plugin="external_plugin_deps")
-load(":my-other-plugin/external_plugin_deps.bzl", my_other_plugin="external_plugin_deps")
+  $ cd plugins
+  $ ln -s oauth/external_plugin_deps.bzl oauth_external_plugin_deps.bzl
+  $ ln -s uploadvalidator/external_plugin_deps.bzl uploadvalidator_external_plugin_deps.bzl
+```
+
+现在可以导入 plugin 依赖的文件：
+
+```
+load(":oauth_external_plugin_deps.bzl", oauth_deps="external_plugin_deps")
+load(":uploadvalidator_external_plugin_deps.bzl", uploadvalidator_deps="external_plugin_deps")
 
 def external_plugin_deps():
-  my_plugin()
-  my_other_plugin()
+  oauth_deps()
+  uploadvalidator_deps()
 ```
 
 **NOTE:**

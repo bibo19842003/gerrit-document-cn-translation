@@ -180,6 +180,7 @@ plugin 也要打 tag：
 
 * 在 [gerrit](https://gerrit-review.googlesource.com/admin/repos/gerrit) 中创建 `stable-$version` 分支
 * 对 `stable-$version` 分支可以做相关修改并合入
+* 创建一个 change，更新 `.gitreview` 的 `defaultbranch` 字段用来匹配分支名称。
 
 #### Push the Release Tag
 

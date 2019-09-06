@@ -188,7 +188,7 @@ submit section 包括了对 submit 的详细设置：
 
 * 'mergeContent': 定义是否自动 merge 文件的修改。有效值为 'true', 'false', 'INHERIT'。默认值为 'INHERIT'。
 
-* 'action': submit 的方式。有效值为 'fast forward only', 'merge if necessary', 'rebase if necessary','merge always', 'cherry pick'。默认值为 'merge if necessary'。
+* 'action': submit 的方式。有效值为 'fast forward only', 'merge if necessary', 'rebase if necessary', 'rebase always', 'merge always', 'cherry pick'。默认值为 'merge if necessary'。
 
 * 'matchAuthorToCommitterDate': 是否将 author 时间修改为 commit 的合入时间，这样 git log 默认会按合入时间对 commit 节点进行排序。有效值为 'true', 'false', 'INHERIT'。默认值为 'INHERIT'。建议在 `Cherry Pick`, `Rebase Always`, `Rebase If Necessary` 情况下启用此参数。
 
@@ -293,7 +293,7 @@ change 合入到代码库的方式可以被修改，相关的参数值如下：
 
 * Fast Forward Only
 
- 此方式不会产生 merge 节点。change 合入的时候，commit 需要在合入分支的顶端。当 commit 较多的时候，合入的效率较低。
+ 此方式在 submit change 的时候不会产生 merge 节点。change 合入的时候，commit 需要在合入分支的顶端。当 commit 较多的时候，合入的效率较低。
 
 * Merge If Necessary
 

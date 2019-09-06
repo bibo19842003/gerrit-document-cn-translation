@@ -96,6 +96,8 @@ Git 默认使用 Vim 作为 commit-msg 的编辑器。将下面的信息添加�
 
 HTTPS 的链接方式需要用户名和密码，可以点击 'Obtain Password' 来获取，如： [HTTP Password tab of the user settings page](https://gerrit-review.googlesource.com/#/settings/http-password)。
 
+另外，可以使用 [git-review](https://pypi.org/project/git-review/) 工具向 gerrit submit change。如果使用这个工具，需要设置 Change-Id hook and `gerrit` 服务器的地址。然后参考 HTTP 的链接操作步骤。
+
 ### Style
 
 此项目有一个 Eclipse 的警告免费代码的策略。Eclipse 配置被添加到 git 中，我们希望修改成警告免费。
