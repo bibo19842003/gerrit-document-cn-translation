@@ -5178,9 +5178,6 @@ parent commit number against which the diff should be generated.  This is useful
 for supporting review of merge commits.  The value is the 1-based index of the
 parent's position in the commit object.
 
-[[weblinks-only]]
-If the `weblinks-only` parameter is specified, only the diff web links are returned.
-
 .Request
 ----
   GET /changes/myProject~master~I8473b95934b5732ac55d26311a706c9c2bde9940/revisions/b6b9c10649b9041884046119ab794374470a1b45/files/gerrit-server%2Fsrc%2Fmain%2Fjava%2Fcom%2Fgoogle%2Fgerrit%2Fserver%2Fproject%2FRefControl.java/diff?base=2 HTTP/1.0
@@ -5911,9 +5908,13 @@ A 40-digit hex SHA-1 of the commit which will be the parent commit of the newly
 created change. If set, it must be a merged commit on the destination branch.
 Mutually exclusive with `base_change`.
 |`new_branch`         |optional, default to `false`|
-Allow creating a new branch when set to `true`.
+Allow creating a new branch when set to `true`. Using this option is
+only possible for non-merge commits (if the `merge` field is not set).
 |`merge`              |optional|
 The detail of a merge commit as a link:#merge-input[MergeInput] entity.
+If set, the target branch (see  `branch` field) must exist (it is not
+possible to create it automatically by setting the `new_branch` field
+to `true`.
 |`notify`             |optional|
 Notify handling that defines to whom email notifications should be sent
 after the change is created. +
