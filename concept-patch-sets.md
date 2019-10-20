@@ -21,12 +21,12 @@
 patch-set 中所修改的文件前面会有一个字符，用来标识文件的修改类型。下面的表格列举了相关类型：
 
 |Letter|Modification Type|Definition
-| :------| :------|
-|M|Modification|The file existed before this change and is modified.
-|A|Added|The file is newly added.
-|D|Deleted|The file is deleted.
-|R|Renamed|The file is renamed.
-|C|Copied|The file is new and is copied from an existing file.
+| :------| :------| :------|
+|M|修改|修改文件中的内容
+|A|添加|新增文件
+|D|删除|删除文件
+|R|重命名|文件重新命名
+|C|复制|复制新的文件
 
 如果类型是 *R* (更名) 或 *C* (复制), 那么在文件名称下面会显示原先文件的名称和路径。
 
