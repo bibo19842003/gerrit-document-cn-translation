@@ -185,8 +185,6 @@ link:intro-user.html#preferences[general],
 link:user-review-ui.html#diff-preferences[diff] and edit preferences:
 
 ----
-[general]
-  showSiteHeader = false
 [diff]
   hideTopMenu = true
 [edit]
@@ -419,7 +417,7 @@ repository must be replicated:
 * `refs/meta/external-ids` (external IDs)
 * `refs/starred-changes/*` (star labels)
 * `refs/sequences/accounts` (account sequence numbers, not needed for Gerrit
-  slaves)
+  replicas)
 
 GERRIT
 ------

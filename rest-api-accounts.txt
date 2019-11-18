@@ -57,8 +57,8 @@ generally disabled by default. Optional fields are:
 
 [[details]]
 --
-* `DETAILS`: Includes full name, preferred email, username and avatars
-for each account.
+* `DETAILS`: Includes full name, preferred email, username, avatars,
+status and state for each account.
 --
 
 [[all-emails]]
@@ -1250,14 +1250,11 @@ any account.
   )]}'
   {
     "changes_per_page": 25,
-    "show_site_header": true,
-    "use_flash_clipboard": true,
     "download_command": "CHECKOUT",
     "date_format": "STD",
     "time_format": "HHMM_12",
     "diff_view": "SIDE_BY_SIDE",
     "size_bar_in_change_table": true,
-    "review_category_strategy": "ABBREV",
     "mute_common_path_prefixes": true,
     "publish_comments_on_push": true,
     "work_in_progress_by_default": true,
@@ -1306,14 +1303,11 @@ link:#preferences-input[PreferencesInput] entity.
 
   {
     "changes_per_page": 50,
-    "show_site_header": true,
-    "use_flash_clipboard": true,
     "expand_inline_diffs": true,
     "download_command": "CHECKOUT",
     "date_format": "STD",
     "time_format": "HHMM_12",
     "size_bar_in_change_table": true,
-    "review_category_strategy": "NAME",
     "diff_view": "SIDE_BY_SIDE",
     "mute_common_path_prefixes": true,
     "my": [
@@ -1357,14 +1351,11 @@ link:#preferences-info[PreferencesInfo] entity.
   )]}'
   {
     "changes_per_page": 50,
-    "show_site_header": true,
-    "use_flash_clipboard": true,
     "expand_inline_diffs": true,
     "download_command": "CHECKOUT",
     "date_format": "STD",
     "time_format": "HHMM_12",
     "size_bar_in_change_table": true,
-    "review_category_strategy": "NAME",
     "diff_view": "SIDE_BY_SIDE",
     "publish_comments_on_push": true,
     "work_in_progress_by_default": true,
@@ -2209,7 +2200,7 @@ The `AccountDetailInfo` entity contains detailed information about an
 account.
 
 `AccountDetailInfo` has the same fields as link:#account-info[
-AccountInfo]. In addition `AccountDetailInfo` has the following fields:
+AccountInfo]. In addition `AccountDetailInfo` has the following field:
 
 [options="header",cols="1,^1,5"]
 |=================================
@@ -2217,8 +2208,6 @@ AccountInfo]. In addition `AccountDetailInfo` has the following fields:
 |`registered_on`     ||
 The link:rest-api.html#timestamp[timestamp] of when the account was
 registered.
-|`inactive`          |not set if `false`|
-Whether the account is inactive.
 |=================================
 
 [[account-external-id-info]]
@@ -2269,9 +2258,14 @@ Only set if detailed account information is requested. +
 See option link:rest-api-changes.html#detailed-accounts[
 DETAILED_ACCOUNTS] for change queries +
 and option link:#details[DETAILS] for account queries.
+|`avatars`         |optional|List of link:#avatar-info[AvatarInfo] +
+entities that provide information about avatar images of the account.
 |`_more_accounts`  |optional, not set if `false`|
 Whether the query would deliver more results if not limited. +
 Only set on the last account that is returned.
+|`status`          |optional|Status message of the account.
+|`inactive`        |not set if `false`|
+Whether the account is inactive.
 |===============================
 
 [[account-input]]
@@ -2316,6 +2310,19 @@ for an account.
 |`status`   |optional|The new status of the account. +
 If not set or if set to an empty string, the account status is deleted.
 |=============================
+
+[[avatar-info]]
+=== AvatarInfo
+The `AccountInfo` entity contains information about an avatar image of
+an account.
+
+[options="header",cols="1,6"]
+|======================
+|Field Name|Description
+|`url`     |The URL to the avatar image.
+|`height`  |The height of the avatar image in pixels.
+|`width`   |The width of the avatar image in pixels.
+|======================
 
 [[capability-info]]
 === CapabilityInfo
@@ -2722,10 +2729,6 @@ The `PreferencesInfo` entity contains information about a user's preferences.
 |`changes_per_page`             ||
 The number of changes to show on each page.
 Allowed values are `10`, `25`, `50`, `100`.
-|`show_site_header`             |not set if `false`|
-Whether the site header should be shown.
-|`use_flash_clipboard`          |not set if `false`|
-Whether to use the flash clipboard widget.
 |`expand_inline_diffs`          |not set if `false`|
 Whether to expand diffs inline instead of opening as separate page
 (PolyGerrit only).
@@ -2750,9 +2753,6 @@ Allowed values are `SIDE_BY_SIDE`, `UNIFIED_DIFF`.
 Whether to show the change sizes as colored bars in the change table.
 |`legacycid_in_change_table`    |not set if `false`|
 Whether to show change number in the change table.
-|`review_category_strategy`     ||
-The strategy used to displayed info in the review category column.
-Allowed values are `NONE`, `NAME`, `EMAIL`, `USERNAME`, `ABBREV`.
 |`mute_common_path_prefixes`    |not set if `false`|
 Whether to mute common path prefixes in file names in the file table.
 |`signed_off_by`                |not set if `false`|
@@ -2764,9 +2764,6 @@ link:rest-api-config.html#top-menu-item-info[TopMenuItemInfo] entities.
 |`change_table`                           ||
 The columns to display in the change table (PolyGerrit only). The default is
 empty, which will default columns as determined by the frontend.
-|`url_aliases`                  |optional|
-A map of URL path pairs, where the first URL path is an alias for the
-second URL path.
 |`email_strategy`               ||
 The type of email strategy to use. On `ENABLED`, the user will receive emails
 from Gerrit. On `CC_ON_OWN_COMMENTS` the user will also receive emails for
@@ -2796,10 +2793,6 @@ user preferences. Fields which are not set will not be updated.
 |`changes_per_page`             |optional|
 The number of changes to show on each page.
 Allowed values are `10`, `25`, `50`, `100`.
-|`show_site_header`             |optional|
-Whether the site header should be shown.
-|`use_flash_clipboard`          |optional|
-Whether to use the flash clipboard widget.
 |`expand_inline_diffs`          |not set if `false`|
 Whether to expand diffs inline instead of opening as separate page
 (PolyGerrit only).
@@ -2822,9 +2815,6 @@ Allowed values are `SIDE_BY_SIDE`, `UNIFIED_DIFF`.
 Whether to show the change sizes as colored bars in the change table.
 |`legacycid_in_change_table`    |optional|
 Whether to show change number in the change table.
-|`review_category_strategy`     |optional|
-The strategy used to displayed info in the review category column.
-Allowed values are `NONE`, `NAME`, `EMAIL`, `USERNAME`, `ABBREV`.
 |`mute_common_path_prefixes`    |optional|
 Whether to mute common path prefixes in file names in the file table.
 |`signed_off_by`                |optional|
@@ -2836,9 +2826,6 @@ link:rest-api-config.html#top-menu-item-info[TopMenuItemInfo] entities.
 |`change_table`                           ||
 The columns to display in the change table (PolyGerrit only). The default is
 empty, which will default columns as determined by the frontend.
-|`url_aliases`                  |optional|
-A map of URL path pairs, where the first URL path is an alias for the
-second URL path.
 |`email_strategy`               |optional|
 The type of email strategy to use. On `ENABLED`, the user will receive emails
 from Gerrit. On `CC_ON_OWN_COMMENTS` the user will also receive emails for

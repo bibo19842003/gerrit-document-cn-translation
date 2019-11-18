@@ -15,10 +15,12 @@ The following metrics are reported.
 
 === Actions
 
-* `action/retry_attempt_counts`: Distribution of number of attempts made
-by RetryHelper to execute an action (1 == single attempt, no retry)
+* `action/retry_attempt_count`: Number of retry attempts made
+by RetryHelper to execute an action (0 == single attempt, no retry)
 * `action/retry_timeout_count`: Number of action executions of RetryHelper
 that ultimately timed out
+* `action/auto_retry_count`: Number of automatic retries with tracing
+* `action/failures_on_auto_retry_count`: Number of failures on auto retry
 
 === Pushes
 
@@ -55,6 +57,11 @@ objects needing finalization.
 * `caches/memory_eviction_count`: Memory eviction count.
 * `caches/disk_cached`: Disk entries used by persistent cache.
 * `caches/disk_hit_ratio`: Disk hit ratio for persistent cache.
+
+=== Change
+
+* `change/submit_rule_evaluation`: Latency for evaluating submit rules on a change.
+* `change/submit_type_evaluation`: Latency for evaluating the submit type on a change.
 
 === HTTP
 
@@ -138,6 +145,10 @@ excluding reindexing
 * `notedb/stage_update_latency`: Latency for staging updates to NoteDb by table.
 * `notedb/read_latency`: NoteDb read latency by table.
 * `notedb/parse_latency`: NoteDb parse latency by table.
+* `notedb/external_id_cache_load_count`: Total number of times the external ID
+  cache loader was called.
+* `notedb/external_id_partial_read_latency`: Latency for generating a new external ID
+  cache state from a prior state.
 * `notedb/external_id_update_count`: Total number of external ID updates.
 * `notedb/read_all_external_ids_latency`: Latency for reading all
 external ID's from NoteDb.

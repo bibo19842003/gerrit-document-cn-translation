@@ -9,7 +9,7 @@ config file that controls many host specific settings for Gerrit.
 The contents of the `etc/gerrit.config` file are cached at startup
 by Gerrit. For most properties, if they are modified in this file, Gerrit
 needs to be restarted before it will use the new values. Some properties
-support being link:#reloadConfig[`reloaded`]' without restart.
+support being link:#reloadConfig[`reloaded`] without restart.
 
 Sample `etc/gerrit.config`:
 ----
@@ -826,7 +826,7 @@ changes for up to 1024 projects can be held in the cache.
 +
 Default value is 0 (disabled). It is disabled by default due to the fact
 that change updates are not communicated between Gerrit servers. Hence
-this cache should be disabled in an multi-master/multi-slave setup.
+this cache should be disabled in an multi-master/multi-replica setup.
 +
 The cache should be flushed whenever the database changes table is modified
 outside of Gerrit.
@@ -874,6 +874,12 @@ It is not recommended to change the in-memory attributes of this cache
 away from the defaults. The cache may be persisted by setting
 `diskLimit`, which is only recommended if cold start performance is
 problematic.
++
+`external_ids_map` supports computing the new cache value based on a
+previously cached state. This applies modifications based on the Git
+diff and is almost always faster.
+`cache.external_ids_map.enablePartialReloads` turns this behavior on
+or off. The default is `true`.
 
 cache `"git_tags"`::
 +
@@ -1151,17 +1157,6 @@ Allow blame on side by side diff. If set to false, blame cannot be used.
 +
 Default is true.
 
-[[change.allowDrafts]]change.allowDrafts::
-+
-Legacy support for drafts workflow. If set to true, pushing a new change
-with draft option will create a private change. Pushing with draft option
-to an existing change will create change edit.
-+
-Enabling this option allows to push to the `refs/drafts/branch`. When
-disabled any push to `refs/drafts/branch` will be rejected.
-+
-Default is false.
-
 [[change.api.allowedIdentifier]]change.api.allowedIdentifier::
 +
 Change identifier(s) that are allowed on the API. See
@@ -1215,6 +1210,42 @@ in change tables and user dashboards.
 +
 By default 500.
 
+[[change.maxUpdates]]change.maxUpdates::
++
+Maximum number of updates to a change. Counts only updates to the main NoteDb
+meta ref; draft comments, robot comments, stars, etc. do not count towards the
+total.
++
+Many NoteDb operations require walking the entire change meta ref and loading
+its contents into memory, so changes with arbitrarily many updates may cause
+high CPU usage, memory pressure, persistent cache bloat, and other problems.
++
+The following operations are allowed even when a change is at the limit:
+* Abandon
+* Submit
+* Submit by push with `%submit`
+* Auto-close by pushing directly to the branch
+* Fix with link:rest-api-changes.html#fix-input[`expect_merged_as`]
++
+By default 1000.
+
+[[change.move]]change.move::
++
+Whether the link:rest-api-changes.html#move-change[Move Change] REST
+endpoint is enabled.
++
+The move change functionality has some corner cases with undesired side
+effects. Hence administrators may decide to disable this functionality.
+In particular, if a change that has dependencies on other changes is
+moved to a new branch, and the moved change gets submitted to the new
+branch, the changes on which the change depends are silently merged
+into the new branch, although these changes have not been moved to that
+branch (see details in
+link:https://bugs.chromium.org/p/gerrit/issues/detail?id=9877[issue
+9877]).
++
+By default true.
+
 [[change.replyLabel]]change.replyLabel::
 +
 Label name for the reply button. In the user interface an ellipsis (…)
@@ -1250,7 +1281,7 @@ Default is false.
 [[change.strictLabels]]change.strictLabels::
 +
 Reject invalid label votes: invalid labels or invalid values. This
-configuration option is provided for backwards compaitbility and may
+configuration option is provided for backwards compatibility and may
 be removed in future gerrit versions.
 +
 Default is false.
@@ -1534,11 +1565,15 @@ line, separated by spaces.
 Execute `java -jar gerrit.war daemon --help` to see all possible
 options.
 
+[[container.replica]]container.replica::
++
+Used on Gerrit replica installations. If set to true the Gerrit JVM is
+called with the '--replica' switch, enabling replica mode. If no value is
+set (or any other value), Gerrit defaults to master mode.
+
 [[container.slave]]container.slave::
 +
-Used on Gerrit slave installations. If set to true the Gerrit JVM is
-called with the '--slave' switch, enabling slave mode. If no value is
-set (or any other value), Gerrit defaults to master mode.
+Backward compatibility for 'container.slave' config setting.
 
 [[container.startupTimeout]]container.startupTimeout::
 +
@@ -1564,6 +1599,10 @@ If not set, defaults to '$site_path/bin/gerrit.war', or to
 
 [[core]]
 === Section core
+
+[NOTE]
+The link:#jgitConfig[etc/jgit.config] file supports configuration of all JGit
+options.
 
 [[core.packedGitWindowSize]]core.packedGitWindowSize::
 +
@@ -2030,14 +2069,6 @@ URL to direct users to when they need to report a bug.
 By default unset, meaning no bug report URL will be displayed. Administrators
 should set this to the URL of their issue tracker, if necessary.
 
-[[gerrit.reportBugText]]gerrit.reportBugText::
-+
-Text to be displayed in the link to the bug report URL.
-+
-Only used when `gerrit.reportBugUrl` is set.
-+
-Defaults to "Report Bug".
-
 [[gerrit.enableReverseDnsLookup]]gerrit.enableReverseDnsLookup::
 +
 Enable reverse DNS lookup during computing ref log entry for identified user,
@@ -2096,12 +2127,6 @@ If this value doesn't match the serverId used when creating an already existing
 NoteDb, Gerrit will not be able to use that instance of NoteDb. The serverId
 used to create the NoteDb will show in the resulting exception message in case
 the value differs.
-
-[[gerrit.ui]]gerrit.ui::
-+
-Configure which UI is the default. Valid values are `polygerrit` and `gwt`.
-+
-Defaults to `polygerrit`.
 
 [[gitweb]]
 === Section gitweb
@@ -2323,57 +2348,122 @@ The httpd section configures the embedded servlet container.
 
 [[httpd.listenUrl]]httpd.listenUrl::
 +
-Specifies the URLs the internal HTTP daemon should listen for
-connections on.  The special hostname '*' may be used to listen
-on all local addresses.  A context path may optionally be included,
-placing Gerrit Code Review's web address within a subdirectory of
-the server.
+Configuration for the listening sockets of the internal HTTP daemon.
+Each entry of `listenUrl` combines the following options for a
+listening socket: protocol, network address, port and context path.
 +
-Multiple protocol schemes are supported:
+_Protocol_ can be either `http://`, `https://`, `proxy-http://` or
+`proxy-https://`. The latter two are special forms of `http://` with
+awareness of a reverse proxy (see below). _Network address_ selects
+the interface and/or scope of the listening socket. For notes
+examples, see below. _Port_ is the TCP port number and is optional
+(default value depends on the protocol). _Context path_ is the
+optional "base URI" for the Gerrit Code Review as application to
+serve on.
 +
-* `http://`'hostname'`:`'port'
+**Protocol** schemes:
++
+* `http://`
 +
 Plain-text HTTP protocol.  If port is not supplied, defaults to 80,
 the standard HTTP port.
 +
-* `https://`'hostname'`:`'port'
+* `https://`
 +
 SSL encrypted HTTP protocol.  If port is not supplied, defaults to
 443, the standard HTTPS port.
 +
-Externally facing production sites are encouraged to use a reverse
-proxy configuration and `proxy-https://` (below), rather than using
-the embedded servlet container to implement the SSL processing.
-The proxy server with SSL support is probably easier to configure,
-provides more configuration options to control cipher usage, and
-is likely using natively compiled encryption algorithms, resulting
-in higher throughput.
+For configuration of the certificate and private key, see
+<<httpd.sslKeyStore,httpd.sslKeyStore>>.
 +
-* `proxy-http://`'hostname'`:`'port'
+[NOTE]
+SSL/TLS configuration capabilities of Gerrit internal HTTP daemon
+are very limited. Externally facing production sites are strongly
+encouraged to use a reverse proxy configuration to handle SSL/TLS
+and use a `proxy-https://` scheme here (below) for security and
+performance reasons.
++
+* `proxy-http://`
 +
 Plain-text HTTP relayed from a reverse proxy.  If port is not
 supplied, defaults to 8080.
 +
-Like http, but additional header parsing features are
-enabled to honor X-Forwarded-For, X-Forwarded-Host and
-X-Forwarded-Server.  These headers are typically set by Apache's
-link:http://httpd.apache.org/docs/2.2/mod/mod_proxy.html#x-headers[mod_proxy].
+Like `http://`, but additional header parsing features are
+enabled to honor `X-Forwarded-For`, `X-Forwarded-Host` and
+`X-Forwarded-Server`.  These headers are typically set by Apache's
+link:https://httpd.apache.org/docs/2.4/mod/mod_proxy.html#x-headers[mod_proxy].
 +
-* `proxy-https://`'hostname'`:`'port'
+[NOTE]
+--
+For secruity reasons, make sure to only allow connections from a
+trusted reverse proxy in your network, as clients could otherwise
+easily spoof these headers and thus spoof their originating IP
+address effectively. If the reverse proxy is running on the same
+machine as Gerrit daemon, the use of a _loopback_ network address
+to bind to (see below) is strongly recommended to mitigate this.
+
+If not using Apache's mod_proxy, validate that your reverse proxy
+sets these headers on all requests. If not, either configure it to
+sanitize them from the origin, or use the `http://` scheme instead.
+--
 +
-Plain text HTTP relayed from a reverse proxy that has already
+* `proxy-https://`
++
+Plain-text HTTP relayed from a reverse proxy that has already
 handled the SSL encryption/decryption.  If port is not supplied,
 defaults to 8080.
 +
-Behaves exactly like proxy-http, but also sets the scheme to assume
-'https://' is the proper URL back to the server.
+Behaves exactly like `proxy-http://`, but also sets the scheme to
+assume `https://` is the proper URL back to the server.
 
 +
 --
+**Network address** forms:
+
+* Loopback (localhost): `127.0.0.1` (IPv4) or `[::1]` (IPv6).
+* All (unspecified): `0.0.0.0` (IPv4), `[::]` (IPv6) or `*`
+  (IPv4 and IPv6)
+* Interface IP address, e.g. `1.2.3.4` (IPv4) or
+  `[2001:db8::a00:20ff:fea7:ccea]` (IPv6)
+* Hostname, resolved at startup time to an address.
+
+**Context path** is the local part of the URL to be used to access
+Gerrit on ('base URL'). E.g. `/gerrit/` to serve Gerrit on that URI
+as base. If set, consider to align this with the
+<<gerrit.canonicalWebUrl,gerrit.canonicalWebUrl>> setting. Correct
+settings may depend on the reverse proxy configuration as well. By
+default, this is `/` so that Gerrit serves requests on the root.
+
 If multiple values are supplied, the daemon will listen on all
 of them.
 
-By default, http://*:8080.
+Examples:
+
+----
+[httpd]
+    listenUrl = proxy-https://127.0.0.1:9999/gerrit/
+[gerrit]
+    # Reverse proxy is configured to serve with SSL/TLS on
+    # example.com and to relay requests on /gerrit/ onto
+    # http://127.0.0.1:9999/gerrit/
+    canonicalWebUrl = https://example.com/gerrit/
+----
+
+----
+[httpd]
+    # Listen on specific external interface with plaintext
+    # HTTP on IPv6.
+    listenUrl = http://[2001:db8::a00:20ff:fea7:ccea]
+
+    # Also listen on specific internal interface for use with
+    # reverse proxy run on another host.
+    listenUrl = proxy-https://192.168.100.123
+----
+
+See also the page on link:config-reverseproxy.html[reverse proxy]
+configuration.
+
+By default, `\http://*:8080`.
 --
 
 [[httpd.reuseAddress]]httpd.reuseAddress::
@@ -2565,7 +2655,7 @@ Example of using a security library secure.jar under $GERRIT_SITE/lib
 that provides a org.anyorg.MySecureHeaderFilter Servlet Filter that enforces
 a trusted username in the `TRUSTED_USER` HTTP Header and
 org.anyorg.MySecureIPFilter that performs source IP security filtering:
-
++
 ----
 [auth]
 	type = HTTP
@@ -2727,28 +2817,28 @@ Defaults to false.
 ==== Subsection index.scheduledIndexer
 
 This section configures periodic indexing. Periodic indexing is
-intended to run only on slaves and only updates the group index.
-Replication to slaves happens on Git level so that Gerrit is not aware
-of incoming replication events. But slaves need an updated group index
+intended to run only on replicas and only updates the group index.
+Replication to replicas happens on Git level so that Gerrit is not aware
+of incoming replication events. But replicas need an updated group index
 to resolve memberships of users for ACL validation. To keep the group
-index in slaves up-to-date the Gerrit slave periodically scans the
+index in replicas up-to-date the Gerrit replica periodically scans the
 group refs in the All-Users repository to reindex groups if they are
 stale.
 
 The scheduled reindexer is not able to detect group deletions that
-happened while the slave was offline, but since group deletions are not
+happened while the replica was offline, but since group deletions are not
 supported this should never happen. If nevertheless groups refs were
-deleted while a slave was offline a full offline link:pgm-reindex.html[
+deleted while a replica was offline a full offline link:pgm-reindex.html[
 reindex] must be performed.
 
-This section is only used if Gerrit runs in slave mode, otherwise it is
+This section is only used if Gerrit runs in replica mode, otherwise it is
 ignored.
 
 [[index.scheduledIndexer.runOnStartup]]index.scheduledIndexer.runOnStartup::
 +
 Whether the scheduled indexer should run once immediately on startup.
-If set to `true` the slave startup is blocked until all stale groups
-were reindexed. Enabling this allows to prevent that slaves that were
+If set to `true` the replica startup is blocked until all stale groups
+were reindexed. Enabling this allows to prevent that replicas that were
 offline for a longer period of time run with outdated group information
 until the first scheduled indexing is done.
 +
@@ -2758,7 +2848,7 @@ Defaults to `true`.
 +
 Whether the scheduled indexer is enabled. If the scheduled indexer is
 disabled you must implement other means to keep the group index for the
-slave up-to-date (e.g. by using ElasticSearch for the indexes).
+replica up-to-date (e.g. by using ElasticSearch for the indexes).
 +
 Defaults to `true`.
 
@@ -2825,6 +2915,46 @@ to disk when the process finishes.
 +
 Defaults to 300000 ms (5 minutes).
 
+
+[[index.name.maxMergeCount]]index.name.maxMergeCount::
++
+Determines the max number of simultaneous merges that are allowed. If a merge
+is necessary yet we already have this many threads running, the incoming thread
+(that is calling add/updateDocument) will block until a merge thread has
+completed.  Note that Lucene will only run the smallest maxThreadCount merges
+at a time. See the
+link:https://lucene.apache.org/core/5_5_0/core/org/apache/lucene/index/ConcurrentMergeScheduler.html#setDefaultMaxMergesAndThreads(boolean)[
+Lucene documentation] for further details.
++
+Defaults to -1 for (auto detection).
+
+
+[[index.name.maxThreadCount]]index.name.maxThreadCount::
++
+Determines the max number of simultaneous Lucene merge threads that should be running at
+once. This must be less than or equal to maxMergeCount. See the
+link:https://lucene.apache.org/core/5_5_0/core/org/apache/lucene/index/ConcurrentMergeScheduler.html#setDefaultMaxMergesAndThreads(boolean)[
+Lucene documentation] for further details.
++
+For further details on Lucene index configuration (auto detection) which
+affects maxThreadCount and maxMergeCount settings.
+See the
+link:https://lucene.apache.org/core/5_5_0/core/org/apache/lucene/index/ConcurrentMergeScheduler.html#AUTO_DETECT_MERGES_AND_THREADS[
+Lucene documentation]
++
+Defaults to -1 for (auto detection).
+
+[[index.name.enableAutoIOThrottle]]index.name.enableAutoIOThrottle::
++
+Allows the control of whether automatic IO throttling is enabled and used by
+default in the lucene merge queue.  Automatic dynamic IO throttling, which when
+on is used to adaptively rate limit writes bytes/sec to the minimal rate necessary
+so merges do not fall behind. See the
+link:https://lucene.apache.org/core/5_5_0/core/org/apache/lucene/index/ConcurrentMergeScheduler.html#enableAutoIOThrottle()[
+Lucene documentation] for further details.
++
+Defaults to true (throttling enabled).
+
 Sample Lucene index configuration:
 ----
 [index]
@@ -2833,10 +2963,17 @@ Sample Lucene index configuration:
 [index "changes_open"]
   ramBufferSize = 60 m
   maxBufferedDocs = 3000
+  maxThreadCount = 5
+  maxMergeCount = 50
+
 
 [index "changes_closed"]
   ramBufferSize = 20 m
   maxBufferedDocs = 500
+  maxThreadCount = 10
+  maxMergeCount = 100
+  enableIOThrottle = false
+
 ----
 
 [[elasticsearch]]
@@ -2916,6 +3053,31 @@ If a password is set, defaults to `elastic`, otherwise not set by default.
 Password used to connect to Elasticsearch.
 +
 Not set by default.
+
+[[event]]
+=== Section event
+
+[[event.payload.listChangeOptions]]events.payload.listChangeOptions::
++
+List of options that Gerrit applies when rendering the payload of an
+internal event. This is the same set of options that are documented
+link:rest-api-changes.html#query-options[here].
++
+Depending on the setup, these events might get serialized using stream
+events.
++
+This can be set to the set of minimal options that consumers of Gerrit's
+events need. A minimal set would be (`SKIP_MERGEABLE`,`SKIP_DIFFSTAT`).
++
+Every option that gets added here will have a performance impact. The
+general recommendation is therefore to set this to a minimal set of
+required options.
++
+Defaults to all available options minus `CHANGE_ACTIONS`,
+`CURRENT_ACTIONS` and `CHECK`. This is a rich default to make sure the
+config is backwards compatible with what the default was before the config
+was added.
+
 
 [[ldap]]
 === Section ldap
@@ -3479,6 +3641,14 @@ Enable remote installation, enable and disable of plugins over HTTP
 and SSH.  If set to true Administrators can install new plugins
 remotely, or disable existing plugins.  Defaults to false.
 
+[[plugins.mandatory]]plugins.mandatory::
++
+List of mandatory plugins. If a plugin from this list does not load,
+Gerrit will fail to start.
++
+Disabling and restarting of a mandatory plugin is rejected, but reloading
+of a mandatory plugin is still possible.
+
 [[plugins.jsLoadTimeout]]plugins.jsLoadTimeout::
 +
 Set the timeout value for loading JavaScript plugins in Gerrit UI.
@@ -3500,17 +3670,6 @@ Name of the groups of users that are allowed to execute
 +
 If no groups are added, any user will be allowed to execute
 'receive-pack' on the server.
-
-[[receive.allowPushToRefsChanges]]receive.allowPushToRefsChanges::
-+
-If true, it is possible to push directly to a change using `refs/changes/`.
-The possibility to push to `refs/changes/` is deprecated and it might be
-removed in future releases.
-See link:user-upload.html#manual_replacement_mapping[Manual Replacement Mapping].
-+
-False means pushing to `refs/changes/` is prohibited.
-+
-Defaults to false.
 
 [[receive.certNonceSeed]]receive.certNonceSeed::
 +
@@ -3794,6 +3953,14 @@ attempt fails. `<operationType>` can be `ACCOUNT_UPDATE`, `CHANGE_UPDATE`,
 Defaults to link:#retry.timeout[`retry.timeout`]; unit suffixes are supported,
 and assumes milliseconds if not specified.
 
+[[retry.retryWithTraceOnFailure]]retry.retryWithTraceOnFailure::
++
+Whether Gerrit should automatically retry operations on failure with tracing
+enabled. The automatically generated traces can help with debugging. Please
+note that only some of the REST endpoints support automatic retry.
++
+By default this is set to false.
+
 [[rules]]
 === Section rules
 
@@ -3860,7 +4027,8 @@ Default is 256.
 The default size of the background execution thread pool in
 which miscellaneous tasks are handled.
 +
-Default is 1.
+Default and minimum is 2 so that a single, potentially longer executing
+task (e.g. GC), is not blocking the entire execution.
 
 [[execution.fanOutThreadPoolSize]]execution.fanOutThreadPoolSize::
 +
@@ -4196,7 +4364,7 @@ through slow networks, gits with huge amount of refs can benefit from
 SSH-compression since git does not compress the ref announcement during
 handshake.
 +
-Compression can be especially useful when Gerrit slaves are being used
+Compression can be especially useful when Gerrit replicas are being used
 for the larger clones and fetches and the master server mostly takes
 small receive-packs.
 +
@@ -4205,8 +4373,8 @@ By default, `false`.
 [[sshd.backend]]sshd.backend::
 +
 Starting from version 0.9.0 Apache SSHD project added support for NIO2
-IoSession. To use the new NIO2 session the `backend` option must be set
-to `NIO2`. Otherwise, this option must be set to `MINA`.
+IoSession. To use the old MINA session the `backend` option must be set
+to `MINA`.
 +
 By default, `NIO2`.
 
@@ -4537,6 +4705,72 @@ used for suggesting accounts when adding members to a group.
 +
 By default 0.
 
+[[tracing]]
+=== Section tracing
+
+[[tracing.performanceLogging]]tracing.performanceLogging::
++
+Whether performance logging is enabled.
++
+When performance logging is enabled, performance events for some
+operations are collected in memory while a request is running. At the
+end of the request the performance events are handed over to the
+link:dev-plugins.html#performance-logger[PerformanceLogger] plugins.
+This means if performance logging is enabled, the memory footprint of
+requests is slightly increased.
++
+This setting has no effect if no
+link:dev-plugins.html#performance-logger[PerformanceLogger] plugins are
+installed, because then performance logging is always disabled.
++
+By default, true.
+
+[[tracing.traceid]]
+==== Subsection tracing.<trace-id>
+
+There can be multiple `tracing.<trace-id>` subsections to configure
+automatic tracing of requests. To be traced a request must match all
+conditions of one `tracing.<trace-id>` subsection. The subsection name
+is used as trace ID. Using this trace ID administrators can find
+matching log entries.
+
+[[tracing.traceid.requestType]]tracing.<trace-id>.requestType::
++
+Type of request for which request tracing should be always enabled (can
+be `GIT_RECEIVE`, `GIT_UPLOAD`, `REST` and `SSH`).
++
+May be specified multiple times.
++
+By default, unset (all request types are matched).
+
+[[tracing.traceid.requestUriPattern]]tracing.<trace-id>.requestUriPattern::
++
+Regular expression to match request URIs for which request tracing
+should be always enabled. Request URIs are only available for REST
+requests. Request URIs never include the '/a' prefix.
++
+May be specified multiple times.
++
+By default, unset (all request URIs are matched).
+
+[[tracing.traceid.account]]tracing.<trace-id>.account::
++
+Account ID of an account for which request tracing should be always
+enabled.
++
+May be specified multiple times.
++
+By default, unset (all accounts are matched).
+
+[[tracing.traceid.projectPattern]]tracing.<trace-id>.projectPattern::
++
+Regular expression to match project names for which request tracing
+should be always enabled.
++
+May be specified multiple times.
++
+By default, unset (all projects are matched).
+
 [[trackingid]]
 === Section trackingid
 
@@ -4652,47 +4886,6 @@ account deactivations.
 
 link:#schedule-configuration-examples[Schedule examples] can be found
 in the link:#schedule-configuration[Schedule Configuration] section.
-
-[[urlAlias]]
-=== Section urlAlias
-
-URL aliases define regular expressions for URL tokens that are mapped
-to target URL tokens.
-
-Each URL alias must be specified in its own subsection. The subsection
-name should be a descriptive name. It must be unique, but is not
-interpreted in any way.
-
-The URL aliases are applied in no particular order. The first matching
-URL alias is used and further matches are ignored.
-
-URL aliases can be used to map plugin screens into the Gerrit URL
-namespace, or to replace Gerrit screens by plugin screens.
-
-Example:
-
-----
-[urlAlias "MyPluginScreen"]
-  match = /myscreen/(.*)
-  token = /x/myplugin/myscreen/$1
-[urlAlias "MyChangeScreen"]
-  match = /c/(.*)
-  token = /x/myplugin/c/$1
-----
-
-[[urlAlias.match]]urlAlias.match::
-+
-A regular expression for a URL token.
-+
-The matched URL token is replaced by `urlAlias.token`.
-
-[[urlAlias.token]]urlAlias.token::
-+
-The target URL token.
-+
-It can contain placeholders for the groups matched by the
-`urlAlias.match` regular expression: `$1` for the first matched group,
-`$2` for the second matched group, etc.
 
 [[submodule]]
 === Section submodule
@@ -4926,6 +5119,19 @@ Files in this directory provide additional configuration.
 Other files support site customization.
 +
 * link:config-themes.html[Themes]
+
+[[jgitConfig]]
+== File `etc/jgit.config`
+
+Gerrit uses the `$site_path/etc/jgit.config` file instead of the
+system-wide and user-global Git configuration for its runtime JGit
+configuration.
+
+Sample `etc/jgit.config` file:
+----
+[core]
+  trustFolderStat = false
+----
 
 GERRIT
 ------

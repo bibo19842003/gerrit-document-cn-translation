@@ -8,7 +8,8 @@ To build Gerrit from source, you need:
 * A Linux or macOS system (Windows is not supported at this time)
 * A JDK for Java 8|9|10|11|...
 * Python 2 or 3
-* Node.js
+* link:https://github.com/nodesource/distributions/blob/master/README.md[Node.js (including npm)]
+* Bower (`sudo npm install -g bower`)
 * link:https://docs.bazel.build/versions/master/install.html[Bazel]
 * Maven
 * zip, unzip
@@ -17,17 +18,31 @@ To build Gerrit from source, you need:
 [[java]]
 === Java
 
-[[java-10]]
-==== Java 10 support
+==== MacOS
 
-Java 10 (and newer) is supported through vanilla java toolchain
+On MacOS, ensure that "Java for MacOS X 10.5 Update 4" (or higher) is installed
+and that `JAVA_HOME` is set to the
+link:install.html#Requirements[required Java version].
+
+Java installations can typically be found in
+"/System/Library/Frameworks/JavaVM.framework/Versions".
+
+To check the installed version of Java, open a terminal window and run:
+
+`java -version`
+
+[[java-12]]
+==== Java 12 support
+
+Java 12 (and newer) is supported through vanilla java toolchain
 link:https://docs.bazel.build/versions/master/toolchains.html[Bazel option].
-To build Gerrit with Java 10 and newer, specify vanilla java toolchain and
+To build Gerrit with Java 12 and newer, specify vanilla java toolchain and
 provide the path to JDK home:
 
 ```
   $ bazel build \
-    --define=ABSOLUTE_JAVABASE=<path-to-java-10> \
+    --define=ABSOLUTE_JAVABASE=<path-to-java-12> \
+    --javabase=@bazel_tools//tools/jdk:absolute_javabase \
     --host_javabase=@bazel_tools//tools/jdk:absolute_javabase \
     --host_java_toolchain=@bazel_tools//tools/jdk:toolchain_vanilla \
     --java_toolchain=@bazel_tools//tools/jdk:toolchain_vanilla \
@@ -39,7 +54,7 @@ bazel test runs the test using the target javabase:
 
 ```
   $ bazel test \
-    --define=ABSOLUTE_JAVABASE=<path-to-java-10> \
+    --define=ABSOLUTE_JAVABASE=<path-to-java-12> \
     --javabase=@bazel_tools//tools/jdk:absolute_javabase \
     --host_javabase=@bazel_tools//tools/jdk:absolute_javabase \
     --host_java_toolchain=@bazel_tools//tools/jdk:toolchain_vanilla \
@@ -52,7 +67,7 @@ they could be added to ~/.bazelrc resource file:
 
 ```
 $ cat << EOF > ~/.bazelrc
-> build --define=ABSOLUTE_JAVABASE=<path-to-java-10>
+> build --define=ABSOLUTE_JAVABASE=<path-to-java-12>
 > build --javabase=@bazel_tools//tools/jdk:absolute_javabase
 > build --host_javabase=@bazel_tools//tools/jdk:absolute_javabase
 > build --host_java_toolchain=@bazel_tools//tools/jdk:toolchain_vanilla
@@ -63,36 +78,24 @@ $ cat << EOF > ~/.bazelrc
 Now, invoking Bazel with just `bazel build :release` would include
 all those options.
 
-Note that the follow option must be added to `container.javaOptions`
-in `$gerrit_site/etc/gerrit.config` to run Gerrit with Java 10|11|...:
+[[java-11]]
+==== Java 11 support
 
-```
-[container]
-  javaOptions = --add-opens=jdk.management/com.sun.management.internal=ALL-UNNAMED
-```
-
-[[java-9]]
-==== Java 9 support
-
-Java 9 is supported through alternative java toolchain
+Java 11 is supported through alternative java toolchain
 link:https://docs.bazel.build/versions/master/toolchains.html[Bazel option].
-The Java 9 support is backwards compatible. Java 8 is still the default.
-To build Gerrit with Java 9, specify JDK 9 java toolchain:
+To build Gerrit with Java 11, specify JDK 11 java toolchain:
 
 ```
   $ bazel build \
-      --host_java_toolchain=@bazel_tools//tools/jdk:toolchain_java9 \
-      --java_toolchain=@bazel_tools//tools/jdk:toolchain_java9 \
+      --host_javabase=@bazel_tools//tools/jdk:remote_jdk11 \
+      --javabase=@bazel_tools//tools/jdk:remote_jdk11 \
+      --host_java_toolchain=@bazel_tools//tools/jdk:toolchain_java11 \
+      --java_toolchain=@bazel_tools//tools/jdk:toolchain_java11 \
       :release
 ```
 
-Note that the follow option must be added to `container.javaOptions`
-in `$gerrit_site/etc/gerrit.config` to run Gerrit with Java 9:
-
-```
-[container]
-  javaOptions = --add-opens=jdk.management/com.sun.management.internal=ALL-UNNAMED
-```
+=== Node.js and npm packages
+See link:https://gerrit.googlesource.com/gerrit/+/master/polygerrit-ui/README.md#installing-node_js-and-npm-packages[Installing Node.js and npm packages].
 
 [[build]]
 == Building on the Command Line
@@ -104,10 +107,6 @@ To build the Gerrit web application:
 ----
   bazel build gerrit
 ----
-
-[NOTE]
-PolyGerrit UI may require additional tools (such as npm). Please read
-the polygerrit-ui/README.md for more info.
 
 The output executable WAR will be placed in:
 
@@ -206,13 +205,6 @@ The output JAR file will be be placed in:
 
 Note that when building an individual plugin, the `core.zip` package
 is not regenerated.
-
-To build with all Error Prone warnings activated, run:
-
-----
-  bazel build --java_toolchain //tools:error_prone_warnings_toolchain //...
-----
-
 
 [[IDEs]]
 == Using an IDE.
@@ -381,16 +373,16 @@ repository has precedence.
 
 == Building against unpublished Maven JARs
 
-To build against unpublished Maven JARs, like gwtorm or PrologCafe, the custom
-JARs must be installed in the local Maven repository (`mvn clean install`) and
+To build against unpublished Maven JARs, like PrologCafe, the custom JARs must
+be installed in the local Maven repository (`mvn clean install`) and
 `maven_jar()` must be updated to point to the `MAVEN_LOCAL` Maven repository for
 that artifact:
 
 [source,python]
 ----
  maven_jar(
-   name = 'gwtorm',
-   artifact = 'gwtorm:gwtorm:42',
+   name = 'prolog-runtime',
+   artifact = 'com.googlecode.prolog-cafe:prolog-runtime:42',
    repository = MAVEN_LOCAL,
  )
 ----
@@ -437,11 +429,18 @@ And corresponding WORKSPACE excerpt:
  )
 ----
 
-[[consume-jgit-from-development-tree]]
+== Building against SNAPSHOT Maven JARs
 
-To consume the JGit dependency from the development tree, edit
-`lib/jgit/jgit.bzl` setting LOCAL_JGIT_REPO to a directory holding a
-JGit repository.
+To build against SNAPSHOT Maven JARs, the complete SNAPSHOT version must be used:
+
+[source,python]
+----
+ maven_jar(
+   name = "pac4j-core",
+   artifact = "org.pac4j:pac4j-core:3.5.0-SNAPSHOT-20190112.120241-16",
+   sha1 = "da2b1cb68a8f87bfd40813179abd368de9f3a746",
+ )
+----
 
 [[bazel-local-caches]]
 

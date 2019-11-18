@@ -318,6 +318,11 @@ effect.
 A change's mergeability can be requested separately by calling the
 link:#get-mergeable[get-mergeable] endpoint.
 --
+[[skip_diffstat]]
+--
+* `SKIP_DIFFSTAT`: skip the 'insertions' and 'deletions' field in link:#change-info[ChangeInfo].
+ For large trees, their computation may be expensive.
+--
 
 [[submittable]]
 --
@@ -844,8 +849,10 @@ returned that describes the resulting change.
 Creates a new patch set with a new commit message.
 
 The new commit message must be provided in the request body inside a
-link:#commit-message-input[CommitMessageInput] entity and contain the change ID footer if
-link:project-configuration.html#require-change-id[Require Change-Id] was specified.
+link:#commit-message-input[CommitMessageInput] entity. If a Change-Id
+footer is specified, it must match the current Change-Id footer. If
+the Change-Id footer is absent, the current Change-Id is added to the
+message.
 
 .Request
 ----
@@ -2634,6 +2641,14 @@ content isn't provided, it is wiped out for that file. As response
   HTTP/1.1 204 No Content
 ----
 
+When the change edit is a no-op, for example when providing the same file
+content that the file already has, '409 no changes were made' is returned.
+
+.Response
+----
+  HTTP/1.1 409 no changes were made
+----
+
 [[post-edit]]
 === Restore file content or rename files in Change Edit
 --
@@ -2980,7 +2995,20 @@ As result a list of link:#reviewer-info[ReviewerInfo] entries is returned.
 Suggest the reviewers for a given query `q` and result limit `n`. If result
 limit is not passed, then the default 10 is used.
 
-Groups can be excluded from the results by specifying 'e=f'.
+This REST endpoint only suggests accounts that
+
+* are active
+* can see the change
+* are visible to the calling user
+* are not already reviewer on the change
+* don't own the change
+
+Groups can be excluded from the results by specifying the 'exclude-groups'
+request parameter:
+
+--
+'GET /changes/link:#change-id[\{change-id\}]/suggest_reviewers?q=J&n=5&exclude-groups'
+--
 
 As result a list of link:#suggested-reviewer-info[SuggestedReviewerInfo] entries is returned.
 
@@ -3014,6 +3042,14 @@ As result a list of link:#suggested-reviewer-info[SuggestedReviewerInfo] entries
     }
   ]
 ----
+
+To suggest CCs `reviewer-state=CC` can be specified as additional URL
+parameter. This includes existing reviewers in the result, but excludes
+existing CCs.
+
+--
+'GET /changes/link:#change-id[\{change-id\}]/suggest_reviewers?q=J&reviewer-state=CC'
+--
 
 [[get-reviewer]]
 === Get Reviewer
@@ -3060,6 +3096,12 @@ Adds one user or all members of one group as reviewer to the change.
 The reviewer to be added to the change must be provided in the request
 body as a link:#reviewer-input[ReviewerInput] entity.
 
+Users can be moved from reviewer to CC and vice versa. This means if a
+user is added as CC that is already a reviewer on the change, the
+reviewer state of that user is updated to CC. If a user that is already
+a CC on the change is added as reviewer, the reviewer state of that
+user is updated to reviewer.
+
 .Request
 ----
   POST /changes/myProject~master~I8473b95934b5732ac55d26311a706c9c2bde9940/reviewers HTTP/1.0
@@ -3102,6 +3144,12 @@ members are added as reviewer.
 
 If a group with many members is added as reviewer a confirmation may be
 required.
+
+If a group is added as CC and members of this group are already
+reviewers on the change, these members stay reviewers on the change
+(they are not downgraded to CC). However if a group is added as
+reviewer, all group members become reviewer of the change, even if they
+have been added as CC before.
 
 .Request
 ----
@@ -4338,8 +4386,10 @@ a project-specific rule.
     R = label('Any-Label-Name', reject(_)).
 ----
 
-The response is a list of link:#submit-record[SubmitRecord] entries
-describing the permutations that satisfy the tested submit rule.
+The response is a link:#submit-record[SubmitRecord] describing the
+permutations that satisfy the tested submit rule.
+
+If the submit rule was a no-op, the response is "`204 No Content`".
 
 .Response
 ----
@@ -4348,14 +4398,12 @@ describing the permutations that satisfy the tested submit rule.
   Content-Type: application/json; charset=UTF-8
 
   )]}'
-  [
-    {
-      "status": "NOT_READY",
-      "reject": {
-        "Any-Label-Name": {}
-      }
+  {
+    "status": "NOT_READY",
+    "reject": {
+      "Any-Label-Name": {}
     }
-  ]
+  }
 ----
 
 When testing with the `curl` command line client the
@@ -4912,7 +4960,8 @@ should make two requests.
 For merge commits only, the integer-valued request parameter `parent`
 changes the response to return a map of the files which are different
 in this commit compared to the given parent commit. The value is the
-1-based index of the parent's position in the commit object. If not
+1-based index of the parent's position in the commit object,
+with the first parent always belonging to the target branch. If not
 specified, the response contains a map of the files different in the
 auto merge result.
 
@@ -5177,9 +5226,6 @@ The integer-valued request parameter `parent` can be specified to control the
 parent commit number against which the diff should be generated.  This is useful
 for supporting review of merge commits.  The value is the 1-based index of the
 parent's position in the commit object.
-
-[[weblinks-only]]
-If the `weblinks-only` parameter is specified, only the diff web links are returned.
 
 .Request
 ----
@@ -5911,9 +5957,13 @@ A 40-digit hex SHA-1 of the commit which will be the parent commit of the newly
 created change. If set, it must be a merged commit on the destination branch.
 Mutually exclusive with `base_change`.
 |`new_branch`         |optional, default to `false`|
-Allow creating a new branch when set to `true`.
+Allow creating a new branch when set to `true`. Using this option is
+only possible for non-merge commits (if the `merge` field is not set).
 |`merge`              |optional|
 The detail of a merge commit as a link:#merge-input[MergeInput] entity.
+If set, the target branch (see  `branch` field) must exist (it is not
+possible to create it automatically by setting the `new_branch` field
+to `true`.
 |`notify`             |optional|
 Notify handling that defines to whom email notifications should be sent
 after the change is created. +
@@ -5978,7 +6028,9 @@ The `CherryPickInput` entity contains information for cherry-picking a change to
 [options="header",cols="1,^1,5"]
 |===========================
 |Field Name         ||Description
-|`message`          ||Commit message for the cherry-pick change
+|`message`          |optional|
+Commit message for the cherry-pick change. If not set, the commit message of
+the cherry-picked commit is used.
 |`destination`      ||Destination branch
 |`base`             |optional|
 40-hex digit SHA-1 of the commit which will be the parent commit of the newly created change.
@@ -6258,10 +6310,12 @@ in a file.
 |`a`            |optional|Content only in the file on side A (deleted in B).
 |`b`            |optional|Content only in the file on side B (added in B).
 |`ab`           |optional|Content in the file on both sides (unchanged).
-|`edit_a`       |only present during a replace, i.e. both `a` and `b` are present|
+|`edit_a`       |only present when the `intraline` parameter is set and the
+DiffContent is a replace, i.e. both `a` and `b` are present|
 Text sections deleted from side A as a
 link:#diff-intraline-info[DiffIntralineInfo] entity.
-|`edit_b`       |only present during a replace, i.e. both `a` and `b` are present|
+|`edit_b`       |only present when the `intraline` parameter is set and the
+DiffContent is a replace, i.e. both `a` and `b` are present|
 Text sections inserted in side B as a
 link:#diff-intraline-info[DiffIntralineInfo] entity.
 |`due_to_rebase`|not set if `false`|Indicates whether this entry was introduced by a
@@ -6324,11 +6378,12 @@ link:rest-api-changes.html#diff-web-link-info[DiffWebLinkInfo] entries.
 The `DiffIntralineInfo` entity contains information about intraline edits in a
 file.
 
-The information consists of a list of `<skip length, mark length>` pairs, where
+The information consists of a list of `<skip length, edit length>` pairs, where
 the skip length is the number of characters between the end of the previous edit
-and the start of this edit, and the mark length is the number of edited characters
+and the start of this edit, and the edit length is the number of edited characters
 following the skip. The start of the edits is from the beginning of the related
-diff content lines.
+diff content lines. If the list is empty, the entire DiffContent should be considered
+as unedited.
 
 Note that the implied newline character at the end of each line is included in
 the length calculation, and thus it is possible for the edits to span newlines.
@@ -6875,6 +6930,9 @@ If not set, the default is `ALL`.
 |`notify_details`|optional|
 Additional information about whom to notify about the revert as a map
 of recipient type to link:#notify-info[NotifyInfo] entity.
+|`topic`         |optional|
+Name of the topic for the revert change. If not set, the default is the topic
+of the change being reverted.
 |=============================
 
 [[review-info]]
@@ -7083,7 +7141,7 @@ entities.
 |`reviewed`     |optional|
 Indicates whether the caller is authenticated and has commented on the
 current revision. Only set if link:#reviewed[REVIEWED] option is requested.
-|`messageWithFooter` |optional|
+|`commit_with_footers` |optional|
 If the link:#commit-footers[COMMIT_FOOTERS] option is requested and
 this is the current patch set, contains the full commit message with
 Gerrit-specific commit footers, as if this revision were submitted
