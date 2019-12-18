@@ -92,16 +92,16 @@ _ssh_ -p <port> <host> _gerrit ls-projects_
 $ ssh -p 29418 review.example.com gerrit ls-projects
 platform/manifest
 tools/gerrit
-tools/gwtorm
+tools/gitiles
 
 $ curl http://review.example.com/projects/
 platform/manifest
 tools/gerrit
-tools/gwtorm
+tools/gitiles
 
 $ curl http://review.example.com/projects/tools/
 tools/gerrit
-tools/gwtorm
+tools/gitiles
 ```
 
 下载用户可见的 project:

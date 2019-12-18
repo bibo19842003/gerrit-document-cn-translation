@@ -13,15 +13,17 @@ Plugins 需要基于 html 并按照 PolyGerrit's [开发指导](pg-plugin-dev.md
 
 Plugins 应该提供 Style Module, 如下:
 
-```html
+``` html
   <dom-module id="some-style">
-    <style>
-      :root {
-        --css-mixin-name: {
-          property: value;
+    <template>
+      <style>
+        html {
+          --css-mixin-name: {
+            property: value;
+          }
         }
-      }
-    </style>
+      </style>
+    </template>
   </dom-module>
 ```
 

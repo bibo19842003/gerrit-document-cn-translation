@@ -15,10 +15,10 @@
 * 下载所需要的安装包
 
 如果要查看历史版本安装包，可参考[Gerrit Code Review: Releases](https://gerrit-releases.storage.googleapis.com/index.html)
-下面是 Gerrit 2.15.1 安装步骤:
+下面是 Gerrit 3.0.3 安装步骤:
 
 ```
-wget https://www.gerritcodereview.com/download/gerrit-2.15.1.war
+wget https://gerrit-releases.storage.googleapis.com/gerrit-3.0.3.war
 ```
 
 注意：如果要从源码构建安装，请参考 [Gerrit Code Review: 开发者设置](dev-readme.md)
@@ -28,7 +28,9 @@ wget https://www.gerritcodereview.com/download/gerrit-2.15.1.war
 命令如下：
 
 ```
-java -jar gerrit*.war init --batch --dev -d ~/gerrit_testsite
+export GERRIT_SITE=~/gerrit_testsite
+java -jar gerrit*.war init --batch --dev -d $GERRIT_SITE
+
 ```
 
 此命令有两个参数：
@@ -54,14 +56,14 @@ Starting Gerrit Code Review: OK
 强烈建议：为了外部链接访问此 Gerrit 应用，可以把 URL 从 `*` 修改为`localhost`，如：
 
 ```
-git config --file ~/gerrit_testsite/etc/gerrit.config httpd.listenUrl 'http://localhost:8080'
+git config --file $GERRIT_SITE/etc/gerrit.config httpd.listenUrl 'http://localhost:8080'
 ```
 
 ### 重启 Gerrit service
 
 修改 authentication type 和 listen URL　参数后，重启 Gerrit 服务才会生效：
 ```
-~/gerrit_testsite/bin/gerrit.sh restart
+$GERRIT_SITE/bin/gerrit.sh restart
 ```
 
 ### 访问 Gerrit

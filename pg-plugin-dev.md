@@ -352,6 +352,15 @@ screen.
 
 Deprecated. Use link:#plugin-settings[`plugin.settings()`] instead.
 
+### styles
+`plugin.styles()`
+
+.Params:
+- none
+
+.Returns:
+- Instance of link:pg-plugin-styles-api.html[GrStylesApi]
+
 ### changeMetadata
 `plugin.changeMetadata()`
 

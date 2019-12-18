@@ -40,6 +40,8 @@ Gerrit 根据原始的 [prolog-cafe](http://kaminari.istc.kobe-u.ac.jp/PrologCaf
 
 gerrit 提供了 [prolog-shell](pgm-prolog-shell.md) 可以以交互的方式进行相关测试。
 
+对于 batch 或 unit 测试，可以参考 Gerrit 源码目录中的例子 [prologtests/examples](https://gerrit.googlesource.com/gerrit/+/refs/heads/master/prologtests/examples/)
+
 **NOTE:**
 *此处交互式的 shell 仅仅是 prolog 的一个 shell，此 shell 并没有加载 gerrit 的环境，因此不能测试 submit-type 。*
 

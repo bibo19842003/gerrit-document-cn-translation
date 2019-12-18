@@ -309,39 +309,7 @@ hashtag 在逻辑上把相关的 change 集合到了一起，push 命令中需�
 
 commit-msg 中的 Change-Id 如果与 change 中的不一致，本地可以使用 amend 命令，然后修改 Change-Id 。
 
-commit-msg 中如没有 Change-Id ，那么需要手动添加进去。
-
 关于 Change-Id 更多的描述，可以参考  [changeid](user-changeid.md) 章节。
-
-#### Manual Replacement Mapping
-
-**NOTE:**
-*下面描述了如果更新 patch-set。更新 patch-set 的时候，要确保 commit-msg 中包含 change-id 的相关信息。*
-*具体细节可以参考上面的说明。*
-*直接 向 `refs/changes/` push ，会被服务器丢弃的。因为系统不允许向 `refs/changes` push 。*
-
-```
-  $ git commit -m A                    ; # create 3 commits
-  $ git commit -m B
-  $ git commit -m C
-
-  $ git push ... HEAD:refs/for/master  ; # upload for review
-  ... A is 1500 ...
-  ... B is 1501 ...
-  ... C is 1502 ...
-
-  $ git rebase -i HEAD~3               ; # edit "A", insert D before B
-                                       ; # now series is A'-D-B'-C'
-  $ git push ...
-      HEAD:refs/for/master
-      HEAD~3:refs/changes/1500
-      HEAD~1:refs/changes/1501
-      HEAD~0:refs/changes/1502         ; # upload replacements
-```
-
-最后，A 在 change 1500 上生成了新的 patch-set，B，C 分别在 1501 1502 上生成了新的 patch-set。D 生成了一个新的 change。
-
-因为明确了 `HEAD:refs/for/branchname`, 所以 D 会生成新的 change 。
 
 ### Bypass Review
 
@@ -441,8 +409,6 @@ push merge 节点的时候可以添加多个 `%base` 参数，字符 `%` 只能�
 `repo upload` 同样可以更新 patch-set，不过要确保 commit 中的 Change-Id 与 change中的 Change-Id 保持一致。
 
 如果 Change-Id 不一致，可以使用 amend 命令进行修改。
-
-如果 Change-Id 在 commit-msg 中不存在，可以手动添加。
 
 关于 Change-Id 更多的描述，可以参考 [changeid](user-changeid.md) 章节。
 

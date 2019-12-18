@@ -57,10 +57,14 @@ bazel build plugins/<plugin-name>:<plugin-name>
 构建结果可以在下面的目录中找到：
 
 ```
-bazel-genfiles/plugins/<plugin-name>/<plugin-name>.jar
+bazel-bin/plugins/<plugin-name>/<plugin-name>.jar
 ```
 
 `src/main/resources/Documentation/build.md` 文件中描述了 plugin 的构建过程，需要严格进行检查。
+
+### Error Prone checks
+
+默认情况下，Gerrit 及其 core plugins 是启用 "Error Prone checks" 功能的。如果自定义开发的 plugin 要启用此功能的话，需要将 plugin 的相关信息添加到 `tools/BUILD` 的 `error_prone_packages` group 中。
 
 ### Plugins with external dependencies
 

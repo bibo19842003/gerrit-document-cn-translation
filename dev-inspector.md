@@ -10,7 +10,7 @@ _java_ -jar gerrit.war _daemon_
   [--enable-httpd | --disable-httpd]
   [--enable-sshd | --disable-sshd]
   [--console-log]
-  [--slave]
+  [--replica]
 ```
 
 ## DESCRIPTION

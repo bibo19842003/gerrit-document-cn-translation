@@ -6,8 +6,6 @@
 
 * [branch ... not found](error-branch-not-found.md)
 * [change ... closed](error-change-closed.md)
-* [change ... does not belong to project ...](error-change-does-not-belong-to-project.md)
-* [change ... not found](error-change-not-found.md)
 * [commit already exists](error-commit-already-exists.md)
 * [contains banned commit ...](error-contains-banned-commit.md)
 * [... has duplicates](error-has-duplicates.md)
@@ -32,7 +30,6 @@
 * [same Change-Id in multiple changes](error-same-change-id-in-multiple-changes.md)
 * [too many commits](error-too-many-commits.md)
 * [Upload denied for project \'...'](error-upload-denied.md)
-* [upload to refs/changes not allowed](error-push-refschanges-not-allowed.md)
 * [you are not allowed to upload merges](error-not-allowed-to-upload-merges.md)
 
 

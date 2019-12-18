@@ -47,7 +47,7 @@
 浏览器中打开 gerrit，如果 gerrit 安装在本机，具体的 gerrit 地址可以参考下面命令来查看：
 
 ```
-  gerrit@host:~$ git config -f ~/gerrit_testsite/etc/gerrit.config gerrit.canonicalWebUrl
+  gerrit@host:~$ git config -f $GERRIT_SITE/etc/gerrit.config gerrit.canonicalWebUrl
   http://localhost:8080/
   gerrit@host:~$
 ```
@@ -57,9 +57,9 @@
 默认的认证方式是 OpenID。架构上，如果 gerrit 服务器放在了 proxy 的后面，并且还要使用 OpenID，那么需要在配置文件中添加相关的 proxy 设置。
 
 ```
-  gerrit@host:~$ git config -f ~/gerrit_testsite/etc/gerrit.config --add http.proxy http://proxy:8080
-  gerrit@host:~$ git config -f ~/gerrit_testsite/etc/gerrit.config --add http.proxyUsername username
-  gerrit@host:~$ git config -f ~/gerrit_testsite/etc/gerrit.config --add http.proxyPassword password
+  gerrit@host:~$ git config -f $GERRIT_SITE/etc/gerrit.config --add http.proxy http://proxy:8080
+  gerrit@host:~$ git config -f $GERRIT_SITE/etc/gerrit.config --add http.proxyUsername username
+  gerrit@host:~$ git config -f $GERRIT_SITE/etc/gerrit.config --add http.proxyPassword password
 ```
 
 相关的配置可以参考：[系统配置](config-gerrit.md) 的 `authentication` 部分和 `proxy` 部分。

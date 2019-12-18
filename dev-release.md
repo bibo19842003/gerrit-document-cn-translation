@@ -68,7 +68,7 @@ commit 并且在新的 commit 上创建 signed tag：
 plugin 也要打 tag：
 
 ```shell
-  git submodule foreach git tag -s -m "v$version" "v$version"
+  git submodule foreach '[ "$path" == "modules/jgit" ] || git tag -s -m "v$version" "v$version"'
 ```
 
 ### Build Gerrit
@@ -262,5 +262,5 @@ Bazlets 用于 gerrit plugin 简单的构建。plugin 可以使用的 Bazlets �
 
 一旦完成了发布，需要在下个发布中检查 master 分支超期的未完成的 change ，大多数是一些废弃的功能，这些代码需要删除。
 
-可以参考 [向 Gerrit 社区贡献](dev-contributing.md) 中 `Deprecating` 的相关章节。
+可以参考 [向 Gerrit 社区贡献](dev-processes.md) 中 `Deprecating` 的相关章节。
 

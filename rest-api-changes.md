@@ -290,6 +290,11 @@ A change's mergeability can be requested separately by calling the get-mergeable
 ```
 
 ```
+* `SKIP_DIFFSTAT`: skip the 'insertions' and 'deletions' field in `ChangeInfo`.
+ For large trees, their computation may be expensive.
+```
+
+```
 * `SUBMITTABLE`: include the `submittable` field in ChangeInfo,
   which can be used to tell if the change is reviewed and ready for submit.
 ```
@@ -795,8 +800,10 @@ _Response_
 Creates a new patch set with a new commit message.
 
 The new commit message must be provided in the request body inside a
-`CommitMessageInput` entity and contain the change ID footer if
-`Require Change-Id` was specified.
+`CommitMessageInput` entity. If a Change-Id
+footer is specified, it must match the current Change-Id footer. If
+the Change-Id footer is absent, the current Change-Id is added to the
+message.
 
 _Request_
 ```
@@ -1073,8 +1080,7 @@ _Response_
 
 Abandons a change.
 
-The request body does not need to include a link:#abandon-input[
-AbandonInput] entity if no review comment is added.
+The request body does not need to include a `AbandonInput` entity if no review comment is added.
 
 _Request_
 ```
@@ -1141,8 +1147,7 @@ Notifications are suppressed on WIP changes that have never started review.
 
 Restores a change.
 
-The request body does not need to include a link:#restore-input[
-RestoreInput] entity if no review comment is added.
+The request body does not need to include a `RestoreInput` entity if no review comment is added.
 
 _Request_
 ```
@@ -1374,8 +1379,7 @@ _Response_
 
 Reverts a change.
 
-The request body does not need to include a link:#revert-input[
-RevertInput] entity if no review comment is added.
+The request body does not need to include a `RevertInput` entity if no review comment is added.
 
 _Request_
 ```
@@ -1431,8 +1435,7 @@ _Response_
 
 Submits a change.
 
-The request body only needs to include a link:#submit-input[
-SubmitInput] entity if submitting on behalf of another user.
+The request body only needs to include a `SubmitInput` entity if submitting on behalf of another user.
 
 _Request_
 ```
@@ -2012,8 +2015,7 @@ _Response_
 'POST /changes/{change-id}/check'
 ```
 
-Performs consistency checks on the change as with link:#check-change[GET
-/check], and additionally fixes any problems that can be fixed
+Performs consistency checks on the change as with `GET/check`, and additionally fixes any problems that can be fixed
 automatically. The returned field values reflect any fixes.
 
 Some fixes have options controlling their behavior, which can be set in the
@@ -2528,6 +2530,14 @@ _Response_
   HTTP/1.1 204 No Content
 ```
 
+When the change edit is a no-op, for example when providing the same file
+content that the file already has, '409 no changes were made' is returned.
+
+.Response
+```
+  HTTP/1.1 409 no changes were made
+```
+
 ### Restore file content or rename files in Change Edit
 ```
 'POST /changes/{change-id}/edit
@@ -2858,7 +2868,20 @@ _Response_
 Suggest the reviewers for a given query `q` and result limit `n`. If result
 limit is not passed, then the default 10 is used.
 
-Groups can be excluded from the results by specifying 'e=f'.
+This REST endpoint only suggests accounts that
+
+* are active
+* can see the change
+* are visible to the calling user
+* are not already reviewer on the change
+* don't own the change
+
+Groups can be excluded from the results by specifying the 'exclude-groups'
+request parameter:
+
+```
+'GET /changes/{change-id}/suggest_reviewers?q=J&n=5&exclude-groups'
+```
 
 As result a list of `SuggestedReviewerInfo` entries is returned.
 
@@ -2891,6 +2914,14 @@ _Response_
       "count": 5
     }
   ]
+```
+
+To suggest CCs `reviewer-state=CC` can be specified as additional URL
+parameter. This includes existing reviewers in the result, but excludes
+existing CCs.
+
+```
+'GET /changes/{change-id}/suggest_reviewers?q=J&reviewer-state=CC'
 ```
 
 ### Get Reviewer
@@ -2935,6 +2966,12 @@ Adds one user or all members of one group as reviewer to the change.
 The reviewer to be added to the change must be provided in the request
 body as a `ReviewerInput` entity.
 
+Users can be moved from reviewer to CC and vice versa. This means if a
+user is added as CC that is already a reviewer on the change, the
+reviewer state of that user is updated to CC. If a user that is already
+a CC on the change is added as reviewer, the reviewer state of that
+user is updated to reviewer.
+
 _Request_
 ```
   POST /changes/myProject~master~I8473b95934b5732ac55d26311a706c9c2bde9940/reviewers HTTP/1.0
@@ -2975,6 +3012,12 @@ atomic operation. This means if an error is returned, none of the
 members are added as reviewer.
 
 If a group with many members is added as reviewer a confirmation may be required.
+
+If a group is added as CC and members of this group are already
+reviewers on the change, these members stay reviewers on the change
+(they are not downgraded to CC). However if a group is added as
+reviewer, all group members become reviewer of the change, even if they
+have been added as CC before.
 
 _Request_
 ```
@@ -3378,8 +3421,7 @@ _Request_
 ```
 
 As response a ChangeInfo entity with
-`detailed labels` and link:#detailed-accounts[
-detailed accounts] is returned that describes the review of the
+`detailed labels` and `detailed accounts` is returned that describes the review of the
 revision. The revision for which the review is retrieved is contained
 in the `revisions` field. In addition the `current_revision` field is
 set if the revision for which the review is retrieved is the current
@@ -4173,8 +4215,10 @@ _Request_
     R = label('Any-Label-Name', reject(_)).
 ```
 
-The response is a list of `SubmitRecord` entries
-describing the permutations that satisfy the tested submit rule.
+The response is a `SubmitRecord` describing the
+permutations that satisfy the tested submit rule.
+
+If the submit rule was a no-op, the response is "`204 No Content`".
 
 _Response_
 ```
@@ -4183,14 +4227,13 @@ _Response_
   Content-Type: application/json; charset=UTF-8
 
   )]}'
-  [
-    {
-      "status": "NOT_READY",
-      "reject": {
-        "Any-Label-Name": {}
-      }
-    }
-  ]
+
+  {
+    "status": "NOT_READY",
+    "reject": {
+      "Any-Label-Name": {}
+     }
+  }
 ```
 
 When testing with the `curl` command line client the
@@ -4725,7 +4768,8 @@ should make two requests.
 For merge commits only, the integer-valued request parameter `parent`
 changes the response to return a map of the files which are different
 in this commit compared to the given parent commit. The value is the
-1-based index of the parent's position in the commit object. If not
+1-based index of the parent's position in the commit object,
+with the first parent always belonging to the target branch. If not
 specified, the response contains a map of the files different in the
 auto merge result.
 
@@ -4987,8 +5031,6 @@ The integer-valued request parameter `parent` can be specified to control the
 parent commit number against which the diff should be generated.  This is useful
 for supporting review of merge commits.  The value is the 1-based index of the
 parent's position in the commit object.
-
-If the `weblinks-only` parameter is specified, only the diff web links are returned.
 
 _Request_
 ```
@@ -5471,7 +5513,7 @@ The `ChangeInfo` entity contains information about a change.
 |`stars`              |optional|A list of star labels that are applied by the calling user to this change. The labels are lexicographically sorted.
 |`reviewed`           |not set if `false`|Whether the change was reviewed by the calling user.Only set if `reviewed` is requested.
 |`submit_type`        |optional|The `submit type` of the change.Not set for merged changes.
-|`mergeable`          |optional|Whether the change is mergeable. Not set for merged changes, if the change has not yet been tested, or if the link:#skip_mergeable[skip_mergeable] option is set or when `change.api.excludeMergeableInChangeInfo` is set.
+|`mergeable`          |optional|Whether the change is mergeable. Not set for merged changes, if the change has not yet been tested, or if the `skip_mergeable` option is set or when `change.api.excludeMergeableInChangeInfo` is set.
 |`submittable`        |optional|Whether the change has been approved by the project submit rules.Only set if `requested`.
 |`insertions`         ||Number of inserted lines.
 |`deletions`          ||Number of deleted lines.
@@ -5512,8 +5554,8 @@ The `ChangeInput` entity contains information about creating a new change.
 |`work_in_progress`   |optional, default to `false`|Whether the new change should be set to work in progress.
 |`base_change`        |optional|A {change-id} that identifies the base change for a create change operation. Mutually exclusive with `base_commit`.
 |`base_commit`        |optional|A 40-digit hex SHA-1 of the commit which will be the parent commit of the newly created change. If set, it must be a merged commit on the destination branch.Mutually exclusive with `base_change`.
-|`new_branch`         |optional, default to `false`|Allow creating a new branch when set to `true`.
-|`merge`              |optional|The detail of a merge commit as a `MergeInput` entity.
+|`new_branch`         |optional, default to `false`|Allow creating a new branch when set to `true`. Using this option is only possible for non-merge commits (if the `merge` field is not set).
+|`merge`              |optional|The detail of a merge commit as a `MergeInput` entity.If set, the target branch (see  `branch` field) must exist (it is not possible to create it automatically by setting the `new_branch` field to `true`.
 |`notify`             |optional|Notify handling that defines to whom email notifications should be sent after the change is created. Allowed values are `NONE`, `OWNER`, `OWNER_REVIEWERS` and `ALL`.If not set, the default is `ALL`.
 |`notify_details`     |optional|Additional information about whom to notify about the change creation as a map of recipient type to `NotifyInfo` entity.
 
@@ -5544,7 +5586,7 @@ The `CherryPickInput` entity contains information for cherry-picking a change to
 
 |Field Name||Description
 | :------| :------| :------|
-|`message`          ||Commit message for the cherry-pick change
+|`message`          |optional|Commit message for the cherry-pick change. If not set, the commit message of the cherry-picked commit is used.
 |`destination`      ||Destination branch
 |`base`             |optional|40-hex digit SHA-1 of the commit which will be the parent commit of the newly created change.If set, it must be a merged commit or a change revision on the destination branch.
 |`parent`           |optional, defaults to 1|Number of the parent relative to which the cherry-pick should be considered.
@@ -5677,8 +5719,8 @@ in a file.
 |`a`            |optional|Content only in the file on side A (deleted in B).
 |`b`            |optional|Content only in the file on side B (added in B).
 |`ab`           |optional|Content in the file on both sides (unchanged).
-|`edit_a`       |only present during a replace, i.e. both `a` and `b` are present| Text sections deleted from side A as a `DiffIntralineInfo` entity.
-|`edit_b`       |only present during a replace, i.e. both `a` and `b` are present|Text sections inserted in side B as a `DiffIntralineInfo` entity.
+|`edit_a`       |only present when the `intraline` parameter is set and the DiffContent is a replace, i.e. both `a` and `b` are present| Text sections deleted from side A as a `DiffIntralineInfo` entity.
+|`edit_b`       |only present when the `intraline` parameter is set and the DiffContent is a replace, i.e. both `a` and `b` are present|Text sections inserted in side B as a `DiffIntralineInfo` entity.
 |`due_to_rebase`|not set if `false`|Indicates whether this entry was introduced by a rebase.
 |`skip`         |optional|count of lines skipped on both sides when the file is too large to include all common lines.
 |`common`       |optional|Set to `true` if the region is common according to the requested ignore-whitespace parameter, but a and b contain differing amounts of whitespace. When present and true a and b are used instead of ab.
@@ -5712,11 +5754,12 @@ If the `weblinks-only` parameter is specified, only the `web_links` field is set
 ### DiffIntralineInfo
 The `DiffIntralineInfo` entity contains information about intraline edits in a file.
 
-The information consists of a list of `<skip length, mark length>` pairs, where
+The information consists of a list of `<skip length, edit length>` pairs, where
 the skip length is the number of characters between the end of the previous edit
-and the start of this edit, and the mark length is the number of edited characters
+and the start of this edit, and the edit length is the number of edited characters
 following the skip. The start of the edits is from the beginning of the related
-diff content lines.
+diff content lines.If the list is empty, the entire DiffContent should be considered
+as unedited.
 
 Note that the implied newline character at the end of each line is included in
 the length calculation, and thus it is possible for the edits to span newlines.
@@ -6026,6 +6069,7 @@ The `RevertInput` entity contains information for reverting a change.
 |`message`       |optional|Message to be added as review comment to the change when reverting the change.
 |`notify`        |optional|Notify handling that defines to whom email notifications should be sent for reverting the change.Allowed values are `NONE`, `OWNER`, `OWNER_REVIEWERS` and `ALL`.If not set, the default is `ALL`.
 |`notify_details`|optional|Additional information about whom to notify about the revert as a map of recipient type to `NotifyInfo` entity.
+|`topic`         |optional|Name of the topic for the revert change. If not set, the default is the topic of the change being reverted.
 
 ### ReviewInfo
 The `ReviewInfo` entity contains information about a review.
@@ -6111,7 +6155,7 @@ be obtained by adding `o` parameters as described in `Query Changes`.
 |`files`       |optional|The files of the patch set as a map that maps the file names to `FileInfo` entities. Only set if `CURRENT_FILES` or `ALL_FILES` option is requested.
 |`actions`     |optional|Actions the caller might be able to perform on this revision. The information is a map of view name to `ActionInfo` entities.
 |`reviewed`     |optional|Indicates whether the caller is authenticated and has commented on the current revision. Only set if `reviewed` option is requested.
-|`messageWithFooter` |optional|If the `COMMIT_FOOTERS` option is requested and this is the current patch set, contains the full commit message with Gerrit-specific commit footers, as if this revision were submitted using the link:project-configuration.html#cherry_pick[Cherry Pick] submit type.
+|`commit_with_footers` |optional|If the `COMMIT_FOOTERS` option is requested and this is the current patch set, contains the full commit message with Gerrit-specific commit footers, as if this revision were submitted using the `Cherry Pick` submit type.
 |`push_certificate` |optional|If the `PUSH_CERTIFICATES` option is requested,contains the push certificate provided by the user when uploading this patch set as a `PushCertificateInfo` entity.This field is always set if the option is requested; if no push certificate was provided, it is set to an empty object.
 |`description` |optional|The description of this patchset, as displayed in the patchset selector menu. May be null if no description is set.
 

@@ -2,7 +2,9 @@
 
 为了构建 gerrit，需要安装 [Bazel](https://bazel.build/) 。
 
-## Getting the Source
+## Git Setup
+
+### Getting the Source
 
 客户端创建一个工作空间：
 
@@ -11,45 +13,59 @@
   cd gerrit
 ```
 
-参数 `--recursive` 确保 `git clone` 的时候可以下载 core plugin，此参数用于下载 git 的 submodules 。
+参数 `--recursive-submodules` 确保 `git clone` 的时候可以下载 core plugin，此参数用于下载 git 的 submodules 。
+
+### Switching between branches
+
+若使用 `git checkout` 命令，但没有添加参数 `--recurse-submodules`，那么只会切换分支，但 submodule 的版本却不会变化，这样会导致：
+
+*  不正确或不需要的 plugin 版本
+*  缺少 plugin
+
+在切换分支后，要确检查 submodule 的版本是否正确。
+
+**Notice:**
+*如果在 Gerrit 的源目录中存放了 Eclipse 或 IntelliJ 项目的相关文件，不要执行 `git clean -fdx`命令，这样会移除 untracked 文件并毁坏当前的项目。可以参考 [git-clean](https://git-scm.com/docs/git-clean).*
+
+*可以执行下面命令:*
+
+```
+  git submodule update
+  git clean -ffd
+```
 
 ## Compiling
 
 关于编译，请参考 [使用 Bazel 构建](dev-bazel.md)。
 
-## Configuring Eclipse
+## Testing
 
-使用 Eclipse IDE 进行开发，参考 [Eclipse 设置](dev-eclipse.md)。
+### Running the acceptance tests
+ 
+Gerrit 包含的测试可以用来验证 Gerrit daemon 的 REST, SSH, Git protocol 模块。
+ 
+每次 test 都会创建一个新的 review site，并且会启动 Gerrit daemon。当 test 结束的时候，Gerrit daemon 也会自动关闭。
+ 
+Bazel 的相关测试说明，可以参考 [dev-bazel](dev-bazel.md) 的相关部分。
+ 
+## Local server
 
-配置 Eclipse 与 Bazel 的集成，参考 [使用 Bazel 构建](dev-bazel.md) 的 eclipse 部分。
-
-## Configuring IntelliJ IDEA
-
-请参考 [IntelliJ 设置](dev-intellij.md) 。
-
-## MacOS
-
-在 MacOS 系统中，确保已安装 "Java for MacOS X 10.5 Update 4" (或更高版本)，并且需要设置 `JAVA_HOME`，可参考 [安装指导](install.md) 的 Requirements 部分。
-
-通常，Java 默认安装的路径如下："/System/Library/Frameworks/JavaVM.framework/Versions".
-
-打开终端窗口，可以使用下面命令查看已安装 java 的版本：`java -version`
-
-## Site Initialization
+### Site Initialization
 
 代码编译后，可以执行 gerrit init 命令创建一个测试的站点：
 
 ```shell
-  $(bazel info output_base)/external/local_jdk/bin/java \
-     -jar bazel-bin/gerrit.war init -d ../gerrit_testsite
+  export GERRIT_SITE=~/gerrit_testsite
+   $(bazel info output_base)/external/local_jdk/bin/java \
+      -jar bazel-bin/gerrit.war init --batch --dev -d $GERRIT_SITE
 ```
 **NOTE:**
 *gerrit.config 文件中的 java 版本要与 bazel 构建使用的 java 版本保持一致，bazel 使用的 java 路径如下：`$(bazel info output_base)/external/local_jdk/bin/java`。*
 
-安装的时候，需要更改两处设置：
+此命令需要两个参数：
 
-*  确保开发样例不能被外界访问，将 `listen addresses` 从 '*' 修改为 'localhost'
-*  允许为开发样例创建测试账户，将 `auth type` 从 'OPENID' 修改为 'DEVELOPMENT_BECOME_ANY_ACCOUNT'.
+* `--batch`: 用来设置一些 gerrit 的默认配置，可以参考 [Configuration](config-gerrit.md)
+* `--dev`: 用来设置 gerrit server 的认证方式。`DEVELOPMENT_BECOME_ANY_ACCOUNT`, 可以切换登录用户用来探索 gerrit 的工作方式。可以参考 [Gerrit Code Review: Developer Setup](dev-readme.md)
 
 在初始化测试站点后，gerrit 开始在后台运行，可以通过 web 进行访问。
 
@@ -62,10 +78,10 @@
 停止 gerrit 服务，可以执行命令：
 
 ```shell
-  ../gerrit_testsite/bin/gerrit.sh stop
+  $GERRIT_SITE/bin/gerrit.sh stop
 ```
 
-## Working with the Local Server
+### Working with the Local Server
 
 在开发样例中创建更多的帐户：
 
@@ -80,21 +96,24 @@
 git clone ssh://username@localhost:29418/projectname
 ```
 
-创建 change：
+使用 HTTP 协议进行操作：
 
 ```shell
-git push origin HEAD:refs/for/master
+git clone http://username@localhost:29418/projectname
 ```
 
-## Testing
-
-### Running the acceptance tests
-
-Gerrit 包含验收测试，如：通过 REST, SSH, Git protocol 验证 gerrit 是否可用。
-
-测试的时候，会创建新的站点，并且会启动 gerrit 服务，当测试完成的时候，gerrit 服务会自动关闭。
-
-使用 bazel 进行验收测试的说明，请参考 [使用 Bazel 构建](dev-bazel.md) 的 `Running Unit Tests` 部分。
+默认用 `admin` 的密码是 `secret`。可以在 gerrit 页面的 `User Settings` 中的 HTTP credentials 重新生成密码。密码可以用下面命令存储在本地，避免反复输入密码：
+ 
+```
+git config --global credential.helper store
+git pull
+```
+ 
+创建 change，可以执行下面命令：
+ 
+```
+git push origin HEAD:refs/for/master
+```
 
 ### Running the Daemon
 
@@ -102,7 +121,7 @@ Gerrit 包含验收测试，如：通过 REST, SSH, Git protocol 验证 gerrit �
 
 ```shell
   $(bazel info output_base)/external/local_jdk/bin/java \
-     -jar bazel-bin/gerrit.war daemon -d ../gerrit_testsite \
+     -jar bazel-bin/gerrit.war daemon -d $GERRIT_SITE \
      --console-log
 ```
 
@@ -129,7 +148,7 @@ Gerrit 包含验收测试，如：通过 REST, SSH, Git protocol 验证 gerrit �
 
 ```shell
   $(bazel info output_base)/external/local_jdk/bin/java \
-     -jar bazel-bin/gerrit.war daemon -d ../gerrit_testsite -s
+     -jar bazel-bin/gerrit.war daemon -d $GERRIT_SITE -s
 ```
 
 **NOTE:**
@@ -151,21 +170,19 @@ Gerrit 包含验收测试，如：通过 REST, SSH, Git protocol 验证 gerrit �
 **CATUTION:**
 *使用 `Inspector` 的时候，不要修改系统的内部状态。*
 
-## Switching between branches
+## Setup for backend developers
+ 
+### Configuring Eclipse
+ 
+若要使用 Eclipse IDE 进行开发，可以参考 [Eclipse Setup](dev-eclipse.md)。
+ 
+在 Eclipse 工作目录中配置 Bazel, 请参考 [Eclipse integration with Bazel](dev-bazel.md) 相关章节。
+ 
+### Configuring IntelliJ IDEA
 
-`git checkout` 不添加参数 `--recurse-submodules` 时，可以切换分支，但 submodule 版本不会变化，会导致如下问题：
+参考 [dev-intellij ](dev-intellij.md) 相关章节。
 
-*  plugin 版本不正确
-*  丢失 plugin
+## Setup for frontend developers
+参考[Frontend Developer Setup](https://gerrit.googlesource.com/gerrit/+/master/polygerrit-ui/README.md)
 
-切换分支后，确保子模块的版本是正确的：
-
-**CAUTION:**
-*如果在 gerrit 源码中存放了 Eclipse 或 IntelliJ 的 project 文件，不要执行 `git clean -fdx`。因为这个命令会移除 untracked 文件，并且会毁坏 project。更多信息 请参考 [git-clean](https://git-scm.com/docs/git-clean) 。*
-执行下面命令:
-
-```shell
-  git submodule update
-  git clean -ffd
-```
 

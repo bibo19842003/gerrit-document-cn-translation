@@ -102,8 +102,6 @@ _All-Users project.config_
 用户的 properties 存储在用户分支的 `preferences.config` 文件中。对于配置来说，有多个部分：
 
 ```
-[general]
-  showSiteHeader = false
 [diff]
   hideTopMenu = true
 [edit]
@@ -229,5 +227,5 @@ Gerrit 提供了一种有效的方法来查找星标的 change，例如，搜索
 * `refs/users/*` (user branches)
 * `refs/meta/external-ids` (external IDs)
 * `refs/starred-changes/*` (star labels)
-* `refs/sequences/accounts` (账户的序列号，gerrit 的 slaves 不需要此分支)
+* `refs/sequences/accounts` (账户的序列号，gerrit 的 replicas 不需要此分支)
 

@@ -24,6 +24,17 @@ _Params_
 _Returns_
 - Promise<string>
 
+## getConfig
+`repoApi.getConfig()`
+
+获取服务器端的配置
+
+_Params_
+- None
+
+_Returns_
+- Promise<Object>
+
 ## get
 `repoApi.get(url)`
 

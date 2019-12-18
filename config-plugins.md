@@ -22,6 +22,8 @@ Core plugins 被放在了 Gerrit 的 war 文件中，在 [初始化 Gerrit](pgm-
 
 core plugins 的开发和维护由 Gerrit 的维护人员和 Gerrit 团队来完成。
 
+需要说明的是，下面的文档及配置的链接都属于 plugin 的 master 分支。gerrit 不同的版本，使用的 plugin 的分支有可能不一样，请参考与 gerrit 对应的 plugin 分支。
+
 ### codemirror-editor
 
 polygerrit 的 CodeMirror plugin
@@ -111,6 +113,8 @@ Gerrit 并没有为这些 plugin 提供二进制文件，不过可以在公共�
 
 下面是 plugin 的一个概览，有可能不是全部的。更多 plugin 可以访问：[gerrit-review](https://gerrit-review.googlesource.com/admin/repos/?filter=plugins%252F)。
 
+需要说明的是，下面的文档及配置的链接都属于 plugin 的 master 分支。gerrit 不同的版本，使用的 plugin 的分支有可能不一样，请参考与 gerrit 对应的 plugin 分支。需要注意的是，有的时候 plugin 的 master 分支兼容多个 gerrit 版本，此时是没有与 gerrit 对应的 stable 分支的。
+
 ### admin-console
 
 此 Plugin 只提供了管理员的功能，计划执行简单的管理员任务。
@@ -160,7 +164,7 @@ Gerrit 并没有为这些 plugin 提供二进制文件，不过可以在公共�
 为 CI 与 Gerrit 的集成提供了 REST API 和 UI 的扩展。
 
 [Project](https://gerrit-review.googlesource.com/admin/repos/plugins/checks) |
-[Plugin Documentation](https://gerrit.googlesource.com/plugins/checks/+doc/master/src/main/resources/Documentation/about.md)
+[Plugin Documentation](https://gerrit.googlesource.com/plugins/checks/+doc/master/README.md)
 
 ### egit
 

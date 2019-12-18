@@ -64,3 +64,8 @@ Plugins 使用 `HashtagValidationListener` 接口可以为 change 添加或移�
 
 Plugins 使用 `AccountActivationValidationListener` 接口可以对 API（Gerrit REST API 或 Java extension API）设置账户状态（生效、失效）的时候进行校验。
 
+## Review comment validation
+
+`CommentValidator` 接口可以校验所有的 "review comments", 如: "inline comments", "file comments" 和 "review message"。"REST API" 及 `git push --publish-comments` 同样适用。
+
+

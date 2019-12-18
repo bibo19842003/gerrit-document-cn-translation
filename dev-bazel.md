@@ -7,7 +7,8 @@
 * Linux 或 macOS 操作系统 (目前不支持 Windows 操作系统)
 * Java 版本：8|9|10|11|...
 * Python 2 or 3
-* Node.js
+* [Node.js (including npm)](https://github.com/nodesource/distributions/blob/master/README.md)
+* Bower (`sudo npm install -g bower`)
 * [Bazel](https://docs.bazel.build/versions/master/install.html)
 * Maven
 * zip, unzip
@@ -15,16 +16,26 @@
 
 ### Java
 
-#### Java 10 support
+#### MacOS
 
-通过 `vanilla java toolchain` 的 [Bazel 参数](https://docs.bazel.build/versions/master/toolchains.html) ，可以支持 Java 10 (及更新版本)。为了使用 Java 10 及更新版本来构建 gerrit，需要明确 `vanilla java toolchain` 和 JDK 的 `home` 路径。
+在 MacOS 系统中，确保 "Java for MacOS X 10.5 Update 4" (或更高版本) 被安装并且 `JAVA_HOME` 已按照 [Java version 描述](install.md)进行设置。
 
-```
-  $ bazel build \
-    --define=ABSOLUTE_JAVABASE=<path-to-java-10> \
-    --host_javabase=@bazel_tools//tools/jdk:absolute_javabase \
-    --host_java_toolchain=@bazel_tools//tools/jdk:toolchain_vanilla \
-    --java_toolchain=@bazel_tools//tools/jdk:toolchain_vanilla \
+Java 可以在下面的路径中找到 "/System/Library/Frameworks/JavaVM.framework/Versions"。
+
+可以打开一个命令行窗口执行 `java -version` 命令来查看 Java 版本。
+
+#### Java 12 support
+
+通过配置 vanilla java toolchain [Bazel option](https://docs.bazel.build/versions/master/toolchains.html)，可以支持Java 12 (及以后版本)。
+若使用 Java 12 (及以后版本) 进行构建 Gerrit，需要在 JDK HOME 中明确 vanilla java toolchain：
+
+ ```
+   $ bazel build \
+    --define=ABSOLUTE_JAVABASE=<path-to-java-12> \
+    --javabase=@bazel_tools//tools/jdk:absolute_javabase \
+     --host_javabase=@bazel_tools//tools/jdk:absolute_javabase \
+     --host_java_toolchain=@bazel_tools//tools/jdk:toolchain_vanilla \
+     --java_toolchain=@bazel_tools//tools/jdk:toolchain_vanilla \
     :release
 ```
 
@@ -32,7 +43,7 @@
 
 ```
   $ bazel test \
-    --define=ABSOLUTE_JAVABASE=<path-to-java-10> \
+    --define=ABSOLUTE_JAVABASE=<path-to-java-12> \
     --javabase=@bazel_tools//tools/jdk:absolute_javabase \
     --host_javabase=@bazel_tools//tools/jdk:absolute_javabase \
     --host_java_toolchain=@bazel_tools//tools/jdk:toolchain_vanilla \
@@ -44,7 +55,7 @@
 
 ```
 $ cat << EOF > ~/.bazelrc
-> build --define=ABSOLUTE_JAVABASE=<path-to-java-10>
+> build --define=ABSOLUTE_JAVABASE=<path-to-java-12>
 > build --javabase=@bazel_tools//tools/jdk:absolute_javabase
 > build --host_javabase=@bazel_tools//tools/jdk:absolute_javabase
 > build --host_java_toolchain=@bazel_tools//tools/jdk:toolchain_vanilla
@@ -54,31 +65,22 @@ $ cat << EOF > ~/.bazelrc
 
 现在，执行 `bazel build :release` 命令时，会调用上面的参数。
 
-`$gerrit_site/etc/gerrit.config` 若配置了 `Java 10|11|...`，那么一定要添加以下参数：
-
-```
-[container]
-  javaOptions = --add-opens=jdk.management/com.sun.management.internal=ALL-UNNAMED
-```
-
-#### Java 9 support
-
-通过变更 `java toolchain` 的 [Bazel 参数](https://docs.bazel.build/versions/master/toolchains.html)，可以支持 Java 9 的使用。Java 9 支持向后兼容。目前默认使用的是 Java 8。为了在构建的时候使用 Java 9,需要明确 JDK 9 java toolchain：
-
-```
-  $ bazel build \
-      --host_java_toolchain=@bazel_tools//tools/jdk:toolchain_java9 \
-      --java_toolchain=@bazel_tools//tools/jdk:toolchain_java9 \
-      :release
-```
-
-`$gerrit_site/etc/gerrit.config` 若配置了 `Java 9`，那么一定要添加以下参数：
-
-```
-[container]
-  javaOptions = --add-opens=jdk.management/com.sun.management.internal=ALL-UNNAMED
-```
-
+#### Java 11 support
+ 
+通过变更 `java toolchain` 的 [Bazel 参数](https://docs.bazel.build/versions/master/toolchains.html)，可以支持 Java 11 的使用。为了在构建的时候使用 Java 11,需要明确 JDK 11 java toolchain：
+ 
+ ```
+   $ bazel build \
+      --host_javabase=@bazel_tools//tools/jdk:remote_jdk11 \
+      --javabase=@bazel_tools//tools/jdk:remote_jdk11 \
+      --host_java_toolchain=@bazel_tools//tools/jdk:toolchain_java11 \
+      --java_toolchain=@bazel_tools//tools/jdk:toolchain_java11 \
+       :release
+ ```
+ 
+### Node.js and npm packages
+参考 [Installing Node.js and npm packages](https://gerrit.googlesource.com/gerrit/+/master/polygerrit-ui/README.md#installing-node_js-and-npm-packages).
+ 
 ## Building on the Command Line
 
 ### Gerrit Development WAR File
@@ -88,9 +90,6 @@ $ cat << EOF > ~/.bazelrc
 ```
   bazel build gerrit
 ```
-
-**NOTE:**
-*PolyGerrit UI 需要使用额外的工具，如 npm。*
 
 输出的 WAR 文件的路径如下：
 
@@ -183,12 +182,6 @@ JAR 文件会被打包在:
 ```
 
 构建单独的 plugin，`core.zip` 文件不会重新生成。
-
-构建时打印所有的报错信息，可以执行：
-
-```
-  bazel build --java_toolchain //tools:error_prone_warnings_toolchain //...
-```
 
 ## Using an IDE.
 
@@ -337,12 +330,12 @@ Maven 和 ‘Gerrit storage bucket’ 可以根据 `local.properties` 从镜像�
 
 ## Building against unpublished Maven JARs
 
-构建时为了使用未发布的 Maven JARs 文件，比如： gwtorm 或 PrologCafe。定制的 JARs 文件需要安装到本地的 Maven repository (`mvn clean install`) 并且 `maven_jar()` 的 repository 要更新为 `MAVEN_LOCAL` ：
+构建时为了使用未发布的 Maven JARs 文件，比如： PrologCafe。定制的 JARs 文件需要安装到本地的 Maven repository (`mvn clean install`) 并且 `maven_jar()` 的 repository 要更新为 `MAVEN_LOCAL` ：
 
 ```
  maven_jar(
-   name = 'gwtorm',
-   artifact = 'gwtorm:gwtorm:42',
+   name = 'prolog-runtime',
+   artifact = 'com.googlecode.prolog-cafe:prolog-runtime:42',
    repository = MAVEN_LOCAL,
  )
 ```
@@ -364,10 +357,6 @@ Maven 和 ‘Gerrit storage bucket’ 可以根据 `local.properties` 从镜像�
  )
 ```
 
-如要重写定制的 URL， then the same logic as with Gerrit
-known Maven repository is used: Repo name must be defined that matches an entry
-in local.properties file:
-
 如要自定义定制的 URL，使用与 Gerrit 已知的 Maven repository 的逻辑是相同的：需要定义 Repo 名称，并且要与 local.properties 文件中的名称保持一致。
 
 ```
@@ -387,10 +376,17 @@ in local.properties file:
  )
 ```
 
-To consume the JGit dependency from the development tree, edit
-`lib/jgit/jgit.bzl` setting LOCAL_JGIT_REPO to a directory holding a
-JGit repository.
-如果要从开发目录中使用 JGit 的依赖，需要编辑 `lib/jgit/jgit.bzl` 将 LOCAL_JGIT_REPO 设置为包含 JGit repository 的目录。
+## Building against SNAPSHOT Maven JARs
+ 
+为了构建 SNAPSHOT Maven JARs, 可以指定具体的 SNAPSHOT version：
+
+```python
+ maven_jar(
+   name = "pac4j-core",
+   artifact = "org.pac4j:pac4j-core:3.5.0-SNAPSHOT-20190112.120241-16",
+   sha1 = "da2b1cb68a8f87bfd40813179abd368de9f3a746",
+ )
+```
 
 为了加快构建，可以使用如下默认的缓存：
 

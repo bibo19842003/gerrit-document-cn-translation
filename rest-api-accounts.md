@@ -42,7 +42,7 @@ _Response_
 
  `o` 此参数可以显示一些额外的字段信息，每个选项会减慢对客户端的搜索响应时间，因此默认不使用这些参数。可选字段如下：
 
-* `DETAILS`: 包括 full-name, 首选 email, 用户名，帐号头像
+* `DETAILS`: 包括 full-name, 首选 email, 用户名，帐号头像，状态
 * `ALL_EMAILS`: 包括所有的已注册的 email。执行命令需要全局设置中的 `Modify Account` 权限。
 
 `suggest` 参数用来显示参考帐号的信息，并且需要和搜索参数 `q` 一起使用。`n` 的默认值是 10。返回的响应结果包含上面参数 `DETAILS` 和 `ALL_EMAILS` 的信息。
@@ -1163,14 +1163,11 @@ _Response_
   )]}'
   {
     "changes_per_page": 25,
-    "show_site_header": true,
-    "use_flash_clipboard": true,
     "download_command": "CHECKOUT",
     "date_format": "STD",
     "time_format": "HHMM_12",
     "diff_view": "SIDE_BY_SIDE",
     "size_bar_in_change_table": true,
-    "review_category_strategy": "ABBREV",
     "mute_common_path_prefixes": true,
     "publish_comments_on_push": true,
     "work_in_progress_by_default": true,
@@ -1218,14 +1215,11 @@ _Request_
 
   {
     "changes_per_page": 50,
-    "show_site_header": true,
-    "use_flash_clipboard": true,
     "expand_inline_diffs": true,
     "download_command": "CHECKOUT",
     "date_format": "STD",
     "time_format": "HHMM_12",
     "size_bar_in_change_table": true,
-    "review_category_strategy": "NAME",
     "diff_view": "SIDE_BY_SIDE",
     "mute_common_path_prefixes": true,
     "my": [
@@ -1268,14 +1262,11 @@ _Response_
   )]}'
   {
     "changes_per_page": 50,
-    "show_site_header": true,
-    "use_flash_clipboard": true,
     "expand_inline_diffs": true,
     "download_command": "CHECKOUT",
     "date_format": "STD",
     "time_format": "HHMM_12",
     "size_bar_in_change_table": true,
-    "review_category_strategy": "NAME",
     "diff_view": "SIDE_BY_SIDE",
     "publish_comments_on_push": true,
     "work_in_progress_by_default": true,
@@ -2057,7 +2048,6 @@ GPG key 标识。, `gpg --list-keys` 产生的 8 个 16进制字符，或 `gpg -
 |Field Name          ||Description
 | :------| :------| :------|
 |`registered_on`     ||帐号注册的时间
-|`inactive`          |如果不显示，则为 `false`|账户是否为 inactive
 
 ### AccountExternalIdInfo
 
@@ -2081,7 +2071,10 @@ GPG key 标识。, `gpg --list-keys` 产生的 8 个 16进制字符，或 `gpg -
 |`email`           |可选|用户首先的 email。显示详细信息的时候，会显示此字段。
 |`secondary_emails`|可选|备用的 email。搜索时，使用 `ALL_EMAILS` 或 `suggest` 参数时，会显示此字段。
 |`username`        |可选|用户的 username。显示详细信息的时候，会显示此字段。
+|`avatars`         |可选|avatars 相关信息
 |`_more_accounts`  |可选, 如果不显示，则为 `false`|由于搜索结果受限，标识还有未显示的搜索结果。只在最后一个帐号的后面显示。
+|`status`          |可选|帐号的状态信息
+|`inactive`        |如果不显示，则为 `false`|账户是否为 inactive
 
 ### AccountInput
 
@@ -2111,6 +2104,15 @@ The `AccountStatusInput` ，设置用户状态。
 |Field Name ||Description
 | :------| :------| :------|
 |`status`   |optional|用户新的状态。如果状态未设置或设置为空，那么此字段处于被删除状态。
+
+### AvatarInfo
+`AccountInfo` 描述了帐号 avatar 图片的信息。
+
+|Field Name|Description
+| :------| :------|
+|`url`     |avatar 图片的 URL
+|`height`  |avatar 图片的高度（单位为pixels）
+|`width`   |avatar 图片的宽度（单位为pixels）
 
 ### CapabilityInfo
 
@@ -2324,8 +2326,6 @@ The `GpgKeyInfo` ，GPG public key 的相关信息
 |Field Name                     ||Description
 | :------| :------| :------|
 |`changes_per_page`             ||页面显示 change 的数量，有效值为：`10`, `25`, `50`, `100`。
-|`show_site_header`             |如果不显示，则为 `false`|是否显示网页的头部
-|`use_flash_clipboard`          |如果不显示，则为 `false`|是否使用 flash 剪贴板控件
 |`expand_inline_diffs`          |如果不显示，则为 `false`|是否用自动展开 diff 的方式来替代打开单独的页面查看 diff (只支持 PolyGerrit)
 |`download_scheme`              |可选|下载命令的方式，比如 HTTP SSH
 |`download_command`             ||下载命令的种类
@@ -2335,12 +2335,10 @@ The `GpgKeyInfo` ，GPG public key 的相关信息
 |`diff_view`                    ||diff view 的类似，有效值为 `SIDE_BY_SIDE`, `UNIFIED_DIFF`
 |`size_bar_in_change_table`     |如果不显示，则为 `false`|是否在 change 的表格中使用彩色条来显示文件修改的行数
 |`legacycid_in_change_table`    |如果不显示，则为 `false`|是否在 change 的表格中显示 change 号
-|`review_category_strategy`     ||`review` 列中显示用户信息的方式，有效值为 `NONE`, `NAME`, `EMAIL`, `USERNAME`, `ABBREV`
 |`mute_common_path_prefixes`    |如果不显示，则为 `false`|是否在待评审的文件列表中隐藏文件的路径
 |`signed_off_by`                |如果不显示，则为 `false`|在线编辑创建 change 时，是否自动插入 Signed-off-by
 |`my`                           ||顶级菜单 `MY` 的子列表
 |`change_table`                 ||change 的表格中显示的列 (只支持 PolyGerrit)。默认值为空，默认由前端决定。
-|`url_aliases`                  |可选|URL 的描述，第一个 URL 为第二个 URL 的别名
 |`email_strategy`               ||是否启用 email 通知。`ENABLED`, 用户会收到系统发的 email；`CC_ON_OWN_COMMENTS`，用户会收到关于自己评论的 email；`DISABLED`，用户不会收到系统的 email 通知。有效值为 `ENABLED`, `CC_ON_OWN_COMMENTS`,`DISABLED`。
 |`default_base_for_merges`      ||change 页面中，merge 节点的 'Diff Against' 下拉菜单中的默认值。有效值为 `AUTO_MERGE` `FIRST_PARENT`
 |`publish_comments_on_push`     |如果不显示，则为 `false`|是否在 push 的时候发布 `draft comment`。
@@ -2353,8 +2351,6 @@ The `GpgKeyInfo` ，GPG public key 的相关信息
 |Field Name                     ||Description
 | :------| :------| :------|
 |`changes_per_page`             |可选|页面显示 change 的数量，有效值为：`10`, `25`, `50`, `100`。
-|`show_site_header`             |可选|是否显示网页的头部
-|`use_flash_clipboard`          |可选|是否使用 flash 剪贴板控件
 |`expand_inline_diffs`          |如果不显示，则为 `false`|是否用自动展开 diff 的方式来替代打开单独的页面查看 diff (只支持 PolyGerrit)
 |`download_scheme`              |可选|下载命令的方式，比如 HTTP SSH
 |`download_command`             |可选|下载命令的种类
@@ -2364,12 +2360,10 @@ The `GpgKeyInfo` ，GPG public key 的相关信息
 |`diff_view`                    |可选|diff view 的类似，有效值为 `SIDE_BY_SIDE`, `UNIFIED_DIFF`
 |`size_bar_in_change_table`     |可选|是否在 change 的表格中使用彩色条来显示文件修改的行数
 |`legacycid_in_change_table`    |可选|是否在 change 的表格中显示 change 号
-|`review_category_strategy`     |可选|`review` 列中显示用户信息的方式，有效值为 `NONE`, `NAME`, `EMAIL`, `USERNAME`, `ABBREV`
 |`mute_common_path_prefixes`    |可选|是否在待评审的文件列表中隐藏文件的路径
 |`signed_off_by`                |可选|在线编辑创建 change 时，是否自动插入 Signed-off-by
 |`my`                           |可选|顶级菜单 `MY` 的子列表
 |`change_table`                 ||change 的表格中显示的列 (只支持 PolyGerrit)。默认值为空，默认由前端决定。
-|`url_aliases`                  |可选|URL 的描述，第一个 URL 为第二个 URL 的别名
 |`email_strategy`               |可选|是否启用 email 通知。`ENABLED`, 用户会收到系统发的 email；`CC_ON_OWN_COMMENTS`，用户会收到关于自己评论的 email；`DISABLED`，用户不会收到系统的 email 通知。有效值为 `ENABLED`, `CC_ON_OWN_COMMENTS`,`DISABLED`。
 |`default_base_for_merges`      |可选|change 页面中，merge 节点的 'Diff Against' 下拉菜单中的默认值。有效值为 `AUTO_MERGE` `FIRST_PARENT`
 

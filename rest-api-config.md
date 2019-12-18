@@ -1018,14 +1018,11 @@ As response a `PreferencesInfo` is returned.
   )]}'
   {
     "changes_per_page": 25,
-    "show_site_header": true,
-    "use_flash_clipboard": true,
     "download_command": "CHECKOUT",
     "date_format": "STD",
     "time_format": "HHMM_12",
     "diff_view": "SIDE_BY_SIDE",
     "size_bar_in_change_table": true,
-    "review_category_strategy": "NONE",
     "mute_common_path_prefixes": true,
     "publish_comments_on_push": true,
     "my": [
@@ -1091,14 +1088,11 @@ PreferencesInfo] is returned.
   )]}'
   {
     "changes_per_page": 50,
-    "show_site_header": true,
-    "use_flash_clipboard": true,
     "download_command": "CHECKOUT",
     "date_format": "STD",
     "time_format": "HHMM_12",
     "diff_view": "SIDE_BY_SIDE",
     "size_bar_in_change_table": true,
-    "review_category_strategy": "NONE",
     "mute_common_path_prefixes": true,
     "publish_comments_on_push": true,
     "my": [
@@ -1316,6 +1310,28 @@ As response a `EditPreferencesInfo` is returned.
 ```
 
 
+### Index a set of changes
+
+This endpoint allows Gerrit admins to index a set of changes with one request
+by providing a IndexChangesInput entity.
+
+Using this endpoint Gerrit admins can also index change(s) which are not visible to them.
+
+.Request
+```
+  POST /config/server/index.changes HTTP/1.0
+  Content-Type: application/json; charset=UTF-8
+
+  {changes: ["foo~101", "bar~202"]}
+```
+
+.Response
+```
+  HTTP/1.1 200 OK
+  Content-Disposition: attachment
+```
+
+
 ## IDs
 
 ### {cache-name}
@@ -1398,8 +1414,9 @@ configuration from the `change` section.
 |`reply_label`        ||`Label name for the reply button`
 |`reply_tooltip`      ||`Tooltip for the reply button`
 |`update_delay`       ||`How often in seconds the web interface should poll for updates to the currently open change`
-|`submit_whole_topic` ||`A configuration if the whole topic is submitted`
+|`submit_whole_topic` |not set if `false`|`A configuration if the whole topic is submitted`
 |`disable_private_changes` |not set if `false`|Returns true if private changes are disabled.
+|`exclude_mergeable_in_change_info` |not set if `false`|Value of the configuration parameter that controls whether the mergeability bit in ChangeInfo will never be set.
 
 ### CheckAccountExternalIdsInput
 The `CheckAccountExternalIdsInput` entity contains input for the
@@ -1532,7 +1549,6 @@ configuration from the `gerrit` section.
 |`doc_url`           |optional|Custom base URL where Gerrit server documentation is located.(Documentation may still be available at /Documentation relative to the Gerrit base path even if this value is unset.)
 |`edit_gpg_keys`     |not set if `false`|Whether to enable the web UI for editing GPG keys.
 |`report_bug_url`    |optional|`URL to report bugs`
-|`report_bug_text`   |optional, not set if default|`Display text for report bugs link`
 
 ### HitRatioInfo
 The `HitRatioInfo` entity contains information about the hit ratio of a cache.
@@ -1541,6 +1557,14 @@ The `HitRatioInfo` entity contains information about the hit ratio of a cache.
 | :------| :------| :------|
 |`mem`      ||Hit ratio for cache entries that are held in memory (0 \<= value \<= 100).
 |`disk`     |optional|Hit ratio for cache entries that are held on disk (0 \<= value \<= 100).Only set for disk caches.
+
+### IndexChangesInput
+The `IndexChangesInput` contains a list of numerical changes IDs to index.
+
+|Field Name         ||Description
+| :------| :------| :------|
+|`changes`   ||List of change-ids
+
 
 ### JvmSummaryInfo
 The `JvmSummaryInfo` entity contains information about the JVM.
@@ -1599,7 +1623,6 @@ The `ServerInfo` entity contains information about the configuration of the Gerr
 |`receive`                 |optional|Information about the receive-pack configuration as a `ReceiveInfo` entity.
 |`sshd`                    |optional|Information about the configuration from the `sshd` section as `SshdInfo` entity. Not set if SSHD is disabled.
 |`suggest`                 ||Information about the configuration from the `suggest` section as `SuggestInfo` entity.
-|`url_aliases`             |optional|A map of URL aliases, where a regular expression for an URL token is mapped to a target URL token. The target URL token can contain placeholders for the groups matched by the regular expression: `$1` for the first matched group, `$2` for the second matched group, etc.
 |`user`                    ||Information about the configuration from the `user` section as `UserConfigInfo` entity.
 |`default_theme`           |optional|URL to a default PolyGerrit UI theme plugin, if available.Located in `/static/gerrit-theme.html` by default.
 

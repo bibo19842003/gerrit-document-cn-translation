@@ -13,8 +13,10 @@ Gerrit 内部的运行情况的数据可以通过 plugin 发送给外部的监�
 
 ### Actions
 
-* `action/retry_attempt_counts`: 单位时间内超时重试的次数
+* `action/retry_attempt_count`: 单位时间内超时重试的次数（0 为不重试）
 * `action/retry_timeout_count`: 超时重试的次数
+* `action/auto_retry_count`: 自动重试的次数
+* `action/failures_on_auto_retry_count`: 自动重试时失败的次数
 
 ### Pushes
 
@@ -50,6 +52,11 @@ Gerrit 内部的运行情况的数据可以通过 plugin 发送给外部的监�
 * `caches/memory_eviction_count`: Memory 条目移除的数量
 * `caches/disk_cached`: Disk 缓存条目的数量
 * `caches/disk_hit_ratio`: Disk 缓存条目使用的频率
+
+### Change
+
+* `change/submit_rule_evaluation`: 估算 change 的 submit rules 需要的时间
+* `change/submit_type_evaluation`: 估算 change 的 submit type 需要的时间
 
 ### HTTP
 
@@ -126,6 +133,8 @@ Gerrit 内部的运行情况的数据可以通过 plugin 发送给外部的监�
 * `notedb/stage_update_latency`: Latency 阶段更新的时长
 * `notedb/read_latency`: 读取 NoteDb 的时长
 * `notedb/parse_latency`: 解析 NoteDb 的时长
+* `notedb/external_id_cache_load_count`: external ID 被加载到缓存使用的时长
+* `notedb/external_id_partial_read_latency`: 从先前状态生成 external ID 的缓存需要的时长
 * `notedb/external_id_update_count`: external ID 更新的数量
 * `notedb/read_all_external_ids_latency`: 从 NoteDb 读取所有 external ID 的时长
 

@@ -149,6 +149,12 @@
 
 默认值是 `true`。
 
+### `label.Label-Name.copyAnyScore`
+
+如果值是 `true`, 当上传新的 patch 的时候，之前 label 的任何打分都会复制到新的 patch 上。
+
+默认值是 `false`。
+
 ### `label.Label-Name.copyMinScore`
 
 如果值是 `true`, 最低的负分会在 change 的下一个 patch-set 上保留。默认值是 `false`，但 All-Projects 例外，默认值是 `true`。

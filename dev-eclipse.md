@@ -37,11 +37,7 @@
 * 添加 JRE, 如目录 /usr/lib64/jvm/java-9-openjdk，名称 java-9-openjdk-9
 * 将 gerrit 项目的运行环境修改为：JavaSE-9 (java-9-openjdk-9)
 * 将 gerrit 项目中的编译器的 `compliance` 级别设置为：9
-* gerrit_daemin 启动的时候，为 VM 添加下面参数:
-```
-  --add-modules java.activation \
-  --add-opens=jdk.management/com.sun.management.internal=ALL-UNNAMED
-```
+
 
 ## Code Formatter Settings
 

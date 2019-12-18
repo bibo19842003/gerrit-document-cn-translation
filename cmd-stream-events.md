@@ -74,7 +74,7 @@ change abandon
 
 **eventCreatedOn** 事件创建时间，用 UNIX epoch 表示
 
-## Change Deleted
+### Change Deleted
 
 删除 change
 
@@ -207,6 +207,8 @@ hashtags 变更
 **patchSet** 参考 [JSON Data Formats](json.md)
 
 **reviewer** 参考 [JSON Data Formats](json.md)
+
+**adder** 参考 [JSON Data Formats](json.md)
 
 **eventCreatedOn** 事件创建时间，用 UNIX epoch 表示
 

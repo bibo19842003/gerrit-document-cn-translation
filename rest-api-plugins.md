@@ -380,6 +380,23 @@ describes the plugin.
   }
 ```
 
+Disabling of a mandatory plugin is rejected:
+
+.Request
+```
+  DELETE /plugins/replication HTTP/1.0
+```
+
+.Response
+```
+  HTTP/1.1 405 Method Not Allowed
+  Content-Disposition: attachment
+  Content-Type: application/json; charset=UTF-8
+
+  )]}'
+  Plugin replication is mandatory
+```
+
 ### Reload Plugin
 ```
 'POST /plugins/{plugin-id}/gerrit~reload'

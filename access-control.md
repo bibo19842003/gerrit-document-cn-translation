@@ -334,9 +334,17 @@ tag 需要通过命令 `git tag -s` 来创建。
 
 `Read` 权限可以查看 change, comments, code diffs, 下载代码等。
 
-这个权限有一个特殊之处，由于 per-project 的权限识别在 All-projects 之前，如果 per-project 的 `Read` 权限设置了 'DENY'，即使 All-projects 中设置了 'ALLOW'，那么用户也没有这个 project 的 `Read` 权限。
+#### Special behaviors
 
-比如，`All-Projects` 中 `Read` 权限赋予了 `Anonymous Users`，那么用户可以访问 change，下载代码。此时，新增了一个 project，`Read` 权限给 `Anonymous Users` 设置了 'DENY'，给 project-owner 设置了 `Read` ，那么只有 project-owner 可以访问这个新增的 project 了。
+此权限有一些特殊的地方：
+
+由于 per-project 的权限识别在 All-projects 之前，如果 per-project 的 `Read` 权限设置了 'DENY'，即使 All-projects 中设置了 'ALLOW'，那么用户也没有这个 project 的 `Read` 权限。
+ 
+不能在 `refs/tags/` 命名空间下设置 `Read` 权限。因为 `refs/tags/` 权限是派生出来的。比如，tag `refs/tags/test` 指向了 branch `refs/heads/master` 上的一个 commit，如果用户对此 branch 有 `Read` 权限，那么此用户同样有这个 tag 的 `Read` 权限。如果 tag 同时存在于多个 branch 上，只要用户对其中一个 branch 有 `Read` 权限，那么此用户对此 tag 就有 `Read` 权限。`refs/changes/`, `refs/cache-automerge/` 类似于 `refs/tags/`。
+
+#### Typical usage
+
+比如，对于开源代码的管理来说，`All-Projects` 中 `Read` 权限赋予了 `Anonymous Users`，那么用户可以访问 change，下载代码。此时，新增了一个 project，`Read` 权限给 `Anonymous Users` 设置了 'DENY'，给 project-owner 设置了 `Read` ，那么只有 project-owner 可以访问这个新增的 project 了。
 
 ### Rebase
 
@@ -426,7 +434,7 @@ change-owner, ref-owner, 当前的 Assignee 和管理员默认有此权限。
 
 建议权限如下：
 
-* `Read`: 'refs/heads/\*'， 'refs/tags/*'
+* `Read`: 'refs/heads/\*'
 * `Push`: 'refs/for/refs/heads/*'
 * `Code-Review`: 'refs/heads/*' 打分区间 '-1' to '+1' 
 
@@ -436,7 +444,7 @@ change-owner, ref-owner, 当前的 Assignee 和管理员默认有此权限。
 
 建议权限如下：
 
-* `Read`: 'refs/heads/\*', 'refs/tags/*'
+* `Read`: 'refs/heads/\*'
 * `Push`: 'refs/for/refs/heads/*'
 * `Push merge commit`: 'refs/for/refs/heads/*'
 * `Forge Author Identity`: 'refs/heads/*'
@@ -468,7 +476,7 @@ CI 系统会把 change 下载下来，然后进行构建和做一些其他的检
 
 建议权限如下：
 
-* `Read`: 'refs/heads/\*', 'refs/tags/*'
+* `Read`: 'refs/heads/\*'
 * `Code-Review`: 'refs/heads/*' 打分区间 '-1' to '0' 
 * `Verified`: 'refs/heads/*' 打分区间 '0' to '+1'
 

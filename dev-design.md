@@ -67,16 +67,6 @@ Gerrit metadata 包含了 change 的相关评审记录，目前存储在 git 仓
 * [Git Repository Format](http://www.kernel.org/pub/software/scm/git/docs/gitrepository-layout.html)
 * [OpenID Specifications](http://openid.net/developers/specs/)
 
-## Project Information
-
-Gerrit 是一个自托管的开源项目：
-
-* [Project Homepage](https://www.gerritcodereview.com/)
-* [Release Versions](https://www.gerritcodereview.com/download/index.html)
-* [Source](https://gerrit.googlesource.com/gerrit)
-* [Issue Tracking](https://bugs.chromium.org/p/gerrit/issues/list)
-* [Change Review](https://review.source.android.com/)
-
 
 ## Internationalization and Localization
 
@@ -85,8 +75,6 @@ Gerrit 是一个自托管的开源项目：
 大多数用户使用英语书写 change 描述和评论，因此用户界面也是英文的。
 
 gerrit 目前不支持 Right-to-left (RTL) 。
-
-* [Gerrit's i18n Support](i18n-readme.md)
 
 
 ## Accessibility Considerations
@@ -201,7 +189,7 @@ gerrit 服务器预估可以支持 50,000 个开发者，如果有超过 1,000 �
 
 一个 24 core 的服务器每秒可以同时处理 25 个 `git fetch` 的操作。问题是每个操作需要 1 个完整的 core，因为计算的时候需要与服务器端的 CPU 绑定。25 个并发可以支持数百个开发人员和 50 个自动构建服务器对 change 的构建使用(此数据来自实际的使用)。
 
-由于 git 本身是一个分布式的工具，用户不需要频繁地链接 `gerrit 中心服务器`，使用 `git fetch` 的时候可以从 [slave mode](pgm-daemon.md) 的服务器进行下载，这样可以减少中心服务器的负载。如果需要大规模部署的时候，建议使用横向扩展。
+由于 git 本身是一个分布式的工具，用户不需要频繁地链接 `gerrit 中心服务器`，使用 `git fetch` 的时候可以从 [replica mode](pgm-daemon.md) 的服务器进行下载，这样可以减少中心服务器的负载。如果需要大规模部署的时候，建议使用横向扩展。
 
 用户在非常慢的网络链接下 (例如：通过家庭的 DSL 链接 VPN)，此时瓶颈在网络上，而不是服务器端的 CPU，这种情况下，CPU 的 core 会与其他用户共享。在服务器端网络链接低于 `10 MiB/sec` 的情况下，适用于 core 共享的配置方式。
 
@@ -239,17 +227,4 @@ Gerrit 自身不支持 log 的维护。
 
 部署在 gerrit 前面的服务器 (如：反向代理服务器) 或者 servlet 容器会记录访问日志，日志可以用于相关的数据分析。但这些不是 gerrit 的使用范围了。
 
-## Testing Plan
-
-Gerrit 当前在 web 页面上进行手动测试。
-
-JGit 有配套的自动化的单元测试。如果测试不通过，相关的 change 是不允许合入的。
-
-## Caveats
-
-Rietveld 不能在网页上点击 submit。
-
-Gitosis 没有代码评审功能。但可以支持访问控制。
-
-通过电子邮件来进行代码评审的方式不会使用到像 Android 那样复杂的项目。因为开发人员需要跟踪相关的修改，并且还要关注修改之间的关联关系。
 

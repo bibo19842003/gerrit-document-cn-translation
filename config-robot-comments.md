@@ -24,6 +24,5 @@ a single click.
 
 ## Limitations
 
-* `robot comments` 在网页上不显示
 * 不支持 draft robot comments，但是 `robot comments` 可以被发布并且在 change 页面上可以查看。
 

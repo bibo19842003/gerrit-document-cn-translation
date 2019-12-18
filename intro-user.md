@@ -322,7 +322,7 @@ Private 状态的 change 默认只有 change-owner 可以看到．如果其他�
 
 * 可以中转数据，中转后再将此 Private Change 删除．比如把数据推送动某设备上，然后其他开发人员通过下载 change 的方式就可以从此设备下载了．
 
-* change 中包含敏感信息，暂时不想公开．比如有个安全修复，担心此修复在合入到代码库之前被恶意使用，所以此 change 临时不公开．
+涉及到安全方面的修复，请*不要*使用 private change。对于安全方面的修复，请参考后面的介绍。
 
 push 命令可以生成 private change, 需要添加参数：`private` .
 
@@ -339,7 +339,17 @@ private-change 的评审人员需要手动添加，系统不会自动添加．
 
 private-change 需要给 CI 帐号单独添加权限．
 
-### Ignore 与 Reviewed
+### Pitfalls
+
+如果使用 private change，需要注意如下事项：
+
+* 如果 private change 合入到了一个所有人都可以访问的分支上时，那么这个 change 的 private 标识会自动移除。此时，对于安全方面的修复来说，使用 private change 是一个错误的选择，因为安全修复需要再保密一段时间，直到发布新的 release .
+
+* 如果向 private change 推送了一个 non-private change，那么其他人员可以通过 parent 关系查看之前的 private change．
+
+* 如果做了一系列的 private change，并且其中的一个需要共享给评审人员，那么这个评审人员可以通过 commit 的 parent 关系查看到先前的 private change．
+
+### Ignoring Or Marking Changes As 'Reviewed'
 
 被 ignore 的 change 不会在 dashboard 中的 'Incoming　Reviews' 部分出现，并且相关的邮件提醒也会暂停．
 当某开发人员被添加到评审人列表中，但此开发人员不想参与评审又不想从人员列表中移除时，可以使用此功能．
@@ -388,22 +398,6 @@ User 的数据在 `All-Users` 中的 User-Ref 存储．User-Ref 是根据帐号�
 用户个性设置的参数存放在 `preferences.config` 文件里，此文件是 `git config` 风格的文件，这个文件存储在 User-Ref 中．
 
 下面是个性化的设置:
-
-  * `Review Category 的显示`:
-　设置 review-labels 在 change 列表和 dashboard 中的显示.
-    * `None`:
-　每个 review-label 只有在打分的时候才会显示. 赞成的话，会有绿色的图标显示，否决的话会有红色的 X　图标显示．
-    * `显示 Name`:
-　每个 review-label 的打分值和打分人员的 name 一起显示
-    * `显示 Email`:
-　每个 review-label 的打分值和打分人员的 email 一起显示
-    * `显示 Username`:
-　每个 review-label 的打分值和打分人员的 username 一起显示
-    * `显示 Abbreviated Name`:
-　每个 review-label 的打分值和打分人员的 Abbreviated Name 一起显示
-
-  * `Maximum Page Size`:
-　页面显示信息条目的最大值，如：changes, projects, branches or groups.
 
   * `Date/Time 格式`:
 　日期和时间的格式.
@@ -546,4 +540,14 @@ Yeah, I see why, let me try again.
 ```
 
 在这种情况下，Gerrit 会把 change-message ("Thanks, I'll fix it.")，file-comment ("Rename this file to File.java") 作为对 inline-comment ("Yeah, I see why, let me try again.")的回复.
+
+## Security Fixes
+
+如果发现了安全方面的漏洞，那么需要进行保密，直到在新的 release 中进行发布。这意味着，开发及评审过程中，需要对其进行保密。
+
+如果一个仓库是公开的并且赋予了可读权限，在修复安全问题的时候建议复制出一个新的仓库，并且在新的仓库中进行安全问题的修复。此新仓库需要严格控制读权限，在修复安全问题并发布新的 release 后，再将问题的修复合入到之前的公开仓库中。
+
+尽管可以在仓库中可以拉出一个安全问题修复的分支，并严格控制新分支的权限，但并不推荐这样做，因为有权限设置方面的风险，如果权限设置错误，那么不相关的人员有可能对此分支进行访问。
+
+对于安全问题的修复使用 privaet change 是非常非常不推荐的，上面已经进行过描述，可以参考上面的 `pitfalls` 部分。 
 

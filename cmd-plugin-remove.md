@@ -17,6 +17,7 @@ _ssh_ -p <port> <host> _gerrit plugin remove_ | _rm_
 ## ACCESS
 * 需要有管理员权限
 * `$site_path/etc/gerrit.config` 需要启动 `plugins.allowRemoteAdmin`。
+* 强制性的 plugin 不能被禁用。
 
 ## SCRIPTING
 建议在脚本中执行此命令

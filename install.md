@@ -34,7 +34,7 @@ Gerrit 目前不支持 Java 9 及以后版本。
 
 ## 下载 Gerrit
 
-可以从 [Gerrit Releases site](https://www.gerritcodereview.com/download/index.html) 下载 gerrit 官方提供的二进制包。
+可以从 [Gerrit Releases site](https://gerrit-releases.storage.googleapis.com/index.html) 下载 gerrit 官方提供的二进制包。
 
 下载 `*.war` 文件，然后可以更名为 `gerrit.war`。
 

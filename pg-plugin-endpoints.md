@@ -101,6 +101,10 @@ DOM 元素，用于现有组件的注册。
 
 配置的仓库的名称
 
+* `readOnly`
+
+配置 repository 是否为只读。
+
 ### settings-menu-item
 此扩展点位于 setting 部分的导航菜单的末尾。
 
@@ -115,6 +119,9 @@ DOM 元素，用于现有组件的注册。
 
 ### header-title
 此扩展点标题处。
+
+### confirm-revert-change
+此扩展点在 rever 对话框的内部。默认为 revert change 的相关确认信息。plugin 可以在此添加相关内容或者替换此信息。
 
 ### confirm-submit-change
 

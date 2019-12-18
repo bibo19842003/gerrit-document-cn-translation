@@ -548,7 +548,7 @@ Cache 包含了用户的一些重要信息，如：`display name`, `preferences`
 
 `memoryLimit` 的大小决定了缓存 change 的数量。如果此缓存设置为 1024，那么最多只能缓存 1024 个 project 的 change。
 
-默认值：0, 取消缓存。因为此缓存不会在 gerrit 主机之间共享，所以建议在 multi-master/multi-slave 架构中取消缓存的设置。
+默认值：0, 取消缓存。因为此缓存不会在 gerrit 主机之间共享，所以建议在 multi-master/multi-replica 架构中取消缓存的设置。
 
 当 change 有变化时，此缓存需要刷新。
 
@@ -571,6 +571,10 @@ Cache 包含了用户的一些重要信息，如：`display name`, `preferences`
 如果缓存只有一个条目，那么此条目是 [所有当前外部 ID]（config-accounts.md）解析后的映射。此缓存也可能包含 2 个条目，但第二个条目已过期。
 
 不建议更改此缓存的默认值。但可以通过设置 `diskLimit` 来存储此缓存，不过仅在冷启动性能有问题时才建议使用。
+
+`external_ids_map` 可以基于先前的 cached 状态来计算新的 cache 值。
+
+`cache.external_ids_map.enablePartialReloads` 可以开启或关闭此特性，默认为 `true`，意味着开启。
 
 **cache `"git_tags"`**
 
@@ -754,14 +758,6 @@ gerrit 在启动时，加载缓存使用的线程的数量。缓存加载后，�
 
 默认值：true
 
-**change.allowDrafts**
-
-支持 draft 工作流。如果设置为 true, 使用 draft 参数推送的时候会生成一个 private change。
-
-如果启用此参数，可以向 `refs/drafts/branch` 分支进行推送，否则会被拒绝。
-
-默认值：false
-
 **change.api.allowedIdentifier**
 
 API 可以使用 change 相关标识进行搜索。可以参考 进行过滤。可以参考 [Change Id](rest-api-changes.md) 的 `Change Id` 相关章节。
@@ -799,6 +795,29 @@ API 可以使用 change 相关标识进行搜索。可以参考 进行过滤。�
 具体的值用来参考在 gerrit 页面上可视化显示修改量的大小。
 
 默认值：500
+
+**change.maxUpdates**
+
+change 最大的更新次数。只对 NoteDb 的 meta ref 的更新进行统计。draft comments, robot comments, stars 等不在统计范畴内。
+
+一些 NoteDb 的操作需要遍历 change 的 meta ref 并将其加载到内存中，因此在 change 更新的时候有可能会导致系统的负载升高（如，CPU 内存负载升高）或者引起其他的问题。
+
+下面的操作不受此参数的限制：
+* Abandon
+* Submit（点击按钮）
+* Submit（push 命令使用 `%submit` 参数）
+* Auto-close（直接 push 操作）
+* 通过 api 操作进行修复（可参考 api 相关章节的 `expect_merged_as` 部分内容）
+
+默认值：1000
+
+**change.move**
+
+是否启用 `Move Change` REST endpoint，可以参考 [rest api changes](rest-api-changes.md)。
+
+move change 的功能有小小的 bug。如：change A 被 change B 所依赖，若将 change A 移到了新的分支，此时不需要将 change B 移到新分支，如果 change A 合入新分支后，那么 change B 也会跟着合入到新分支上。(可以参考 [issue 9877](https://bugs.chromium.org/p/gerrit/issues/detail?id=9877))。
+
+默认值：true
 
 **change.replyLabel**
 
@@ -1024,9 +1043,13 @@ Java 运行的时候，添加额外的参数。如果配置多个参数，需要
 
 执行 `java -jar gerrit.war daemon --help` 可以查看更多参数
 
+**container.replica**
+
+此参数在 Gerrit replica 的安装上使用。如果设置为 true，Gerrit JVM 会调用 '--replica' 参数，启用 replica 模式。如果不设置或设置为其他值，gerrit 会启用 master 模式。
+
 **container.slave**
 
-此参数在 Gerrit slave 的安装上使用。如果设置为 true，Gerrit JVM 会调用 '--slave' 参数，启用 slave 模式。如果不设置或设置为其他值，gerrit 会启用 master 模式。
+兼容 'container.slave' 设置
 
 **container.startupTimeout**
 
@@ -1045,6 +1068,9 @@ Java 运行的时候，添加额外的参数。如果配置多个参数，需要
 默认值：'$site_path/bin/gerrit.war' 或 '$HOME/gerrit.war'
 
 ### Section core
+
+**NOTE**
+*etc/jgit.config 文件可以配置所有的 JGit 参数。*
 
 **core.packedGitWindowSize**
 
@@ -1366,14 +1392,6 @@ gerrit 页面上 `Weblink` 的名称。
 
 默认不设置，意味着不显示 bug 的反馈信息。
 
-**gerrit.reportBugText**
-
-用来显示 `bug report URL` 的文本信息。
-
-只有设置了 `gerrit.reportBugUrl` ，才可以使用此参数。
-
-默认值："Report Bug"
-
 **gerrit.enableReverseDnsLookup**
 
 启用 `reverse DNS lookup`，在 ref log 中记录用户的机器名称。
@@ -1418,12 +1436,6 @@ PolyGerrit 的 favicon 的路径，包括 icon 名称和扩展名。
 
 **NOTE:**
 *如果此值与现有 NoteDb 使用的 serverId 不匹配，那么 gerrit 无法使用此 NoteDb，并显示相关异常信息。*
-
-**gerrit.ui**
-
-默认 UI 的配置。有效值为 `polygerrit` 和 `gwt`。
-
-默认值：`polygerrit`
 
 ### Section gitweb
 
@@ -1577,33 +1589,81 @@ httpd 章节描述的是内置的 servlet 容器。
 
 **httpd.listenUrl**
 
-可以访问 gerrit 提供 HTTP 服务的客户端的地址。'*' 表示所有的客户端都可以链接 gerrit 的 HTTP 服务。
+为内部的 HTTP daemon 配置监听的 socket。每个 `listenUrl` 信息对于监听的 socket 包含了下面的参数：protocol, network address, port and context path。
 
-支持多种协议：
+_Protocol_ : 可以是其中的一种或几种，`http://`, `https://`, `proxy-http://` 或者 `proxy-https://`。后面的两个用于配置 `reverse proxy`。
+_Network address_ : 用于配置监听的地址。
+_Port_ : TCP 的端口号。可选参数。(默认值取决于配置的 protocol 类型).
+_Context path_ : `Gerrit Code Review` 的 "base URI"
 
-* `http://`'hostname'`:`'port'
+**Protocol** schemes:
+
+* `http://`
 
 默认端口 80
 
-* `https://`'hostname'`:`'port'
+* `https://`
 
 SSL 加密 HTTP 协议。默认端口 443。
 
-推荐生产环境的站点使用反向代理和 `proxy-https://`（参考下面），而不是使用内嵌的 servlet 容器来实现 SSL 处理。支持 SSL 的代理服务器更容易配置，提供更多配置来控制密码的使用，并且可以使用本机编译的加密算法，从而提高吞吐量。
+配置 certificate 和 private key，可以参考 本文的 `httpd.sslKeyStore` 部分。
 
-* `proxy-http://`'hostname'`:`'port'
+**NOTE**
+*推荐生产环境的站点使用反向代理 `proxy-https://`（参考下面），而不是使用内嵌的 servlet 容器来实现 SSL 处理。支持 SSL 的代理服务器更容易配置，提供更多配置来控制密码的使用，并且可以使用本机编译的加密算法，从而提高吞吐量。*
+
+* `proxy-http://`
 
 纯文本的 HTTP 可以使用反向代理。默认端口为：8080。
 
-与 http 类似，启用 http 头部解析特性可以支持 X-Forwarded-For, X-Forwarded-Host 和 X-Forwarded-Server。头部可以通过 Apache 的 [mod_proxy](http://httpd.apache.org/docs/2.2/mod/mod_proxy.html#x-headers) 进行设置。
+与 http 类似，启用 http 头部解析特性可以支持 X-Forwarded-For, X-Forwarded-Host 和 X-Forwarded-Server。头部可以通过 Apache 的 [mod_proxy](https://httpd.apache.org/docs/2.4/mod/mod_proxy.html#x-headers) 进行设置。
 
-* `proxy-https://`'hostname'`:`'port'
+**NOTE**
+*由于安全原因，确保只能访问网络中信任的 reverse proxy。如果 reverse proxy 和 Gerrit daemon 部署在同一台机器上，建议使用 _loopback_ 网络地址（参考如下）。*
+*如果不使用 Apache 的 mod_proxy，需要在请求中验证 reverse proxy 设置的头部。如果不这样做，可以从源头取消相关配置，或者使用 `http://` scheme 来代替。*
+
+* `proxy-https://`
 
 纯文本的 HTTP 可以使用 SSL 加密/解密的反向代理。默认端口为：8080。
 
-行为与 proxy-http 相同，需要将 scheme 设置为假设返回服务器的 'https://' URL。
+与 proxy-http 类似，需要将 scheme 设置为假设返回服务器的 'https://' URL。
 
-可以配置多个值。
+**Network address** forms:
+
+* Loopback (localhost): `127.0.0.1` (IPv4) or `[::1]` (IPv6).
+* All (unspecified): `0.0.0.0` (IPv4), `[::]` (IPv6) or `*` (IPv4 and IPv6)
+* Interface IP address, e.g. `1.2.3.4` (IPv4) or `[2001:db8::a00:20ff:fea7:ccea]` (IPv6)
+* Hostname, 启动时将被解析为 IP 地址。
+
+**Context path** 
+URL 的部分信息，基于 'base URL' 来访问 Gerrit。如，`/gerrit/` 作为 'base URL'。如果设置这个参数，需要考虑 `gerrit.canonicalWebUrl` 的配置。同时也依赖于 reverse proxy 的配置。
+默认值为 `/`，访问 Gerrit 的根路径。
+
+如果配置了多个值，那么 daemon 会监听所有的配置。
+
+例如：
+
+```
+[httpd]
+    listenUrl = proxy-https://127.0.0.1:9999/gerrit/
+[gerrit]
+    # Reverse proxy is configured to serve with SSL/TLS on
+    # example.com and to relay requests on /gerrit/ onto
+    # http://127.0.0.1:9999/gerrit/
+    canonicalWebUrl = https://example.com/gerrit/
+```
+
+```
+[httpd]
+    # Listen on specific external interface with plaintext
+    # HTTP on IPv6.
+    listenUrl = http://[2001:db8::a00:20ff:fea7:ccea]
+
+    # Also listen on specific internal interface for use with
+    # reverse proxy run on another host.
+    listenUrl = proxy-https://192.168.100.123
+```
+
+可以参考 [reverse proxy](config-reverseproxy.md) 相关的配置。
 
 默认值：http://*:8080
 
@@ -1857,21 +1917,21 @@ index 后，是否立即自动检查文档有没有失效。如果设置为 fals
 
 #### Subsection index.scheduledIndexer
 
-此部分配置用于定期执行 index 操作。此操作只在 slave 模式的机器上执行，并且用来更新群组的 index 信息。Replication 是 git 层级的操作，对于 slave 模式的 gerrit 来说，是感知不到的。但是 slave 模式下需要更新群组 index，以便保证从 master 同步过来的权限配置可以正常使用。为了保证 slave 机器上的群组 index 状态是最新的，需要定期扫描 All-Users 仓的 ref，以便更新信息。
+此部分配置用于定期执行 index 操作。此操作只在 replica 模式的机器上执行，并且用来更新群组的 index 信息。Replication 是 git 层级的操作，对于 replica 模式的 gerrit 来说，是感知不到的。但是 replica 模式下需要更新群组 index，以便保证从 master 同步过来的权限配置可以正常使用。为了保证 replica 机器上的群组 index 状态是最新的，需要定期扫描 All-Users 仓的 ref，以便更新信息。
 
-计划任务需要在 slave 模式下的 gerrit 服务运行的时候执行。如果 slave 模式下的 gerrit 没有启动，此时 master 模式的 gerrit 上面删除了群组，那么在启动 slave 模式的 gerrit 时，需要执行一次 [reindex]（pgm-reindex.md）。
+计划任务需要在 replica 模式下的 gerrit 服务运行的时候执行。如果 replica 模式下的 gerrit 没有启动，此时 master 模式的 gerrit 上面删除了群组，那么在启动 replica 模式的 gerrit 时，需要执行一次 [reindex]（pgm-reindex.md）。
 
-**此部分描述的是 gerrit 运行在 slave 模式下的配置。**
+**此部分描述的是 gerrit 运行在 replica 模式下的配置。**
 
 **index.scheduledIndexer.runOnStartup**
 
-gerrit 服务启动时，是否执行一次计划任务。如果设置为 `true`，slave 机器的服务启动要被阻止直到所有群组的 index 状态更新到最新。
+gerrit 服务启动时，是否执行一次计划任务。如果设置为 `true`，replica 机器的服务启动要被阻止直到所有群组的 index 状态更新到最新。
 
 默认值：true
 
 **index.scheduledIndexer.enabled**
 
-是否启用计划执行 index 操作。如果禁用此设置，slave 机器中，需要用其他方法保证群组的 index 状态是最新的（例如，使用 ElasticSearch 作为 index）。
+是否启用计划执行 index 操作。如果禁用此设置，replica 机器中，需要用其他方法保证群组的 index 状态是最新的（例如，使用 ElasticSearch 作为 index）。
 
 默认值：true
 
@@ -1919,6 +1979,32 @@ change 自动存储到硬盘上的时间段。操作花费的代价有些大，�
 
 默认值：300000 ms (5 minutes)
 
+**index.name.maxMergeCount**
+
+同时执行最大的 merge 数量。如果一个 merge 的线程在进行，此时若有新的线程，那么这些新的线程需要等待，指导 merge 的线程完成。同一时间，Lucene 只会执行最小数量的 merge 操作。
+
+可以参考 [Lucene documentation](https://lucene.apache.org/core/5_5_0/core/org/apache/lucene/index/ConcurrentMergeScheduler.html#setDefaultMaxMergesAndThreads(boolean)) 。
+
+默认值为 `-1`（自动检测）
+
+**index.name.maxThreadCount**
+
+同时执行最大的 merge 线程的数量，此参数值需要低于 maxMergeCount。
+可以参考 [Lucene documentation](https://lucene.apache.org/core/5_5_0/core/org/apache/lucene/index/ConcurrentMergeScheduler.html#setDefaultMaxMergesAndThreads(boolean)) 。
+需要注意 `Lucene index` 的配置 (自动检测) ，此配置影响了 maxThreadCount 和 maxMergeCount。
+
+可以参考 [Lucene documentation](https://lucene.apache.org/core/5_5_0/core/org/apache/lucene/index/ConcurrentMergeScheduler.html#AUTO_DETECT_MERGES_AND_THREADS)。
+
+默认值为 `-1`（自动检测）
+
+**index.name.enableAutoIOThrottle**
+
+lucene merge 队列中是否启用自动 IO 调节。此处的 IO 用于控制每秒字节写入的速度，防止 merge 过慢导致不同步。
+
+可以参考 [Lucene documentation](https://lucene.apache.org/core/5_5_0/core/org/apache/lucene/index/ConcurrentMergeScheduler.html#enableAutoIOThrottle)。
+
+默认值为 true (启用 Throttle)
+
 Lucene index 配置示例如下:
 ```
 [index]
@@ -1927,10 +2013,15 @@ Lucene index 配置示例如下:
 [index "changes_open"]
   ramBufferSize = 60 m
   maxBufferedDocs = 3000
+  maxThreadCount = 5
+  maxMergeCount = 50
 
 [index "changes_closed"]
   ramBufferSize = 20 m
   maxBufferedDocs = 500
+  maxThreadCount = 10
+  maxMergeCount = 100
+  enableIOThrottle = false
 ```
 
 ### Section elasticsearch
@@ -1992,6 +2083,20 @@ Elasticsearch 安全方面的设置，可以参考下面链接：
 链接 Elasticsearch 的 密码 。
 
 默认不设置密码。
+
+### Section event
+
+**events.payload.listChangeOptions**
+
+Gerrit 内部事件的参数列表。类似于 change 的 query 参数。
+
+依赖相关的设置，使用 stream event 可以使 event 序列化。
+
+此参数可以设置为 Gerrit event 的最小集合 (例如：`SKIP_MERGEABLE`,`SKIP_DIFFSTAT`)。
+
+此处添加的参数会有性能方面的影响。因此参数建议配置所需要的最小集合。
+
+默认为所有可见参数排除 `CHANGE_ACTIONS`, `CURRENT_ACTIONS`, `CHECK` 参数。这样可以在添加配置后保持兼容。
 
 ### Section ldap
 
@@ -2362,6 +2467,12 @@ Gerrit 为客户端的 clone，fetch 或 pull 创建 pack 流的全局设置。
 如果设置为 true，管理可以远程 (SSH 或 HTTP) 启用或禁用 plugin。
 默认值：false.
 
+**plugins.mandatory**
+
+mandatory plugin 列表。Gerrit 启动时若此列表中的 plugin 没有加载，那么启动会失败。
+
+不能取消或重启此列表中的 plugin，但可以重新加载。
+
 **plugins.jsLoadTimeout**
 
 在 gerrit UI 中，为加载 JavaScript plugin 设置 timeout 的值。值的单位为：'ms', 'sec','min' 等。
@@ -2379,14 +2490,6 @@ Gerrit 为客户端的 clone，fetch 或 pull 创建 pack 流的全局设置。
 允许执行 'git push' 的用户群组，可以配置一个或多个。
 
 如果没有配置群组，那么所有用户都可以执行 'git push' 操作。
-
-**receive.allowPushToRefsChanges**
-
-如果设置为 true，可以向 `refs/changes/` 命名空间进行推送。在未来的版本中，此参数会被移除。
-
-false 意味着禁止向 `refs/changes/` 推送。
-
-默认值：false
 
 **receive.certNonceSeed**
 
@@ -2586,6 +2689,12 @@ repository 在此章节等同于 project。
 
 默认单位：milliseconds
 
+**retry.retryWithTraceOnFailure**
+
+当启动 trace 时，遇到相关的操作失败是否进行自动 retry 操作。自动生成的 trace 有助于调试。一些 `REST endpoints` 支持自动 retry。
+
+默认值：false
+
 ### Section rules
 
 **rules.enable**
@@ -2634,7 +2743,7 @@ repository 在此章节等同于 project。
 
 处理后台其他任务的线程数量。
 
-默认值：1
+默认的最小值为2，因此单一的后台长期执行的任务（如 GC）不会阻碍其他的进程。
 
 **execution.fanOutThreadPoolSize**
 
@@ -2883,13 +2992,13 @@ SMTP 服务器（sendemail.smtpserver）使用的端口
 
 然而，如果有大量闲置的 CPU 资源，并且服务器在一个比较缓慢的网络中，git 仓还有大量的 ref，这时可以启用此压缩功能。因为在握手的时候，git 的 ref 不会被压缩。
 
-当 Gerrit 的 slave 服务器用于较大的下载时，压缩尤其有用，此时 master 服务器主要使用小型接收包。
+当 Gerrit 的 replica 服务器用于较大的下载时，压缩尤其有用，此时 master 服务器主要使用小型接收包。
 
 默认值：`false`
 
 **sshd.backend**
 
-Apache SSHD 项目从 version 0.9.0 开始，添加了 NIO2 功能的支持。为了使用 NIO2 session，需要将 `backend` 设置为 `NIO2`，否则，会被设置为 `MINA`。
+Apache SSHD 项目从 version 0.9.0 开始，添加了 NIO2 功能的支持。为了使用老的 MINA session，需要将 `backend` 设置为 `MINA`。
 
 默认值：`NIO2`
 
@@ -3133,6 +3242,54 @@ SSH daemon 在某个时间段之后，会发布重新加密。
 
 默认值：0
 
+### Section tracing
+
+**tracing.performanceLogging**
+
+是否启用 performance logging 。
+
+启用 performance logging 功能时，一些操作的 performance 相关 event 会略微耗费内存。
+
+若要使用此功能需要安装 `PerformanceLogger` plugin 。
+
+默认值：`TRUE`
+
+#### Subsection tracing.<trace-id>
+
+可以配置多个 `tracing.<trace-id>` 的 subsection 。需要匹配所有的 `tracing.<trace-id>` subsection 才会记录相关日志。subsection 的名称使用 `trace ID`，可以便于管理员搜索 log 。
+
+**tracing.<trace-id>.requestType**
+
+请求的类型(如：`GIT_RECEIVE`, `GIT_UPLOAD`, `REST`, `SSH`)，需要启用 trace 参数。
+
+可以多次指定。
+
+默认不设置 (适配所有请求类型)。
+
+**tracing.<trace-id>.requestUriPattern**
+
+使用正则表达式匹配 URIs 的路径，需要启用 trace 参数。Request URIs 只能使用 REST requests。Request URIs 不能包含 '/a' 前缀。
+
+可以多次指定。
+
+默认不设置 (适配所有 URIs)。
+
+**tracing.<trace-id>.account**
+
+Account ID，需要启用 trace 参数。
+
+可以多次指定。
+
+默认不设置 (适配所有 account)。
+
+**tracing.<trace-id>.projectPattern**
+
+使用正则表达式匹配 project 的名称，需要启用 trace 参数。
+
+可以多次指定。
+
+默认不设置 (适配所有 project)。
+
 ### Section trackingid
 
 从 commit-msg 中解析出 tracking 系统的相关信息，然后保存到 secondary index 。
@@ -3211,39 +3368,6 @@ timeout 需要为 transfer 设置得足够大。对应广域网来说，10-30 se
 **accountDeactivation.interval**
 
 执行任务的频率，可以参考本文 `schedule configuration` 的 `interval` 部分。
-
-### Section urlAlias
-
-URL aliases 会为 URL token 定义正则表达式，用来与目标 URL token 映射。
-
-每个 URL alias 需要在自己的 subsection 进行配置。subsection 名字应该是一个可描述的名称，需要是唯一的。
-
-URL aliases 可以不按特定顺序排列。第一个匹配到的 URL alias 会被使用，其他的匹配会被忽略。
-
-URL aliases 可以将 plugin screens 映射到 Gerrit URL 的命名空间，或用 plugin screen 替代 Gerrit screen 。
-
-示例:
-
-```
-[urlAlias "MyPluginScreen"]
-  match = /myscreen/(.*)
-  token = /x/myplugin/myscreen/$1
-[urlAlias "MyChangeScreen"]
-  match = /c/(.*)
-  token = /x/myplugin/c/$1
-```
-
-**urlAlias.match**
-
-URL token 的正则表达式。
-
-URL token 可以被 `urlAlias.token` 参数所代替。
-
-**urlAlias.token**
-
-目标 URL 的 token 。
-
-通过使用 `urlAlias.match` 正则表达式，匹配到的群组可以可能会包含占位符：`$1` 为第一个匹配的群组，`$2` 为第二个匹配的群组。
 
 ### Section submodule
 
@@ -3414,4 +3538,15 @@ gerrit 初始化的目录，用来存放 gerrit 相关的文件。建议对相�
 可对站点进行个性化配置，如：
 
   * [主题配置](config-themes.md)
+
+## File `etc/jgit.config`
+
+Gerrit 使用 `$site_path/etc/jgit.config` 文件来实现全局的 JGit 配置。
+
+例如 `etc/jgit.config` 文件:
+```
+[core]
+  trustFolderStat = false
+```
+
 

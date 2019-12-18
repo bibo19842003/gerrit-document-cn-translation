@@ -35,7 +35,7 @@
 
 **age:'AGE'**
 
- 描述的是 change 最后一次更新(包括新的评论或新的 patch-set)经历的时间。时间需要加上单位，如： `age:2d`:
+ 描述的是 change 最后一次更新(包括新的评论或新的 patch-set)经历的时间。时间需要加上单位，如： `-age:2d`:
 
  * s, sec, second, seconds
  * m, min, minute, minutes
@@ -44,6 +44,8 @@
  * w, week, weeks (`1 week` 等于 `7 days`)
  * mon, month, months (`1 month` 看作是 `30 days`)
  * y, year, years (`1 year` 看作是 `365 days`)
+
+`age` 可以用来向前或向后进行搜索：`age:2d` 表示大于 2 days，`-age:2d` 表示最多 2 days。
 
 **assignee:'USER'**
 
@@ -245,7 +247,7 @@
 
   根据 cc 当前用户进行搜索。
 
-**is:open, is:pending**
+**is:open, is:pending, is:new**
 
  搜索 open/pending 状态的 change。
 
@@ -277,7 +279,7 @@
 
  搜索 wip 状态的 change。
 
-**status:open, status:pending**
+**status:open, status:pending, status:new**
 
  搜索 open/pending 状态的 change。
 

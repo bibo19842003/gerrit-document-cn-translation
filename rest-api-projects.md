@@ -2697,16 +2697,16 @@ dashboard-id.
   }
 ```
 
-### Set Dashboard
+### Create Dashboard
 ```
 'PUT /projects/{project-name}/dashboards/{dashboard-id}'
 ```
 
-Updates/Creates a project dashboard.
+Creates a project dashboard, if a project dashboard with the given dashboard ID doesn't exist yet.
 
 Currently only supported for the `default` dashboard.
 
-The creation/update information for the dashboard must be provided in
+The creation information for the dashboard must be provided in
 the request body as a `DashboardInput` entity.
 
 .Request
@@ -2720,7 +2720,59 @@ the request body as a `DashboardInput` entity.
   }
 ```
 
-As response the new/updated dashboard is returned as a `DashboardInfo` entity.
+As response the new dashboard is returned as a `DashboardInfo` entity.
+
+.Response
+```
+  HTTP/1.1 201 Created
+  Content-Disposition: attachment
+  Content-Type: application/json; charset=UTF-8
+
+  )]}'
+  {
+    "id": "main:closed",
+    "ref": "main",
+    "path": "closed",
+    "description": "Merged and abandoned changes in last 7 weeks",
+    "url": "/dashboard/?title\u003dClosed+changes\u0026Merged\u003dstatus:merged+age:7w\u0026Abandoned\u003dstatus:abandoned+age:7w",
+    "is_default": true,
+    "title": "Closed changes",
+    "sections": [
+      {
+        "name": "Merged",
+        "query": "status:merged age:7w"
+      },
+      {
+        "name": "Abandoned",
+        "query": "status:abandoned age:7w"
+      }
+    ]
+  }
+```
+
+### Update Dashboard
+```
+'PUT /projects/{project-name}/dashboards/{dashboard-id}'
+```
+
+Updates a project dashboard, if a project dashboard with the given dashboard ID already exists.
+
+Currently only supported for the `default` dashboard.
+
+The update information for the dashboard must be provided in the request body as a `DashboardInput` entity.
+
+.Request
+```
+  PUT /projects/work%2Fmy-project/dashboards/default HTTP/1.0
+  Content-Type: application/json; charset=UTF-8
+
+  {
+    "id": "main:closed",
+    "commit_message": "Update the default dashboard"
+  }
+```
+
+As response the updated dashboard is returned as a `DashboardInfo` entity.
 
 .Response
 ```

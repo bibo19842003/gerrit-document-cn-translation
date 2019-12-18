@@ -65,7 +65,7 @@ Gerrit 的 Subproject 的 Artifacts 存储在 [Google Cloud Storage](https://dev
 
 * `gerrit-maven`:
 
-    Bucket 用来存储 Gerrit Subproject Artifacts (例如：`gwtorm`)。
+    Bucket 用来存储 Gerrit Subproject Artifacts (例如：Prolog Cafe)。
 
 为了将 artifacts 上传到 bucket ，需要经过相关用户名和密码的认证。用户名和密码需要从 [Storage Setting in the Google Cloud Platform Console](https://console.cloud.google.com/storage/settings?project=api-project-164060093628) 获取。
 
