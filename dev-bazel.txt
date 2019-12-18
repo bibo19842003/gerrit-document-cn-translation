@@ -10,7 +10,8 @@ To build Gerrit from source, you need:
 * Python 2 or 3
 * link:https://github.com/nodesource/distributions/blob/master/README.md[Node.js (including npm)]
 * Bower (`sudo npm install -g bower`)
-* link:https://docs.bazel.build/versions/master/install.html[Bazel]
+* link:https://docs.bazel.build/versions/master/install.html[Bazel] directly
+or through link:https://github.com/bazelbuild/bazelisk[Bazelisk]
 * Maven
 * zip, unzip
 * gcc
@@ -303,6 +304,12 @@ To exclude tests that require a Docker host:
   bazel test --test_tag_filters=-docker //...
 ----
 
+To exclude tests that require very recent git client version:
+
+----
+  bazel test --test_tag_filters=-git-protocol-v2 //...
+----
+
 To ignore cached test results:
 
 ----
@@ -323,6 +330,7 @@ The following values are currently supported for the group name:
 * edit
 * elastic
 * git
+* git-protocol-v2
 * notedb
 * pgm
 * rest
