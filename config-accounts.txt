@@ -1,3 +1,4 @@
+:linkattrs:
 = Gerrit Code Review - Accounts
 
 == Overview
@@ -6,10 +7,10 @@ Starting from 2.15 Gerrit accounts are fully stored in
 link:note-db.html[NoteDb].
 
 The account data consists of a sequence number (account ID), account
-properties (full name, preferred email, registration date, status,
-inactive flag), preferences (general, diff and edit preferences),
-project watches, SSH keys, external IDs, starred changes and reviewed
-flags.
+properties (full name, display name, preferred email, registration
+date, status, inactive flag), preferences (general, diff and edit
+preferences), project watches, SSH keys, external IDs, starred changes
+and reviewed flags.
 
 Most account data is stored in a special link:#all-users[All-Users]
 repository, which has one branch per user. Within the user branch there
@@ -143,7 +144,7 @@ Stores the link:#project-watches[project watches] of the account.
 
 In addition it contains an
 link:https://en.wikibooks.org/wiki/OpenSSH/Client_Configuration_Files#.7E.2F.ssh.2Fauthorized_keys[
-authorized_keys] file with the link:#ssh-keys[SSH keys] of the account.
+authorized_keys,role=external,window=_blank] file with the link:#ssh-keys[SSH keys] of the account.
 
 [[account-properties]]
 === Account Properties
@@ -154,6 +155,7 @@ The account properties are stored in the user branch in the
 ----
 [account]
   fullName = John Doe
+  displayName = John
   preferredEmail = john.doe@example.com
   status = OOO
   active = false
@@ -256,7 +258,7 @@ matches the change and the event.
 SSH keys are stored in the user branch in an `authorized_keys` file,
 which is the
 link:https://en.wikibooks.org/wiki/OpenSSH/Client_Configuration_Files#.7E.2F.ssh.2Fauthorized_keys[
-standard OpenSSH file format] for storing SSH keys:
+standard OpenSSH file format,role=external,window=_blank] for storing SSH keys:
 
 ----
 ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAAAgQCgug5VyMXQGnem2H1KVC4/HcRcD4zzBqSuJBRWVonSSoz3RoAZ7bWXCVVGwchtXwUURD689wFYdiPecOrWOUgeeyRq754YWRhU+W28vf8IZixgjCmiBhaL2gt3wff6pP+NXJpTSA4aeWE5DfNK5tZlxlSxqkKOS8JRSUeNQov5Tw== john.doe@example.com
@@ -296,6 +298,16 @@ for the external ID `username:jdoe` is `e0b751ae90ef039f320e097d7d212f490e933706
 This ensures that an external ID is used only once (e.g. an external ID can
 never be assigned to multiple accounts at a point in time).
 
+The following commands show how to find the SHA1 of an external ID:
+
+----
+$ echo -n 'gerrit:jdoe' | shasum
+7c2a55657d911109dbc930836e7a770fb946e8ef  -
+
+$ echo -n 'username:jdoe' | shasum
+e0b751ae90ef039f320e097d7d212f490e933706  -
+----
+
 [IMPORTANT]
 If the external ID key is changed manually you must adapt the note key
 to the new SHA1, otherwise the external ID becomes inconsistent and is
@@ -304,6 +316,20 @@ ignored by Gerrit.
 The note content is a Git config file:
 
 ----
+[externalId "username:jdoe"]
+  accountId = 1003407
+  email = jdoe@example.com
+  password = bcrypt:4:LCbmSBDivK/hhGVQMfkDpA==:XcWn0pKYSVU/UJgOvhidkEtmqCp6oKB7
+----
+
+Once SHA1 of an external ID is known the following command can be used to
+show the content of the note:
+
+----
+$ echo -n 'gerrit:jdoe' | shasum
+7c2a55657d911109dbc930836e7a770fb946e8ef  -
+
+$ git show refs/meta/external-ids:7c/2a55657d911109dbc930836e7a770fb946e8ef
 [externalId "username:jdoe"]
   accountId = 1003407
   email = jdoe@example.com
@@ -386,10 +412,10 @@ stored in a local H2 database, but there is an extension point that
 allows to plug in alternate implementations for storing the reviewed
 flags. To replace the storage for reviewed flags a plugin needs to
 implement the link:dev-plugins.html#account-patch-review-store[
-AccountPatchReviewStore] interface. E.g. to support a multi-master
-setup where reviewed flags should be replicated between the master
-nodes one could implement a store for the reviewed flags that is
-based on MySQL with replication.
+AccountPatchReviewStore] interface. E.g. to support a cluster setup with
+multiple primary servers handling write operations where reviewed flags should
+be replicated between the primary nodes one could implement a store for the
+reviewed flags that is based on MySQL with replication.
 
 [[account-sequence]]
 == Account Sequence

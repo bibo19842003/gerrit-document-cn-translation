@@ -1419,10 +1419,13 @@ section.
 
 [options="header",cols="1,6"]
 |=============================
-|Field Name           |Description
-|`visibility`         |
+|Field Name            |Description
+|`visibility`          |
 link:config-gerrit.html#accounts.visibility[Visibility setting for
 accounts].
+|`default_display_name`|The default strategy for choosing the display
+name in the UI, see also
+link:config-gerrit.html#accounts.defaultDisplayName[gerrit.config].
 |=============================
 
 [[auth-info]]
@@ -1477,8 +1480,8 @@ type] is `CUSTOM_EXTENSION`.
 |`git_basic_auth_policy`      |optional|
 The link:config-gerrit.html#auth.gitBasicAuthPolicy[policy] to authenticate
 Git over HTTP and REST API requests when
-link:config-gerrit.html#auth.type[authentication type] is `LDAP`.
-Can be `HTTP`, `LDAP` or `HTTP_LDAP`.
+link:config-gerrit.html#auth.type[authentication type] is `LDAP`,
+`LDAP_BIND` or `OAUTH`. Can be `HTTP`, `LDAP`, `HTTP_LDAP` or `OAUTH`.
 |==========================================
 
 [[cache-info]]
@@ -1566,10 +1569,30 @@ link:config-gerrit.html#change.submitWholeTopic[A configuration if
 the whole topic is submitted].
 |`disable_private_changes` |not set if `false`|
 Returns true if private changes are disabled.
-|`exclude_mergeable_in_change_info` |not set if `false`|
-Value of the link:config-gerrit.html#change.api.excludeMergeableInChangeInfo[
+|`mergeability_computation_behavior` ||
+Value of the link:config-gerrit.html#change.mergeabilityComputationBehavior[
 configuration parameter] that controls whether the mergeability bit in
-link:rest-api-changes.html#change-info[ChangeInfo] will never be set.
+link:rest-api-changes.html#change-info[ChangeInfo] will never be set and if the
+bit is indexed.
+|`enable_attention_set` |defaults to `false`|
+Returns true if attention set UI features are enabled.
+|`enable_assignee` |defaults to `true`|
+Returns true if assignee related UI features are enabled.
+|=============================
+
+[[change-index-config-info]]
+=== ChangeIndexConfigInfo
+The `ChangeIndexConfigInfo` entity contains information about Gerrit
+configuration from the link:config-gerrit.html#index.change[index.change]
+section.
+
+[options="header",cols="1,^1,5"]
+|=============================
+|Field Name           ||Description
+|`index_mergeable`        |not set if `false`|
+Value of the link:config-gerrit.html#index.change.indexMergeable[
+configuration parameter] that controls whether the mergeability bit is
+indexed (hence queryable using `is:mergeable`).
 |=============================
 
 [[check-account-external-ids-input]]
@@ -1821,6 +1844,21 @@ Whether to enable the web UI for editing GPG keys.
 link:config-gerrit.html#gerrit.reportBugUrl[URL to report bugs].
 |=================================
 
+[[index-config-info]]
+=== IndexConfigInfo
+The `IndexConfigInfo` entity contains information about Gerrit
+configuration from the link:config-gerrit.html#index[index]
+section.
+
+[options="header",cols="1,^1,5"]
+|=============================
+|Field Name           ||Description
+|`change`                  ||
+Information about the configuration from the
+link:config-gerrit.html#index.change[index.change] section as
+link:#index.change[ChangeIndexConfigInfo] entity.
+|=============================
+
 [[hit-ration-info]]
 === HitRatioInfo
 The `HitRatioInfo` entity contains information about the hit ratio of a
@@ -1947,6 +1985,10 @@ information about Gerrit
 Information about the configuration from the
 link:config-gerrit.html#gerrit[gerrit] section as link:#gerrit-info[
 GerritInfo] entity.
+|`index`                  ||
+Information about the configuration from the
+link:config-gerrit.html#index[index] section as link:#index[
+IndexConfigInfo] entity.
 |`note_db_enabled`         |not set if `false`|
 Whether the NoteDb storage backend is fully enabled.
 |`plugin`                  ||

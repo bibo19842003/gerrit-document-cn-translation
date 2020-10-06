@@ -1,3 +1,4 @@
+:linkattrs:
 = Gerrit Code Review - /accounts/ REST API
 
 This page describes the account related REST endpoints.
@@ -51,14 +52,15 @@ object has a `_more_accounts: true` JSON field set.
 The `S` or `start` query parameter can be supplied to skip a number
 of accounts from the list.
 
+[[query-options]]
 Additional fields can be obtained by adding `o` parameters, each
 option slows down the query response time to the client so they are
 generally disabled by default. Optional fields are:
 
 [[details]]
 --
-* `DETAILS`: Includes full name, preferred email, username, avatars,
-status and state for each account.
+* `DETAILS`: Includes full name, preferred email, username, display
+name, avatars, status and state for each account.
 --
 
 [[all-emails]]
@@ -98,12 +100,14 @@ capability.
       "name": "John Doe",
       "email": "john.doe@example.com",
       "username": "john"
+      "display_name": "John D"
     },
     {
       "_account_id": 1001439,
       "name": "John Smith",
       "email": "john.smith@example.com",
       "username": "jsmith"
+      "display_name": "Johnny"
     },
   ]
 ----
@@ -133,6 +137,7 @@ Returns an account as an link:#account-info[AccountInfo] entity.
     "name": "John Doe",
     "email": "john.doe@example.com",
     "username": "john"
+    "display_name": "Super John"
   }
 ----
 
@@ -154,6 +159,7 @@ link:#account-input[AccountInput].
 
   {
     "name": "John Doe",
+    "display_name": "Super John",
     "email": "john.doe@example.com",
     "ssh_key": "ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEA0T...YImydZAw==",
     "http_password": "19D9aIn7zePb",
@@ -207,6 +213,7 @@ AccountDetailInfo] entity.
     "name": "John Doe",
     "email": "john.doe@example.com",
     "username": "john"
+    "display_name": "Super John"
   }
 ----
 
@@ -400,6 +407,27 @@ fails with "`405 Method Not Allowed`".
 
 As response the new username is returned.
 
+[[set-display-name]]
+=== Set Display Name
+--
+'PUT /accounts/link:#account-id[\{account-id\}]/displayname'
+--
+
+The new display name must be provided in the request body inside
+a link:#display-name-input[DisplayNameInput] entity.
+
+.Request
+----
+  PUT /accounts/self/displayname HTTP/1.0
+  Content-Type: application/json; charset=UTF-8
+
+  {
+    "display_name": "John"
+  }
+----
+
+As response the new display name is returned.
+
 [[get-active]]
 === Get Active
 --
@@ -568,6 +596,9 @@ token of another user are rejected with "`403 Forbidden`".
 
 Returns the email addresses that are configured for the specified user.
 
+link:access-control.html#capability_modifyAccount[ModifyAccount]
+capability is required to view emails of other users.
+
 .Request
 ----
   GET /accounts/self/emails HTTP/1.0
@@ -639,6 +670,9 @@ link:#email-input[EmailInput].
 If link:config-gerrit.html#sendemail.allowrcpt[sendemail.allowrcpt] is
 configured, the added email address must belong to a domain that is
 allowed, unless `no_confirmation` is set.
+If link:config-gerrit.html#sendemail.denyrcpt[sendemail.denyrcpt]
+is configured, make sure that the added email address is *not* disallowed or
+belongs to a domain that is disallowed.
 
 The link:#email-input[EmailInput] object in the request body may
 contain additional options for the email address.
@@ -733,8 +767,8 @@ link:#ssh-key-info[SshKeyInfo] entities.
   [
     {
       "seq": 1,
-      "ssh_public_key": "ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEA0T...YImydZAw\u003d\u003d john.doe@example.com",
-      "encoded_key": "AAAAB3NzaC1yc2EAAAABIwAAAQEA0T...YImydZAw\u003d\u003d",
+      "ssh_public_key": "ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEA0T...YImydZAw== john.doe@example.com",
+      "encoded_key": "AAAAB3NzaC1yc2EAAAABIwAAAQEA0T...YImydZAw==",
       "algorithm": "ssh-rsa",
       "comment": "john.doe@example.com",
       "valid": true
@@ -767,8 +801,8 @@ describes the SSH key.
   )]}'
   {
     "seq": 1,
-    "ssh_public_key": "ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEA0T...YImydZAw\u003d\u003d john.doe@example.com",
-    "encoded_key": "AAAAB3NzaC1yc2EAAAABIwAAAQEA0T...YImydZAw\u003d\u003d",
+    "ssh_public_key": "ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEA0T...YImydZAw== john.doe@example.com",
+    "encoded_key": "AAAAB3NzaC1yc2EAAAABIwAAAQEA0T...YImydZAw==",
     "algorithm": "ssh-rsa",
     "comment": "john.doe@example.com",
     "valid": true
@@ -791,9 +825,9 @@ key is persisted.
 .Request
 ----
   POST /accounts/self/sshkeys HTTP/1.0
-  Content-Type: plain/text
+  Content-Type: text/plain
 
-  AAAAB3NzaC1yc2EAAAABIwAAAQEA0T...YImydZAw\u003d\u003d
+  ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEA0T...YImydZAw== john.doe@example.com
 ----
 
 As response an link:#ssh-key-info[SshKeyInfo] entity is returned that
@@ -808,8 +842,8 @@ describes the new SSH key.
   )]}'
   {
     "seq": 2,
-    "ssh_public_key": "ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEA0T...YImydZAw\u003d\u003d john.doe@example.com",
-    "encoded_key": "AAAAB3NzaC1yc2EAAAABIwAAAQEA0T...YImydZAw\u003d\u003d",
+    "ssh_public_key": "ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEA0T...YImydZAw== john.doe@example.com",
+    "encoded_key": "AAAAB3NzaC1yc2EAAAABIwAAAQEA0T...YImydZAw==",
     "algorithm": "ssh-rsa",
     "comment": "john.doe@example.com",
     "valid": true
@@ -1250,7 +1284,6 @@ any account.
   )]}'
   {
     "changes_per_page": 25,
-    "download_command": "CHECKOUT",
     "date_format": "STD",
     "time_format": "HHMM_12",
     "diff_view": "SIDE_BY_SIDE",
@@ -1304,7 +1337,6 @@ link:#preferences-input[PreferencesInput] entity.
   {
     "changes_per_page": 50,
     "expand_inline_diffs": true,
-    "download_command": "CHECKOUT",
     "date_format": "STD",
     "time_format": "HHMM_12",
     "size_bar_in_change_table": true,
@@ -1352,7 +1384,6 @@ link:#preferences-info[PreferencesInfo] entity.
   {
     "changes_per_page": 50,
     "expand_inline_diffs": true,
-    "download_command": "CHECKOUT",
     "date_format": "STD",
     "time_format": "HHMM_12",
     "size_bar_in_change_table": true,
@@ -1414,7 +1445,6 @@ link:#diff-preferences-info[DiffPreferencesInfo] entity.
   )]}'
   {
     "context": 10,
-    "theme": "DEFAULT",
     "ignore_whitespace": "IGNORE_ALL",
     "intraline_difference": true,
     "line_length": 100,
@@ -1445,7 +1475,6 @@ link:#diff-preferences-input[DiffPreferencesInput] entity.
 
   {
     "context": 10,
-    "theme": "ECLIPSE",
     "ignore_whitespace": "IGNORE_ALL",
     "intraline_difference": true,
     "line_length": 100,
@@ -1471,7 +1500,6 @@ link:#diff-preferences-info[DiffPreferencesInfo] entity.
   )]}'
   {
     "context": 10,
-    "theme": "ECLIPSE",
     "ignore_whitespace": "IGNORE_ALL",
     "intraline_difference": true,
     "line_length": 100,
@@ -1508,8 +1536,6 @@ link:#edit-preferences-info[EditPreferencesInfo] entity.
 
   )]}'
   {
-    "theme": "ECLIPSE",
-    "key_map_type": "VIM",
     "tab_size": 4,
     "line_length": 80,
     "indent_unit": 2,
@@ -1541,8 +1567,6 @@ link:#edit-preferences-info[EditPreferencesInfo] entity.
   Content-Type: application/json;charset=UTF-8
 
   {
-    "theme": "ECLIPSE",
-    "key_map_type": "VIM",
     "tab_size": 4,
     "line_length": 80,
     "indent_unit": 2,
@@ -1569,8 +1593,6 @@ link:#edit-preferences-info[EditPreferencesInfo] entity.
 
   )]}'
   {
-    "theme": "ECLIPSE",
-    "key_map_type": "VIM",
     "tab_size": 4,
     "line_length": 80,
     "cursor_blink_rate": 530,
@@ -1713,6 +1735,10 @@ can contain a list of link:#project-watch-info[ProjectWatchInfo] entities.
 
 Retrieves the external ids of a user account.
 
+Only external ids belonging to the caller may be requested. Users that have
+link:access-control.html#capability_modifyAccount[Modify Account] can request
+external ids that belong to other accounts.
+
 .Request
 ----
   GET /a/accounts/self/external.ids HTTP/1.0
@@ -1746,7 +1772,9 @@ link:#account-external-id-info[AccountExternalIdInfo] entities.
 Delete a list of external ids for a user account. The target external ids must
 be provided as a list in the request body.
 
-Only external ids belonging to the caller may be deleted.
+Only external ids belonging to the caller may be deleted. Users that have
+link:access-control.html#capability_modifyAccount[Modify Account] can delete
+external ids that belong to other accounts.
 
 .Request
 ----
@@ -2143,7 +2171,7 @@ This can be:
 * a user name ("username")
 
 In all cases, accounts that are not
-link:config-gerrit.txt#accounts.visibility[visible] to the calling user are not
+link:config-gerrit.html#accounts.visibility[visible] to the calling user are not
 considered.
 
 In all cases _except_ a bare account ID and `self`/`me`, inactive accounts are
@@ -2239,6 +2267,11 @@ Only set if detailed account information is requested. +
 See option link:rest-api-changes.html#detailed-accounts[
 DETAILED_ACCOUNTS] for change queries +
 and option link:#details[DETAILS] for account queries.
+|`display_name`    |optional|The display name of the user. +
+Only set if detailed account information is requested. +
+See option link:rest-api-changes.html#detailed-accounts[
+DETAILED_ACCOUNTS] for change queries +
+and option link:#details[DETAILS] for account queries.
 |`email`           |optional|
 The email address the user prefers to be contacted through. +
 Only set if detailed account information is requested. +
@@ -2279,6 +2312,7 @@ a new account.
 |`username`     |optional|
 The user name. If provided, must match the user name from the URL.
 |`name`         |optional|The full name of the user.
+|`display_name` |optional|The display name of the user.
 |`email`        |optional|The email address of the user.
 |`ssh_key`      |optional|The public SSH key of the user.
 |`http_password`|optional|The HTTP password of the user.
@@ -2391,13 +2425,18 @@ link:access-control.html#capability_viewQueue[View Queue] capability.
 The `ContributorAgreementInfo` entity contains information about a
 contributor agreement.
 
-[options="header",cols="1,6"]
-|=================================
-|Field Name                 |Description
-|`name`                     |The name of the agreement.
-|`description`              |The description of the agreement.
-|`url`                      |The URL of the agreement.
-|=================================
+[options="header",cols="1,^1,5"]
+|================================
+|Field Name         ||Description
+|`name`             ||The unique name of the contributor agreement.
+|`description`      ||The description of the contributor agreement.
+|`url`              ||The URL of the contributor agreement.
+|`auto_verify_group`|optional|
+The group to which a user that signs the contributor agreement online
+is added automatically as a link:rest-api-groups.html#group-info[
+GroupInfo] entity. If not set, users cannot sign the contributor
+agreement online.
+|================================
 
 [[contributor-agreement-input]]
 === ContributorAgreementInput
@@ -2434,8 +2473,8 @@ that were deleted.
 |Field Name                 |Description
 |`change`                   |
 link:rest-api-changes.html#change-info[ChangeInfo] entity describing the change
-on which one or more comments was deleted. Populated with only the
-link:rest-api-changes.html#skip_mergeable[SKIP_MERGEABLE] option.
+on which one or more comments was deleted. Populated with no change list
+options.
 |`deleted`                  |
 List of link:rest-api-changes.html#comment-info[CommentInfo] entities for each
 comment that was deleted.
@@ -2451,9 +2490,6 @@ preferences of a user.
 |Field Name                    ||Description
 |`context`                     ||
 The number of lines of context when viewing a patch.
-|`theme`                       ||
-The CodeMirror theme name in upper case, for example `DEFAULT`. All the themes
-from the CodeMirror release that Gerrit is using are available.
 |`expand_all_comments`         |not set if `false`|
 Whether all inline comments should be automatically expanded.
 |`ignore_whitespace`           ||
@@ -2575,12 +2611,6 @@ preferences of a user.
 [options="header",cols="1,^1,5"]
 |===========================================
 |Field Name                    ||Description
-|`theme`                       ||
-The CodeMirror theme name in upper case, for example `DEFAULT`. All the themes
-from the CodeMirror release that Gerrit is using are available.
-|`key_map_type`                ||
-The CodeMirror key map. Currently only a subset of key maps are
-supported: `DEFAULT`, `EMACS`, `SUBLIME`, `VIM`.
 |`tab_size`                    ||
 Number of spaces that should be used to display one tab.
 |`line_length`                 ||
@@ -2661,7 +2691,7 @@ The `GpgKeyInfo` entity contains information about a GPG public key.
 |`id`         |Not set in map context|The 8-char hex GPG key ID.
 |`fingerprint`|Not set for deleted keys|The 40-char (plus spaces) hex GPG key fingerprint.
 |`user_ids`   |Not set for deleted keys|
-link:https://tools.ietf.org/html/rfc4880#section-5.11[OpenPGP User IDs]
+link:https://tools.ietf.org/html/rfc4880#section-5.11[OpenPGP User IDs,role=external,window=_blank]
 associated with the public key.
 |`key`        |Not set for deleted keys|ASCII armored public key material.
 |`status`     |Not set for deleted keys|
@@ -2736,8 +2766,6 @@ Whether to expand diffs inline instead of opening as separate page
 The type of download URL the user prefers to use. May be any key from
 the `schemes` map in
 link:rest-api-config.html#download-info[DownloadInfo].
-|`download_command`             ||
-The type of download command the user prefers to use.
 |`date_format`                  ||
 The format to display the date in.
 Allowed values are `STD`, `US`, `ISO`, `EURO`, `UK`.
@@ -2798,8 +2826,6 @@ Whether to expand diffs inline instead of opening as separate page
 (PolyGerrit only).
 |`download_scheme`              |optional|
 The type of download URL the user prefers to use.
-|`download_command`             |optional|
-The type of download command the user prefers to use.
 |`date_format`                  |optional|
 The format to display the date in.
 Allowed values are `STD`, `US`, `ISO`, `EURO`, `UK`.
@@ -2887,6 +2913,17 @@ username for an account.
 |=======================
 |Field Name |Description
 |`username` |The new username of the account.
+|=======================
+
+[[display-name-input]]
+=== DisplayNameInput
+The `DisplayNameInput` entity contains information for setting the
+display name for an account.
+
+[options="header",cols="1,6"]
+|=======================
+|Field Name     |Description
+|`display_name` |The new display name of the account.
 |=======================
 
 [[project-watch-info]]

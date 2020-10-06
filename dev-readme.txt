@@ -1,10 +1,12 @@
+:linkattrs:
 = Gerrit Code Review: Developer Setup
 
-To build a developer instance, you'll need link:https://bazel.build/[Bazel] to
-compile the code.
+To build a developer instance, you'll need link:https://bazel.build/[Bazel,role=external,window=_blank] to
+compile the code, preferably launched with link:https://github.com/bazelbuild/bazelisk[Bazelisk,role=external,window=_blank].
 
 == Git Setup
 
+[[clone]]
 === Getting the Source
 
 Create a new client workspace:
@@ -30,7 +32,7 @@ the submodules.
 
 CAUTION: If you store Eclipse or IntelliJ project files in the Gerrit source
 directories, do *_not_* run `git clean -fdx`. Doing so may remove untracked files and damage your project. For more information, see
-link:https://git-scm.com/docs/git-clean[git-clean].
+link:https://git-scm.com/docs/git-clean[git-clean,role=external,window=_blank].
 
 Run the following:
 
@@ -59,6 +61,12 @@ shut down.
 
 For instructions on running the acceptance tests with Bazel,
 see <<dev-bazel#tests,Running Unit Tests with Bazel>>.
+
+[[e2e]]
+=== End-to-end tests
+
+<<dev-e2e-tests#,This document>> describes how `e2e` (load or functional) test
+scenarios are implemented using link:https://gatling.io/[`Gatling`,role=external,window=_blank].
 
 
 == Local server

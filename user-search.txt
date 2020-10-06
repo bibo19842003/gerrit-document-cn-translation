@@ -1,3 +1,4 @@
+:linkattrs:
 = Gerrit Code Review - Searching Changes
 
 == Default Searches
@@ -72,6 +73,11 @@ assignee:'USER'::
 +
 Changes assigned to the given user.
 
+[[attention]]
+attention:'USER'::
++
+Changes whose attention set includes the given user.
+
 [[before_until]]
 before:'TIME'/until:'TIME'::
 +
@@ -140,6 +146,11 @@ revertof:'ID'::
 +
 Changes that revert the change specified by the numeric 'ID'.
 
+[[submissionid]]
+submissionid:'ID'::
++
+Changes that have the specified submission 'ID'.
+
 [[reviewerin]]
 reviewerin:'GROUP'::
 +
@@ -156,7 +167,7 @@ project:'PROJECT', p:'PROJECT'::
 Changes occurring in 'PROJECT'. If 'PROJECT' starts with `^` it
 matches project names by regular expression.  The
 link:http://www.brics.dk/automaton/[dk.brics.automaton
-library] is used for evaluation of such patterns.
+library,role=external,window=_blank] is used for evaluation of such patterns.
 
 [[projects]]
 projects:'PREFIX'::
@@ -175,7 +186,7 @@ repository:'REPOSITORY', repo:'REPOSITORY'::
 Changes occurring in 'REPOSITORY'. If 'REPOSITORY' starts with `^` it
 matches repository names by regular expression.  The
 link:http://www.brics.dk/automaton/[dk.brics.automaton
-library] is used for evaluation of such patterns.
+library,role=external,window=_blank] is used for evaluation of such patterns.
 
 [[repositories]]
 repositories:'PREFIX', repos:'PREFIX'::
@@ -198,7 +209,7 @@ the traditional 'refs/heads/' prefix.
 If 'BRANCH' starts with `^` it matches branch names by regular
 expression patterns.  The
 link:http://www.brics.dk/automaton/[dk.brics.automaton
-library] is used for evaluation of such patterns.
+library,role=external,window=_blank] is used for evaluation of such patterns.
 
 [[intopic]]
 intopic:'TOPIC'::
@@ -208,7 +219,7 @@ Changes whose designated topic contains 'TOPIC', using a full-text search.
 If 'TOPIC' starts with `^` it matches topic names by regular
 expression patterns.  The
 link:http://www.brics.dk/automaton/[dk.brics.automaton
-library] is used for evaluation of such patterns.
+library,role=external,window=_blank] is used for evaluation of such patterns.
 
 [[topic]]
 topic:'TOPIC'::
@@ -223,6 +234,16 @@ hashtag:'HASHTAG'::
 Changes whose link:intro-user.html#hashtags[hashtag] matches 'HASHTAG'.
 The match is case-insensitive.
 
+[[cherrypickof]]
+cherrypickof:'CHANGE[,PATCHSET]'::
++
+Changes which were created using the 'cherry-pick' functionality and
+whose source change number matches 'CHANGE' and source patchset number
+matches 'PATCHSET'. Note that 'PATCHSET' is optional. For example, a
+`cherrypickof:12345` matches all changes which were cherry-picked from
+change 12345 and `cherrypickof:12345,2` matches all changes which were
+cherry-picked from the 2nd patchset of change 12345.
+
 [[ref]]
 ref:'REF'::
 +
@@ -233,7 +254,7 @@ must start with 'refs/'.
 If 'REF' starts with `^` it matches reference names by regular
 expression patterns.  The
 link:http://www.brics.dk/automaton/[dk.brics.automaton
-library] is used for evaluation of such patterns.
+library,role=external,window=_blank] is used for evaluation of such patterns.
 
 [[tr,bug]]
 tr:'ID', bug:'ID'::
@@ -268,7 +289,7 @@ path:'PATH'::
 Matches any change touching file at 'PATH'. By default exact path
 matching is used, but regular expressions can be enabled by starting
 with `^`.  For example, to match all XML files use `file:^.*\.xml$`.
-The link:http://www.brics.dk/automaton/[dk.brics.automaton library]
+The link:http://www.brics.dk/automaton/[dk.brics.automaton library,role=external,window=_blank]
 is used for the evaluation of such patterns.
 +
 The `^` required at the beginning of the regular expression not only
@@ -327,7 +348,7 @@ but are not mandatory.
 +
 If 'DIR' starts with `^` it matches directories and directory segments by
 regular expression. The link:http://www.brics.dk/automaton/[dk.brics.automaton
-library] is used for evaluation of such patterns.
+library,role=external,window=_blank] is used for evaluation of such patterns.
 
 [[footer-operator]]
 footer:'FOOTER'::
@@ -445,6 +466,10 @@ destination branch.
 +
 Mergeability of abandoned changes is not computed. This operator will
 not find any abandoned but mergeable changes.
++
+This operator only works if Gerrit indexes 'mergeable'. See
+link:config-gerrit.html#index.change.indexMergeable[indexMergeable]
+for details.
 
 [[ignored]]
 is:ignored::
@@ -461,6 +486,11 @@ reviewers.
 is:wip::
 +
 True if the change is Work In Progress.
+
+[[merge]]
+is:merge::
++
+True if the change is a merge commit.
 
 [[status]]
 status:open, status:pending, status:new::

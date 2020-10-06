@@ -1,3 +1,4 @@
+:linkattrs:
 = Gerrit Code Review - Access Controls
 
 Access controls in Gerrit are group based.  Every user account is a
@@ -7,10 +8,10 @@ users.
 
 To view/edit the access controls for a specific project, first
 navigate to the projects page: for example,
-https://gerrit-review.googlesource.com/admin/repos/ . Then click on
+https://gerrit-review.googlesource.com/admin/repos/[role=external,window=_blank]. Then click on
 the individual project, and then click Access. This will bring you
 to a url that looks like
-https://gerrit-review.googlesource.com/admin/repos/gerrit,access
+https://gerrit-review.googlesource.com/admin/repos/gerrit,access[role=external,window=_blank]
 
 [[system_groups]]
 == System Groups
@@ -218,7 +219,7 @@ by prefixing the reference name with `^`.  For example
 `^refs/heads/[a-z]{1,8}` matches all lower case branch names
 between 1 and 8 characters long.  Within a regular expression `.`
 is a wildcard matching any character, but may be escaped as `\.`.
-The link:http://www.brics.dk/automaton/[dk.brics.automaton library]
+The link:http://www.brics.dk/automaton/[dk.brics.automaton library,role=external,window=_blank]
 is used for evaluation of regular expression access control
 rules. See the library documentation for details on this
 particular regular expression flavor. One quirk is that the
@@ -779,6 +780,14 @@ Users without this access right who are able to upload new patch sets
 can still do the rebase locally and upload the rebased commit as a new
 patch set.
 
+[[category_revert]]
+=== Revert
+
+This category permits users to revert changes via the web UI by pushing
+the `Revert Change` button.
+
+Users without this access right who are able to upload changes can
+still do the revert locally and upload the revert commit as a new change.
 
 [[category_remove_reviewer]]
 === Remove Reviewer
@@ -856,6 +865,14 @@ The change owner and any explicitly added reviewers can always see
 private changes (even without having the `View Private Changes` access
 right assigned).
 
+[[category_toggle_work_in_progress_state]]
+=== Toggle Work In Progress state
+
+This category controls who is able to flip the Work In Progress bit.
+
+Change owner, server administrators and project owners can always flip
+the Work In Progress bit of the change (even without having the
+`Toggle Work In Progress state` access right assigned).
 
 [[category_delete_own_changes]]
 === Delete Own Changes
@@ -979,7 +996,7 @@ A typical Continuous Integration system should be able to download new changes
 to build and then leave a verdict somehow.
 
 As an example, the popular
-link:https://wiki.jenkins-ci.org/display/JENKINS/Gerrit+Trigger[gerrit-trigger plugin]
+link:https://wiki.jenkins-ci.org/display/JENKINS/Gerrit+Trigger[gerrit-trigger plugin,role=external,window=_blank]
 for Jenkins/Hudson can set labels at:
 
 * The start of a build
@@ -1310,7 +1327,9 @@ link:access-control.html#non-interactive_users['Non-Interactive users'] group.
 
 Allow group creation.  Groups are used to grant users access to different
 actions in projects.  This capability allows the granted group members to
-either link:cmd-create-group.html[create new groups via ssh] or via the web UI.
+either link:cmd-create-group.html[create new groups via ssh] or via the web UI
+by navigating at the top of the page to BROWSE -> Groups, and then pushing the
+"CREATE NEW" button.
 
 
 [[capability_createProject]]
@@ -1414,8 +1433,7 @@ When applying a query limit to a user the largest value granted by
 any of their groups is used.
 
 This limit applies not only to the link:cmd-query.html[`gerrit query`]
-command, but also to the web UI results pagination size in the new
-PolyGerrit UI and, limited to the full project list, in the old GWT UI.
+command, but also to the web UI results pagination size.
 
 
 [[capability_readAs]]

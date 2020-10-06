@@ -1,10 +1,11 @@
+:linkattrs:
 = User Guide
 
 This is a Gerrit guide that is dedicated to Gerrit end-users. It
 explains the standard Gerrit workflows and how a user can adapt Gerrit
 to personal preferences.
 
-It is expected that readers know about link:http://git-scm.com/[Git]
+It is expected that readers know about link:http://git-scm.com/[Git,role=external,window=_blank]
 and that they are familiar with basic git commands and workflows.
 
 [[gerrit]]
@@ -21,20 +22,20 @@ link:#no-code-review[work without code review].
 
 Gerrit uses the git protocol. This means in order to work with Gerrit
 you do *not* need to install any Gerrit client, but having a regular
-git client, such as the link:http://git-scm.com/[git command line] or
-link:http://eclipse.org/egit/[EGit] in Eclipse, is sufficient.
+git client, such as the link:http://git-scm.com/[git command line,role=external,window=_blank] or
+link:http://eclipse.org/egit/[EGit,role=external,window=_blank] in Eclipse, is sufficient.
 
 Still there are some client-side tools for Gerrit, which can be used
 optionally:
 
-* link:http://eclipse.org/mylyn/[Mylyn Gerrit Connector]: Gerrit
+* link:http://eclipse.org/mylyn/[Mylyn Gerrit Connector,role=external,window=_blank]: Gerrit
   integration with Mylyn
 * link:https://github.com/uwolfer/gerrit-intellij-plugin[Gerrit
-  IntelliJ Plugin]: Gerrit integration with the
-  link:http://www.jetbrains.com/idea/[IntelliJ Platform]
+  IntelliJ Plugin,role=external,window=_blank]: Gerrit integration with the
+  link:http://www.jetbrains.com/idea/[IntelliJ Platform,role=external,window=_blank]
 * link:https://play.google.com/store/apps/details?id=com.jbirdvegas.mgerrit[
-  mGerrit]: Android client for Gerrit
-* link:https://github.com/stackforge/gertty[Gertty]: Console-based
+  mGerrit,role=external,window=_blank]: Android client for Gerrit
+* link:https://github.com/stackforge/gertty[Gertty,role=external,window=_blank]: Console-based
   interface for Gerrit
 
 [[clone]]
@@ -113,12 +114,15 @@ explains the link:error-messages.html[error messages].
 
 [[change-ref]]
 When a commit is pushed for review, Gerrit stores it in a staging area
-which is a branch in the special `refs/changes/` namespace. A change
-ref has the format `refs/changes/XX/YYYY/ZZ` where `YYYY` is the
-numeric change number, `ZZ` is the patch set number and `XX` is the
-last two digits of the numeric change number, e.g.
-`refs/changes/20/884120/1`. Understanding the format of this ref is not
-required for working with Gerrit.
+which is a branch in the special `refs/changes/` namespace. Understanding
+the format of this ref is not required for working with Gerrit, but it
+is explained below.
+
+A change ref has the format `refs/changes/X/Y/Z` where `X` is the last
+two digits of the change number, `Y` is the entire change number, and `Z`
+is the patch set. For example, if the change number is
+link:https://gerrit-review.googlesource.com/c/gerrit/+/263270[263270,role=external,window=_blank],
+the ref would be `refs/changes/70/263270/2` for the second patch set.
 
 [[fetch-change]]
 Using the change ref git clients can fetch the corresponding commit,
@@ -209,7 +213,7 @@ documentation].
 Instead of manually installing the `commit-msg` hook for each git
 repository, you can copy it into the
 link:http://git-scm.com/docs/git-init#_template_directory[git template
-directory]. Then it is automatically copied to every newly cloned
+directory,role=external,window=_blank]. Then it is automatically copied to every newly cloned
 repository.
 
 [[review-change]]
@@ -440,6 +444,23 @@ that there is still an interest in this change.
 [NOTE]
 Never rebase commits that are already part of a central branch.
 
+[[move]]
+== Move a Change
+
+Changes can be link:rest-api-changes.html#move-change[moved] to a desired
+destination branch in the same project. This is useful in cases where
+development activity switches from one branch to another and there is a
+need to move open changes on the inactive branch to the new active one.
+Another useful case is to move changes from a newer branch back to an older
+bugfix branch where an issue first appeared.
+
+Users can move a change only if they have link:access-control.html#category_abandon[
+abandon permission] on the change and link:access-control.html#category_push[
+push permission] on the destination branch.
+
+The move operation will not update the change's parent and users will have
+to link:#rebase[rebase] the change. Also, merge commits cannot be moved.
+
 [[abandon]]
 [[restore]]
 == Abandon/Restore a Change
@@ -451,6 +472,15 @@ in list of open changes anymore.
 
 Abandoned changes can be link:user-review-ui.html#restore[restored] if
 later they are needed again.
+
+[[cherrypickof]]
+== Cherry-Pick changes of a Change
+
+When a change is created/updated using the 'cherry-pick' functionalty,
+the original change and patchset details are recorded in the Change's
+cherrypick field. This field cannot be set or updated by the user in
+any way. It is set automatically after the cherry-pick operation completes
+successfully.
 
 [[topics]]
 == Using Topics
@@ -497,9 +527,6 @@ topics, a change can have multiple hashtags, and they are only used for
 informational grouping; changes with the same hashtags are not necessarily
 submitted together.
 
-The hashtag feature is only available when running under
-link:note-db.html[NoteDb].
-
 .Set Hashtag on Push
 ----
   $ git push origin HEAD:refs/for/master%t=stable-bugfix
@@ -538,7 +565,9 @@ the command line or the user interface. To use the command line, append
 ----
   $ git push origin HEAD:refs/for/master%wip
 ----
-Alternatively, click *WIP* from the Change screen.
+Alternatively, click *WIP* from the *More* menu on the Change screen.
+The Change screen updates with a yellow header, indicating that
+the change is in a Work-in-Progress state.
 
 To mark the change as ready for review, append `%ready` to your push
 request.
@@ -546,17 +575,24 @@ request.
 ----
   $ git push origin HEAD:refs/for/master%ready
 ----
-Alternatively, click *Ready* from the Change screen.
+There are two options for marking the change ready for review from the Change
+screen:
+
+1. Click *Start Review* (the primary action *Reply* is renamed when in WIP
+state).
++
+This will open the reply-modal and allow you to add reviewers and/or CC
+before you start review.
+
+2. Click button *Mark As Active*.
++
+This will only change the state from WIP to ready, without opening the
+reply-modal.
 
 Change owners, project owners, site administrators and members of a group that
-was granted "Toggle Work In Progress state" permission can mark changes as
-`work-in-progress` and `ready`.
-
-[[wip-polygerrit]]
-In the new PolyGerrit UI, you can mark a change as WIP, by selecting *WIP* from
-the *More* menu. The Change screen updates with a yellow header, indicating that
-the change is in a Work-in-Progress state. To mark a change as ready for review,
-click *Start Review*.
+was granted link:access-control.html#category_toggle_work_in_progress_state[
+Toggle Work In Progress state] permission can mark changes as `work-in-progress`
+and `ready`.
 
 [[private-changes]]
 == Private Changes
@@ -606,8 +642,7 @@ In that case, care should be taken to prevent the CI system from
 exposing secret details.
 
 [[private-changes-pitfalls]]
-Pitfalls
-===
+=== Pitfalls
 
 If private changes are used, be aware of the following pitfalls:
 

@@ -1,3 +1,4 @@
+:linkattrs:
 = Gerrit Code Review - Plugin Development
 
 The Gerrit server functionality can be extended by installing plugins.
@@ -36,7 +37,7 @@ Most of this documentation refers to either type as a plugin.
 
 To get started with the development of a plugin, take a look at
 the samples in the
-link:https://gerrit.googlesource.com/plugins/examples[examples plugin project].
+link:https://gerrit.googlesource.com/plugins/examples[examples plugin project,role=external,window=_blank].
 
 This is a project that demonstrates the various features of the
 plugin API. It can be taken as an example to develop an own plugin.
@@ -367,7 +368,7 @@ from the hosting server.
 Plugins are loaded from a single JAR file. If a plugin needs
 additional libraries, it must include those dependencies within
 its own JAR. Plugins built using Maven may be able to use the
-link:http://maven.apache.org/plugins/maven-shade-plugin/[shade plugin]
+link:http://maven.apache.org/plugins/maven-shade-plugin/[shade plugin,role=external,window=_blank]
 to package additional dependencies. Relocating (or renaming) classes
 should not be necessary due to the ClassLoader isolation.
 
@@ -389,6 +390,10 @@ the link:cmd-stream-events.html[gerrit stream-events] command.
 Allows to listen to events visible to the specified user. These are the
 same link:cmd-stream-events.html#events[events] that are also streamed
 by the link:cmd-stream-events.html[gerrit stream-events] command.
+
+* `com.google.gerrit.extensions.events.AccountActivationListener`:
++
+User account got activated or deactivated
 
 * `com.google.gerrit.extensions.events.LifecycleListener`:
 +
@@ -452,8 +457,8 @@ its own custom event class derived from
 [source,java]
 ----
 import com.google.gerrit.common.EventDispatcher;
+import com.google.gerrit.exceptions.StorageException;
 import com.google.gerrit.extensions.registration.DynamicItem;
-import com.google.exceptions.StorageException;
 import com.google.inject.Inject;
 
 class MyPlugin {
@@ -475,9 +480,9 @@ class MyPlugin {
 ----
 
 Plugins which define new Events should register them via the
-`com.google.gerrit.server.events.EventTypes.registerClass()`
-method. This will make the EventType known to the system.
-Deserializing events with the
+`com.google.gerrit.server.events.EventTypes.register()` method.
+This will make the EventType known to the system. Deserializing
+events with the
 `com.google.gerrit.server.events.EventDeserializer` class requires
 that the event be registered in EventTypes.
 
@@ -1280,6 +1285,39 @@ public class MyListener implements GitReferenceUpdatedListener {
 }
 ----
 
+== Trace Event origin
+
+When plugins are installed in a multi-master setups it can be useful to know
+the Gerrit `instanceId` of the server that has generated an Event.
+
+E.g. A plugin that sends an instance message for every comment on a change may
+want to react only if the event is generated on the local Gerrit master, for
+avoiding duplicating the notifications.
+
+If link:config-gerrit.html[instanceId] is set, each Event will contain its
+origin in the `instanceId` field.
+
+Here and example of ref-updated JSON event payload with `instanceId`:
+
+[source,json]
+---
+{
+  "submitter": {
+    "name": "Administrator",
+    "email": "admin@example.com",
+    "username": "admin"
+  },
+  "refUpdate": {
+    "oldRev": "a69fc95c7aad5ad41c618d31548b8af835d2959a",
+    "newRev": "31da6556d638a74e5370b62f83e8007f94abb7c6",
+    "refName": "refs/changes/01/1/meta",
+    "project": "test"
+  },
+  "type": "ref-updated",
+  "eventCreatedOn": 1588849085,
+  "instanceId": "instance1"
+}
+---
 
 [[capabilities]]
 == Plugin Owned Capabilities
@@ -2054,6 +2092,14 @@ MySecureStore(@SitePath java.io.File sitePath) {
 No Guice bindings or modules are required. Gerrit will automatically
 discover and bind the implementation.
 
+[[gerrit-replica]]
+== Gerrit Replica
+
+Gerrit can be run as a read-only replica. Some plugins may need to know
+whether Gerrit is run as a primary- or a replica instance. For that purpose
+Gerrit exposes the `@GerritIsReplica` annotation. A boolean annotated with
+this annotation will indicate whether Gerrit is run as a replica.
+
 [[accountcreation]]
 == Account Creation
 
@@ -2189,7 +2235,7 @@ basis.
 
 Gerrit provides an extension point that enables development of
 link:https://github.com/github/git-lfs/blob/master/docs/api/v1/http-v1-batch.md[
-LFS (Large File Storage)] storage plugins. Gerrit core exposes the default LFS
+LFS (Large File Storage),role=external,window=_blank] storage plugins. Gerrit core exposes the default LFS
 protocol endpoint `<project-name>/info/lfs/objects/batch` and forwards the requests
 to the configured link:config-gerrit.html#lfs[lfs.plugin] plugin which implements
 the LFS protocol. By exposing the default LFS endpoint, the git-lfs client can be
@@ -2247,16 +2293,16 @@ public class S3LargeFileRepository extends S3Repository {
 To send Gerrit's metrics data to an external reporting backend, a plugin can
 get a `MetricRegistry` injected and register an instance of a class that
 implements the `Reporter` interface from link:http://metrics.dropwizard.io/[
-DropWizard Metrics].
+DropWizard Metrics,role=external,window=_blank].
 
 Metric reporting plugin implementations are provided for
-link:https://gerrit.googlesource.com/plugins/metrics-reporter-jmx/[JMX],
-link:https://gerrit.googlesource.com/plugins/metrics-reporter-elasticsearch/[Elastic Search],
-and link:https://gerrit.googlesource.com/plugins/metrics-reporter-graphite/[Graphite].
+link:https://gerrit.googlesource.com/plugins/metrics-reporter-jmx/[JMX,role=external,window=_blank],
+link:https://gerrit.googlesource.com/plugins/metrics-reporter-elasticsearch/[Elastic Search,role=external,window=_blank],
+and link:https://gerrit.googlesource.com/plugins/metrics-reporter-graphite/[Graphite,role=external,window=_blank].
 
 There is also a working example of reporting metrics to the console in the
 link:https://gerrit.googlesource.com/plugins/cookbook-plugin/+/master/src/main/java/com/googlesource/gerrit/plugins/cookbook/ConsoleMetricReporter.java[
-cookbook plugin].
+cookbook plugin,role=external,window=_blank].
 
 === Providing own metrics
 
@@ -2293,7 +2339,7 @@ will cause the metrics to be recorded under `my-metrics/${metric-name}`.
 
 See the replication metrics in the
 link:https://gerrit.googlesource.com/plugins/replication/+/master/src/main/java/com/googlesource/gerrit/plugins/replication/ReplicationMetrics.java[
-replication plugin] for an example of usage.
+replication plugin,role=external,window=_blank] for an example of usage.
 
 [[account-patch-review-store]]
 == AccountPatchReviewStore
@@ -2306,7 +2352,8 @@ flags is growing without bound. The store must be able handle this data
 volume efficiently.
 
 Gerrit implements this extension point, but plugins may bind another
-implementation, e.g. one that supports multi-master.
+implementation, e.g. one that supports cluster setup with multiple
+primary Gerrit nodes handling write operations.
 
 ----
 DynamicItem.bind(binder(), AccountPatchReviewStore.class)
@@ -2338,7 +2385,7 @@ prefix is configurable by setting the `Gerrit-HttpDocumentationPrefix`
 attribute.
 
 Documentation may be written in the Markdown flavor
-link:https://github.com/vsch/flexmark-java[flexmark-java]
+link:https://github.com/vsch/flexmark-java[flexmark-java,role=external,window=_blank]
 if the file name ends with `.md`. Gerrit will automatically convert
 Markdown to HTML if accessed with extension `.html`.
 
@@ -2751,6 +2798,9 @@ server nodes. E.g. if an operation fails because consensus for a Git
 update could not be achieved (e.g. due to slow responding server nodes)
 this interface can be used to retry the request instead of failing it
 immediately.
+
+It also allows implementors to group exceptions that have the same
+cause into one metric bucket.
 
 [[mail-soy-template-provider]]
 == MailSoyTemplateProvider

@@ -1,4 +1,16 @@
+:linkattrs:
 = Gerrit Code Review - Building with Bazel
+
+[[summary]]
+== TL;DR
+
+If you have the prerequisites, running
+
+```
+  $ bazel build gerrit
+```
+
+should generate a .war file under `bazel-bin/gerrit.war`.
 
 [[installation]]
 == Prerequisites
@@ -8,12 +20,24 @@ To build Gerrit from source, you need:
 * A Linux or macOS system (Windows is not supported at this time)
 * A JDK for Java 8|9|10|11|...
 * Python 2 or 3
-* link:https://github.com/nodesource/distributions/blob/master/README.md[Node.js (including npm)]
+* link:https://github.com/nodesource/distributions/blob/master/README.md[Node.js (including npm),role=external,window=_blank]
 * Bower (`sudo npm install -g bower`)
-* link:https://docs.bazel.build/versions/master/install.html[Bazel]
+* link:https://docs.bazel.build/versions/master/install.html[Bazel,role=external,window=_blank] -launched with
+link:https://github.com/bazelbuild/bazelisk[Bazelisk,role=external,window=_blank]
 * Maven
 * zip, unzip
+* curl
 * gcc
+
+[[bazel]]
+=== Bazel
+
+link:https://github.com/bazelbuild/bazelisk[Bazelisk,role=external,window=_blank] includes a
+link:https://bazel.build/[Bazel,role=external,window=_blank] version check and downloads the correct
+`bazel` version for the git project/repository. Bazelisk is the recommended
+`bazel` launcher for Gerrit. Once Bazelisk is installed locally, a `bazel`
+symlink can be created towards it. This is so that every `bazel` command
+seamlessly uses Bazelisk, which then runs the proper `bazel` binary version.
 
 [[java]]
 === Java
@@ -31,17 +55,17 @@ To check the installed version of Java, open a terminal window and run:
 
 `java -version`
 
-[[java-12]]
-==== Java 12 support
+[[java-13]]
+==== Java 13 support
 
-Java 12 (and newer) is supported through vanilla java toolchain
-link:https://docs.bazel.build/versions/master/toolchains.html[Bazel option].
-To build Gerrit with Java 12 and newer, specify vanilla java toolchain and
+Java 13 (and newer) is supported through vanilla java toolchain
+link:https://docs.bazel.build/versions/master/toolchains.html[Bazel option,role=external,window=_blank].
+To build Gerrit with Java 13 and newer, specify vanilla java toolchain and
 provide the path to JDK home:
 
 ```
   $ bazel build \
-    --define=ABSOLUTE_JAVABASE=<path-to-java-12> \
+    --define=ABSOLUTE_JAVABASE=<path-to-java-13> \
     --javabase=@bazel_tools//tools/jdk:absolute_javabase \
     --host_javabase=@bazel_tools//tools/jdk:absolute_javabase \
     --host_java_toolchain=@bazel_tools//tools/jdk:toolchain_vanilla \
@@ -54,7 +78,7 @@ bazel test runs the test using the target javabase:
 
 ```
   $ bazel test \
-    --define=ABSOLUTE_JAVABASE=<path-to-java-12> \
+    --define=ABSOLUTE_JAVABASE=<path-to-java-13> \
     --javabase=@bazel_tools//tools/jdk:absolute_javabase \
     --host_javabase=@bazel_tools//tools/jdk:absolute_javabase \
     --host_java_toolchain=@bazel_tools//tools/jdk:toolchain_vanilla \
@@ -67,7 +91,7 @@ they could be added to ~/.bazelrc resource file:
 
 ```
 $ cat << EOF > ~/.bazelrc
-> build --define=ABSOLUTE_JAVABASE=<path-to-java-12>
+> build --define=ABSOLUTE_JAVABASE=<path-to-java-13>
 > build --javabase=@bazel_tools//tools/jdk:absolute_javabase
 > build --host_javabase=@bazel_tools//tools/jdk:absolute_javabase
 > build --host_java_toolchain=@bazel_tools//tools/jdk:toolchain_vanilla
@@ -95,7 +119,7 @@ To build Gerrit with Java 11, specify JDK 11 java toolchain:
 ```
 
 === Node.js and npm packages
-See link:https://gerrit.googlesource.com/gerrit/+/master/polygerrit-ui/README.md#installing-node_js-and-npm-packages[Installing Node.js and npm packages].
+See link:https://gerrit.googlesource.com/gerrit/+/master/polygerrit-ui/README.md#installing-node_js-and-npm-packages[Installing Node.js and npm packages,role=external,window=_blank].
 
 [[build]]
 == Building on the Command Line
@@ -211,7 +235,7 @@ is not regenerated.
 
 === IntelliJ
 
-The Gerrit build works with Bazel's link:https://ij.bazel.build[IntelliJ plugin].
+The Gerrit build works with Bazel's link:https://ij.bazel.build[IntelliJ plugin,role=external,window=_blank].
 Please follow the instructions on <<dev-intellij#,IntelliJ Setup>>.
 
 === Eclipse
@@ -231,7 +255,7 @@ and then follow the link:dev-eclipse.html#setup[setup instructions].
 If an updated classpath is needed, the Eclipse project can be
 refreshed and missing dependency JARs can be downloaded by running
 `project.py` again. For IntelliJ, you need to click the `Sync Project
-with BUILD Files` button of link:https://ij.bazel.build[Bazel plugin].
+with BUILD Files` button of link:https://ij.bazel.build[Bazel plugin,role=external,window=_blank].
 
 [[documentation]]
 === Documentation
@@ -270,7 +294,7 @@ The WAR file will be placed in:
 Debugging tests:
 
 ----
-  bazel test --test_output=streamed --test_filter=com.gerrit.TestClass.testMethod  testTarget
+  bazel test --test_output=streamed --test_filter=com.gerrit.TestClass.testMethod testTarget
 ----
 
 Debug test example:
@@ -303,6 +327,12 @@ To exclude tests that require a Docker host:
   bazel test --test_tag_filters=-docker //...
 ----
 
+To exclude tests that require very recent git client version:
+
+----
+  bazel test --test_tag_filters=-git-protocol-v2 //...
+----
+
 To ignore cached test results:
 
 ----
@@ -323,6 +353,8 @@ The following values are currently supported for the group name:
 * edit
 * elastic
 * git
+* git-protocol-v2
+* git-upload-archive
 * notedb
 * pgm
 * rest
@@ -333,12 +365,37 @@ The following values are currently supported for the group name:
 === Elasticsearch
 
 Successfully running the Elasticsearch tests requires Docker, and
-may require setting the local
-link:https://www.elastic.co/guide/en/elasticsearch/reference/current/vm-max-map-count.html[virtual memory].
+may require setting the local virtual memory on
+link:https://www.elastic.co/guide/en/elasticsearch/reference/current/vm-max-map-count.html[linux,role=external,window=_blank] and
+link:https://www.elastic.co/guide/en/elasticsearch/reference/current/docker.html#_set_vm_max_map_count_to_at_least_262144[macOS,role=external,window=_blank].
+
+On macOS, if using link:https://docs.docker.com/docker-for-mac/[Docker Desktop,role=external,window=_blank],
+the effective memory value can be set in the Preferences, under the Advanced tab.
+The default value usually does not suffice and is causing premature container exits.
+That default is currently 2 GB and should be set to at least 5 (GB).
 
 If Docker is not available, the Elasticsearch tests will be skipped.
 Note that Bazel currently does not show
-link:https://github.com/bazelbuild/bazel/issues/3476[the skipped tests].
+link:https://github.com/bazelbuild/bazel/issues/3476[the skipped tests,role=external,window=_blank].
+
+[[logging]]
+=== Controlling logging level
+
+Per default, logging level is set to `INFO` level for all tests. The `DEBUG`
+log level can be enabled for the tests.
+
+In IDE, set `-Dgerrit.logLevel=debug` as a VM argument. With `bazel`, pass
+`GERRIT_LOG_LEVEL=debug` environment variable:
+
+----
+  bazel test --test_filter=com.google.gerrit.server.notedb.ChangeNotesTest \
+  --test_env=GERRIT_LOG_LEVEL=debug \
+  javatests/com/google/gerrit/server:server_tests
+----
+
+The log results can be found in:
+`bazel-testlogs/javatests/com/google/gerrit/server/server_tests/test.log`.
+
 
 == Dependencies
 
@@ -451,7 +508,7 @@ To accelerate builds, several caches are activated per default:
 * ~/.gerritcodereview/bazel-cache/cas
 
 Currently none of these caches have a maximum size limit. See
-link:https://github.com/bazelbuild/bazel/issues/5139[this bazel issue] for
+link:https://github.com/bazelbuild/bazel/issues/5139[this bazel issue,role=external,window=_blank] for
 details. Users should watch the cache sizes and clean them manually if
 necessary.
 
@@ -462,7 +519,7 @@ Parts of the PolyGerrit build require running NPM-based JavaScript programs as
 "binaries". We don't attempt to resolve and download NPM dependencies at build
 time, but instead use pre-built bundles of the NPM binary along with all its
 dependencies. Some packages on
-link:https://docs.npmjs.com/misc/registry[registry.npmjs.org] come with their
+link:https://docs.npmjs.com/misc/registry[registry.npmjs.org,role=external,window=_blank] come with their
 dependencies bundled, but this is the exception rather than the rule. More
 commonly, to add a new binary to this list, you will need to bundle the binary
 yourself.
@@ -478,10 +535,11 @@ Start by checking that the license and file types of the bundle are acceptable:
   package=some-npm-package
   version=1.2.3
 
-  npm install -g license-checker && \
+  # Note - yarn must be installed before running the following commands
+  yarn global add license-checker && \
   rm -rf /tmp/$package-$version && mkdir -p /tmp/$package-$version && \
   cd /tmp/$package-$version && \
-  npm install $package@$version && \
+  yarn add $package@$version && \
   license-checker | grep licenses: | sort -u
 ----
 
@@ -490,7 +548,7 @@ its transitive dependencies. We can only legally distribute a bundle via our
 storage bucket if the licenses allow us to do so. As long as all of the listed
 license are allowed by
 link:https://opensource.google.com/docs/thirdparty/licenses/[Google's
-standards]. Any `by_exception_only`, commercial, prohibited, or unlisted
+standards,role=external,window=_blank]. Any `by_exception_only`, commercial, prohibited, or unlisted
 licenses are not allowed; otherwise, it is ok to distribute the source. If in
 doubt, contact a maintainer who is a Googler.
 
@@ -504,42 +562,44 @@ Next, check the file types:
 If you see anything that looks like a native library or binary, then we can't
 use the bundle.
 
-If everything looks good, create the bundle, and note the SHA-1:
-[source,bash]
+If everything looks good, install the package with the following command:
+[source, bash]
 ----
-  $gerrit_repo/tools/js/npm_pack.py $package $version && \
-  sha1sum $package-$version.tgz
-----
-
-This creates a file named `$package-$version.tgz` in your working directory.
-
-Any project maintainer can upload this file to the
-link:https://console.cloud.google.com/storage/browser/gerrit-maven/npm-packages[storage
-bucket].
-
-Finally, add the new binary to the build process:
-----
-  # WORKSPACE
-  npm_binary(
-      name = "some-npm-package",
-      repository = GERRIT,
-  )
-
-  # lib/js/npm.bzl
-  NPM_VERSIONS = {
-    ...
-    "some-npm-package": "1.2.3",
-  }
-
-  NPM_SHA1S = {
-    ...
-    "some-npm-package": "<sha1>",
-  }
+# Add to ui_npm. Other packages.json can be updated in the same way
+cd $gerrit_repo/polygerrit-ui/app
+bazel run @nodejs//:yarn add $package
 ----
 
-To use the binary from the Bazel build, you need to use the `run_npm_binary.py`
-wrapper script. For an example, see the use of `crisper` in `tools/bzl/js.bzl`.
+Update the `polygerrit-ui/app/node_modules_licenses/licenses.ts` file. You should add licenses
+for the package itself and for all transitive depndencies. If you forgot to add a license, the
+`Documentation:check_licenses` test will fail.
 
+After the update, commit all changes to the repository (including `yarn.lock`).
+
+[NOTE]
+====
+If a npm package has transitive dependencies (or just several files) with a not allowed
+license and you can't avoid use it in release, then you can add this package.
+For example some packages contain demo-code with a different license. Another example - optional
+dependencies, which are not needed to build polygerrit, but they are installed together with
+the package anyway.
+
+In this case you should exclude all files and/or transitive dependencies with a not allowed license.
+Adding such package requires additional updates:
+
+- Add dependencies (or files) to the license.ts with an appropriate license marked with
+`allowed: false`.
+
+- update package.json postinstall script to remove all non-allowed files (if you don't
+update postinstall script, `Documentation:check_licenses` test will fail.)
+====
+
+=== Update NPM Binaries
+To update a NPM binary the same actions as for a new one must be done (check licenses,
+update `licenses.ts` file, etc...). The only difference is a command to install a package: instead
+of `bazel run @nodejs//:yarn add $package` you should run the `bazel run @nodejs//:yarn upgrade ...`
+command with correct arguments. You can find the list of arguments in the
+link:https://classic.yarnpkg.com/en/docs/cli/upgrade/[yarn upgrade doc,role=external,window=_blank].
 
 
 [[RBE]]
@@ -563,7 +623,7 @@ gcloud alpha remote-build-execution worker-pools create default \
     --project=${PROJECT} \
     --instance=default_instance \
     --worker-count=50 \
-    --machine-type=n1-highcpu-4 \
+    --machine-type=e2-standard-4 \
     --disk-size=200
 ```
 
@@ -574,8 +634,6 @@ bazel test --config=remote \
     --remote_instance_name=projects/${PROJECT}/instances/default_instance \
     javatests/...
 ```
-
-
 
 
 GERRIT

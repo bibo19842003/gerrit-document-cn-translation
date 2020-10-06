@@ -1,14 +1,15 @@
+:linkattrs:
 = Gerrit Code Review - Eclipse Setup
 
 This document is about configuring Gerrit Code Review into an
 Eclipse workspace for development.
 
-Java 8 or later SDK is require
+Java 8 or later SDK is required.
 
 [[setup]]
 == Project Setup
 
-In your Eclipse installation's link:https://wiki.eclipse.org/Eclipse.ini[`eclipse.ini`] file,
+In your Eclipse installation's link:https://wiki.eclipse.org/Eclipse.ini[`eclipse.ini`,role=external,window=_blank] file,
 add the following line in the `vmargs` section:
 
 ----
@@ -60,13 +61,13 @@ Java 8 is still the default:
 == Code Formatter Settings
 
 To format source code, Gerrit uses the
-link:https://github.com/google/google-java-format[`google-java-format`]
+link:https://github.com/google/google-java-format[`google-java-format`,role=external,window=_blank]
 tool (version 1.7), which automatically formats code to follow the
-style guide. See link:dev-contributing.html#style[Code Style] for the
+style guide. See link:dev-crafting-changes.html#style[Code Style] for the
 instruction how to set up command line tool that uses this formatter.
 The Eclipse plugin is provided that allows to format with the same
 formatter from within the Eclipse IDE. See
-link:https://github.com/google/google-java-format#eclipse[Eclipse plugin]
+link:https://github.com/google/google-java-format#eclipse[Eclipse plugin,role=external,window=_blank]
 for details how to install it. It's important to use the same plugin version
 as the `google-java-format` script.
 
@@ -79,6 +80,13 @@ Developer Setup guide to configure a local site for testing.
 
 
 == Testing
+
+=== PolyGerrit UI is served by `server.go` process. To launch it,
+run this command:
+
+----
+  $ bazel run polygerrit-ui:devserver
+----
 
 === Running the Daemon
 
