@@ -6,7 +6,7 @@ gerrit logging ls-level - 显示 log 的级别
 gerrit logging ls - 显示 log 的级别
 ## SYNOPSIS
 ```
-_ssh_ -p <port> <host> _gerrit logging ls-level_ | _ls_
+ssh -p <port> <host> gerrit logging ls-level | ls
   <NAME>
 ```
 

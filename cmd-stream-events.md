@@ -4,7 +4,7 @@ gerrit stream-events - 实时监听事件
 
 ## SYNOPSIS
 ```
-_ssh_ -p <port> <host> _gerrit stream-events_
+ssh -p <port> <host> gerrit stream-events
 ```
 
 ## DESCRIPTION

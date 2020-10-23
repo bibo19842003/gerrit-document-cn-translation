@@ -5,7 +5,7 @@ gerrit test-submit rule - 测试 prolog 的 submit 在 change 上是否可用
 
 ## SYNOPSIS
 ```
-_ssh_ -p <port> <host> _gerrit test-submit_ rule
+ssh -p <port> <host> gerrit test-submit rule
   [-s]
   [--no-filters]
   CHANGE

@@ -5,8 +5,7 @@ plugin enable - 启用 plugins
 
 ## SYNOPSIS
 ```
-_ssh_ -p <port> <host> _gerrit plugin enable_
-  <NAME> ...
+ssh -p <port> <host> gerrit plugin enable <NAME> ...
 ```
 
 ## DESCRIPTION

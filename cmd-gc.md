@@ -5,7 +5,7 @@ gerrit gc - 对 project 执行 gc
 
 ## SYNOPSIS
 ```
-_ssh_ -p <port> <host> _gerrit gc_
+ssh -p <port> <host> gerrit gc
   [--all]
   [--show-progress]
   [--aggressive]

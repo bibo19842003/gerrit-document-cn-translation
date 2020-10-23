@@ -5,7 +5,7 @@ git-receive-pack - 接收往 project 推送的对象。
 
 ## SYNOPSIS
 ```
-_git receive-pack_
+git receive-pack
   [--reviewer <address> | --re <address>]
   [--cc <address>]
   <project>

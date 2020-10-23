@@ -5,8 +5,7 @@ gerrit show-connections - 显示与服务器链接的客户端的 SSH 链接
 
 ## SYNOPSIS
 ```
-_ssh_ -p <port> <host> _gerrit show-connections_
-  [--numeric | -n]
+ssh -p <port> <host> gerrit show-connections [--numeric | -n]
 ```
 
 ## DESCRIPTION

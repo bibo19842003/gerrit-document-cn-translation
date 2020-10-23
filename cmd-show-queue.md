@@ -5,8 +5,8 @@ gerrit show-queue - 显示后台的任务队列信息，包括 replication 信�
 
 ## SYNOPSIS
 ```
-_ssh_ -p <port> <host> _gerrit show-queue_
-_ssh_ -p <port> <host> _ps_
+ssh -p <port> <host> gerrit show-queue
+ssh -p <port> <host> ps
 ```
 
 ## DESCRIPTION

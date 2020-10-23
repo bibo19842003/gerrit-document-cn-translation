@@ -5,7 +5,7 @@ gerrit show-caches - 显示当前缓存的信息
 
 ## SYNOPSIS
 ```
-_ssh_ -p <port> <host> _gerrit show-caches_
+ssh -p <port> <host> gerrit show-caches
   [--gc]
   [--show-jvm]
 ```

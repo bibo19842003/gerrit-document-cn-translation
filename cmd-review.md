@@ -5,7 +5,7 @@ gerrit review - 命令行评审 change
 
 ## SYNOPSIS
 ```
-_ssh_ -p <port> <host> _gerrit review_
+ssh -p <port> <host> gerrit review
   [--project <PROJECT> | -p <PROJECT>]
   [--branch <BRANCH> | -b <BRANCH>]
   [--message <MESSAGE> | -m <MESSAGE>]

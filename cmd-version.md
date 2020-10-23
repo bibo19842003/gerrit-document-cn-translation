@@ -5,7 +5,7 @@ gerrit version - 显示 gerrit 版本号
 
 ## SYNOPSIS
 ```
-_ssh_ -p <port> <host> _gerrit version_
+ssh -p <port> <host> gerrit version
 ```
 
 ## DESCRIPTION

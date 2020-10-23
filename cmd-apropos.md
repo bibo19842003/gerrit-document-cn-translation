@@ -4,9 +4,9 @@
 gerrit apropos - 搜索 Gerrit 的文档的索引
 
 ## SYNOPSIS
+
 ```
-_ssh_ -p <port> <host> _gerrit apropos_
-  <query>
+ssh -p <port> <host> gerrit apropos <query>
 ```
 
 ## DESCRIPTION
@@ -51,4 +51,3 @@ $ ssh -p 29418 review.example.com gerrit apropos capabilities
 ## SEE ALSO
 
 * [访问控制](access-control.md)
-

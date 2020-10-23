@@ -5,7 +5,7 @@ gerrit index changes - 对 change 执行索引操作
 
 ## SYNOPSIS
 ```
-_ssh_ -p <port> <host> _gerrit index changes_ <CHANGE> [<CHANGE> ...]
+ssh -p <port> <host> gerrit index changes <CHANGE> [<CHANGE> ...]
 ```
 
 ## DESCRIPTION

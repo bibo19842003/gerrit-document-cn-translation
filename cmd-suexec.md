@@ -5,7 +5,7 @@ suexec - 使用其他用户的身份来执行命令
 
 ## SYNOPSIS
 ```
-_ssh_ -p <port>
+ssh -p <port>
   -i SITE_PATH/etc/ssh_host_rsa_key
   "Gerrit Code Review@localhost"
   _suexec_

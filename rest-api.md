@@ -6,22 +6,16 @@ Gerrit Code Review 内置基于 HTTP 的 REST API。API 适用于自动化工具
 
 ## Endpoints
 
-**[/access/](rest-api-access.md)**
-  Access Right related REST endpoints
-**[/accounts/](rest-api-accounts.md)**
-  Account related REST endpoints
-**[/changes/](rest-api-changes.md)**
-  Change related REST endpoints
-**[/config/](rest-api-config.md)**
-  Config related REST endpoints
-**[/groups/](rest-api-groups.md)**
-  Group related REST endpoints
-**[/plugins/](rest-api-plugins.md)**
-  Plugin related REST endpoints
-**[/projects/](rest-api-projects.md)**
-  Project related REST endpoints
-**[/Documentation/](rest-api-documentation.md)**
-  Documentation related REST endpoints
+|Name|Description
+| :------| :------|
+|[access](rest-api-access.md)|  Access Right related REST endpoints
+|[accounts](rest-api-accounts.md)|  Account related REST endpoints
+|[changes](rest-api-changes.md)|  Change related REST endpoints
+|[config](rest-api-config.md)|  Config related REST endpoints
+|[groups](rest-api-groups.md)|  Group related REST endpoints
+|[plugins](rest-api-plugins.md)|  Plugin related REST endpoints
+|[projects](rest-api-projects.md)|  Project related REST endpoints
+|[Documentation](rest-api-documentation.md)|  Documentation related REST endpoints
 
 ## Protocol Details
 

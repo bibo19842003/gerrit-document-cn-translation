@@ -5,8 +5,7 @@ plugin reload - 重载 plugin
 
 ## SYNOPSIS
 ```
-_ssh_ -p <port> <host> _gerrit plugin reload_
-  <NAME> ...
+ssh -p <port> <host> gerrit plugin reload <NAME> ...
 ```
 
 ## DESCRIPTION

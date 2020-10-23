@@ -1,4 +1,4 @@
-# Gerrit Code Review for Git (v3.1.0) 中文翻译
+# Gerrit Code Review for Git (v3.2.3) 中文翻译
 
 * 翻译说明
     * [翻译说明](README.md)
@@ -8,10 +8,13 @@
     * [为什么要 Code Review?](intro-rockstar.md)
     * [概述说明](intro-quick.md)
     * [Gerrit 是如何运行的](intro-how-gerrit-works.md)
-    * [Gerrit 演示](intro-gerrit-walkthrough.md)
+    * [Gerrit 演练](intro-gerrit-walkthrough.md)
+    * [针对 GitHub 用户的 Gerrit 演练](intro-gerrit-walkthrough-github.md)
+
+* Contributor Guides
     * [Gerrit Community](dev-community.md)
-    * [Contributor Guide](dev-contributing..md)
-* 指南
+    * [如何向社区贡献](dev-community.md)
+* 用户指南
     * [用户基本指南](intro-user.md)
     * [Project-Owner 指南](intro-project-owner.md)
     * [Android 默认工作流程](Default-Android-Workflow.md)
@@ -73,7 +76,7 @@
     * [访问控制](access-control.md)
     * [Changes](concept-changes.md)
     * [refs/for 命名空间](concept-refs-for-namespace.md)
-    * [Patch 设置](concept-patch-set.md)
+    * [Patch 设置](concept-patch-sets.md)
 * 资源
     * [Licenses and Notices](licenses.md)
     * [Gerrit 主页](https://www.gerritcodereview.com)
@@ -82,6 +85,7 @@
     * [Gerrit 源码](https://gerrit.googlesource.com/gerrit)
     * [Gerrit Code Review 历史说明](https://www.gerritcodereview.com/about.html)
 * gerrit 其余文档列表
+    * [backup.md](backup.md)
     * [cmd-apropos.md](cmd-apropos.md)
     * [cmd-ban-commit.md](cmd-ban-commit.md)
     * [cmd-cherry-pick.md](cmd-cherry-pick.md)
@@ -114,12 +118,15 @@
     * [cmd-reload-config.md](cmd-reload-config.md)
     * [cmd-rename-group.md](cmd-rename-group.md)
     * [cmd-review.md](cmd-review.md)
+    * [cmd-sequence-set.md](cmd-sequence-set.md)
+    * [cmd-sequence-show.md](cmd-sequence-show.md)
     * [cmd-set-account.md](cmd-set-account.md)
     * [cmd-set-head.md](cmd-set-head.md)
     * [cmd-set-members.md](cmd-set-members.md)
     * [cmd-set-project.md](cmd-set-project.md)
     * [cmd-set-project-parent.md](cmd-set-project-parent.md)
     * [cmd-set-reviewers.md](cmd-set-reviewers.md)
+    * [cmd-set-topic.md](cmd-set-topic.md)
     * [cmd-show-caches.md](cmd-show-caches.md)
     * [cmd-show-connections.md](cmd-show-connections.md)
     * [cmd-show-queue.md](cmd-show-queue.md)
@@ -133,6 +140,7 @@
     * [Default-Android-Workflow.md](Default-Android-Workflow.md)
     * [dev-cla.md](dev-cla.md)
     * [dev-community.md](dev-community.md)
+    * [dev-core-plugins.md](dev-core-plugins.md)
     * [dev-crafting-changes.md](dev-crafting-changes.md)
     * [dev-design-doc-conclusion-template.md](dev-design-doc-conclusion-template.md)
     * [dev-design-doc-index-template.md](dev-design-doc-index-template.md)
@@ -226,6 +234,5 @@
     * [系统设计](dev-design.md)
     * [发布 Gerrit](dev-release.md)
     * [发布 Gerrit 子项目](dev-release-subproject.md)
-    * [发布 JGit](dev-release-jgit.md)
 
 

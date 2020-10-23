@@ -5,7 +5,7 @@ gerrit test-submit type - 对 change 测试 prolog submit 的类型
 
 ## SYNOPSIS
 ```
-_ssh_ -p <port> <host> _gerrit test-submit_ type
+ssh -p <port> <host> gerrit test-submit type
   [-s]
   [--no-filters]
   CHANGE

@@ -5,7 +5,7 @@ gerrit rename-group - 内部群组更名
 
 ## SYNOPSIS
 ```
-_ssh_ -p <port> <host> _gerrit rename-group_
+ssh -p <port> <host> gerrit rename-group
   <GROUP>
   <NEWNAME>
 ```

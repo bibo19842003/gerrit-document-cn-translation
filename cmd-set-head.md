@@ -5,8 +5,7 @@ gerrit set-head - 修改 project 的默认 HEAD
 
 ## SYNOPSIS
 ```
-_ssh_ -p <port> <host> _gerrit set-head_ <NAME>
-  --new-head <REF>
+ssh -p <port> <host> gerrit set-head <NAME> --new-head <REF>
 ```
 
 ## DESCRIPTION

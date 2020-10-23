@@ -5,7 +5,7 @@ gerrit ls-groups - 列出当前用户可以看到的群组
 
 ## SYNOPSIS
 ```
-_ssh_ -p <port> <host> _gerrit ls-groups_
+ssh -p <port> <host> gerrit ls-groups
   [--project <NAME> | -p <NAME>]
   [--user <NAME> | -u <NAME>]
   [--owned]

@@ -7,8 +7,7 @@ plugin rm - 禁用 plugin
 
 ## SYNOPSIS
 ```
-_ssh_ -p <port> <host> _gerrit plugin remove_ | _rm_
-  <NAME> ...
+ssh -p <port> <host> gerrit plugin remove | rm <NAME> ...
 ```
 
 ## DESCRIPTION

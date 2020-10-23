@@ -5,9 +5,9 @@ gerrit-cherry-pick - 下载及 cherry-pick change (commit)
 
 ## SYNOPSIS
 ```
-_gerrit-cherry-pick_ <remote> <changeid>...
-_gerrit-cherry-pick_ --continue | --skip | --abort
-_gerrit-cherry-pick_ --close <remote>
+gerrit-cherry-pick <remote> <changeid>...
+gerrit-cherry-pick --continue | --skip | --abort
+gerrit-cherry-pick --close <remote>
 ```
 
 ## DESCRIPTION

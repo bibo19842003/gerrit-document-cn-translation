@@ -5,8 +5,7 @@ gerrit ls-members - 显示群组成员
 
 ## SYNOPSIS
 ```
-_ssh_ -p <port> <host> _gerrit ls-members_ GROUPNAME
-  [--recursive]
+ssh -p <port> <host> gerrit ls-members GROUPNAME [--recursive]
 ```
 
 ## DESCRIPTION

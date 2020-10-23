@@ -35,8 +35,7 @@ Built-in Prolog helper predicates
 |`commit_delta/1`           |`commit_delta('\\.java$').`    | 正则表达式如果匹配到 patch-set 中所修改的文件，则为 True
 |`commit_delta/3`           |`commit_delta('\\.java$', T, P)`    | 返回 change 中所修改文件的类型 (via `T`) 和路径 (via `P`)。如果所修改文件的类型是 `delete`, 那么会返回老的路径；如果是 `rename`, 那么反回新老两个路径；如果是 `copy`, 那么返回新路径。    有效的类型如下：`add`, `modify`, `delete`, `rename`, `copy`
 |`commit_delta/4`           |`commit_delta('\\.java$', T, P, O)`    | 如果适用的话，同 `commit_delta/3` ，在加上老路经 (via `O`)
-|`commit_edits/2`           |`commit_edits('/pom.xml$', 'dependency')`    | 第一个参数为正则表达式匹配到的文件，第二个参数为文件修改处匹配到的字符串，如果二者都匹配上，则为 True。
-如果文件名regex（第一个参数）匹配的任何文件具有与第二个参数中的正则表达式匹配的已编辑行，则为 True。如果 `pom.xml` 文件的修改处包含字符串 'dependency'，则为true。
+|`commit_edits/2`           |`commit_edits('/pom.xml$', 'dependency')`    | 第一个参数为正则表达式匹配到的文件，第二个参数为文件修改处匹配到的字符串，如果二者都匹配上，则为 True。如果文件名regex（第一个参数）匹配的任何文件具有与第二个参数中的正则表达式匹配的已编辑行，则为 True。如果 `pom.xml` 文件的修改处包含字符串 'dependency'，则为true。
 |`commit_message_matches/1` |`commit_message_matches('^Bug fix')`    | 正则表达式如果 commit-msg 中的信息，则为 True
 
 

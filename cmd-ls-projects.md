@@ -5,7 +5,7 @@ gerrit ls-projects - 列出用户可以看到的 project
 
 ## SYNOPSIS
 ```
-_ssh_ -p <port> <host> _gerrit ls-projects_
+ssh -p <port> <host> gerrit ls-projects
   [--show-branch <BRANCH> ...]
   [--description | -d]
   [--tree | -t]
@@ -59,9 +59,9 @@ _ssh_ -p <port> <host> _gerrit ls-projects_
 	输出格式
 
 ```
-`text`:: 文本格式
-`json`:: json 格式
-`json_compact`:: 最小 JSON 格式
+text : 文本格式
+json : json 格式
+json_compact : 最小 JSON 格式
 ```
 
 **--all**
@@ -115,4 +115,3 @@ do
 ## SEE ALSO
 
 * [访问控制](access-control.md)
-

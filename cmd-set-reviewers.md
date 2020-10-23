@@ -5,7 +5,7 @@ gerrit set-reviewers - 添加或移除评审人员
 
 ## SYNOPSIS
 ```
-_ssh_ -p <port> <host> _gerrit set-reviewers_
+ssh -p <port> <host> gerrit set-reviewers
   [--project <PROJECT> | -p <PROJECT>]
   [--add <REVIEWER> ... | -a <REVIEWER> ...]
   [--remove <REVIEWER> ... | -r <REVIEWER> ...]

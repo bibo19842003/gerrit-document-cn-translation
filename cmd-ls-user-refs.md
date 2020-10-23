@@ -5,7 +5,7 @@ gerrit ls-user-refs - 显示用户可以访问的 refs
 
 ## SYNOPSIS
 ```
-_ssh_ -p <port> <host> _gerrit ls-user-refs_
+ssh -p <port> <host> gerrit ls-user-refs
   [--project PROJECT> | -p <PROJECT>]
   [--user <USER> | -u <USER>]
   [--only-refs-heads]

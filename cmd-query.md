@@ -5,7 +5,7 @@ gerrit query - 从 index 中搜索 change
 
 ## SYNOPSIS
 ```
-_ssh_ -p <port> <host> _gerrit query_
+ssh -p <port> <host> gerrit query
   [--format {TEXT | JSON}]
   [--current-patch-set]
   [--patch-sets | --all-approvals]
