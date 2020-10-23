@@ -4,7 +4,7 @@
 
 gerrit 从 2.15 开始，账户的元数据信息存储在 [NoteDb](note-db.md) 。
 
-用户数据由序列号(account ID)，account properties(full name, preferred email, registration date, status,inactive flag), preferences (general, diff and edit preferences), project watches, SSH keys, external IDs, starred changes 和 reviewed flags 组成。
+用户数据由序列号(account ID)，account properties(full name, display name, preferred email, registration date, status,inactive flag), preferences (general, diff and edit preferences), project watches, SSH keys, external IDs, starred changes 和 reviewed flags 组成。
 
 大多数的用户数据存储在 `All-Users` 中，每个用户一个分支，每个分支包含了一些 git 风格的配置文件用来存储用户的不同数据，如：`account.config`，`preferences.config`，`watch.config` 和 `SSH keys` 的认证文件。
 
@@ -82,6 +82,7 @@ _All-Users project.config_
 ```
 [account]
   fullName = John Doe
+  displayName = John
   preferredEmail = john.doe@example.com
   status = OOO
   active = false
@@ -164,12 +165,34 @@ REST API 通过使用每个账户的序列号来识别 SSH keys。这是因为 `
 
 `external ID` 的 SHA1 作为 note key 来使用，例如：`external ID` `username:jdoe` 对应的 note key 是 `e0b751ae90ef039f320e097d7d212f490e933706`。确保 `external ID` 只能使用一次，因为 `external ID` 不能同一时间分配给多个账户使用。
 
+如下命令显示了如何查找 `external ID` 的 SHA1:
+```
+$ echo -n 'gerrit:jdoe' | shasum
+7c2a55657d911109dbc930836e7a770fb946e8ef  -
+
+$ echo -n 'username:jdoe' | shasum
+e0b751ae90ef039f320e097d7d212f490e933706  -
+```
+
 **IMPORTANT:**
 *如果手动更改了 `external ID`，那么需要手动用新的 SHA1 适配 note key，否则 `external ID` 会与 note key 不一致，进而会被 gerrit 忽略。*
 
 note 是 git 风格的文件，格式如下：
 
 ```
+[externalId "username:jdoe"]
+  accountId = 1003407
+  email = jdoe@example.com
+  password = bcrypt:4:LCbmSBDivK/hhGVQMfkDpA==:XcWn0pKYSVU/UJgOvhidkEtmqCp6oKB7
+```
+
+如果知道了 `external ID` 的 SHA1，下面的命令可以显示其相关的内容:
+
+```
+$ echo -n 'gerrit:jdoe' | shasum
+7c2a55657d911109dbc930836e7a770fb946e8ef  -
+
+$ git show refs/meta/external-ids:7c/2a55657d911109dbc930836e7a770fb946e8ef
 [externalId "username:jdoe"]
   accountId = 1003407
   email = jdoe@example.com
@@ -212,7 +235,7 @@ Gerrit 提供了一种有效的方法来查找星标的 change，例如，搜索
 
 每个用户有很多的 `reviewed flags`，并且随着时间的增加，数量一直会没有限制的上涨。
 
-大量的 `reviewed flags` 不适合存储在 git 中，因为每次的更新都需要进行 commit，这样操作的负载很大。因此将 `reviewed flags` 存储在数据库的表格中。默认存储在本地的 H2 数据库中，不过这个存储方式是可以变更的，可以通过 plugin 来实现，可以参考 [Plugins 开发说明](dev-plugins.md) 中的 `AccountPatchReviewStore` 部分。例如，如果 gerrit 配置 multi-master 模式的话，`reviewed flags` 可以存储在 MySQL 中，并在各个 master 节点中进行复制。
+大量的 `reviewed flags` 不适合存储在 git 中，因为每次的更新都需要进行 commit，这样操作的负载很大。因此将 `reviewed flags` 存储在数据库的表格中。默认存储在本地的 H2 数据库中，不过这个存储方式是可以变更的，可以通过 plugin 来实现，可以参考 [Plugins 开发说明](dev-plugins.md) 中的 `AccountPatchReviewStore` 部分。例如，如果 gerrit 配置多主机集群模式的话，`reviewed flags` 可以存储在 MySQL 中，并在各个主机节点中进行复制。
 
 ## Account Sequence
 

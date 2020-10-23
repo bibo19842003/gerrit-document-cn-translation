@@ -1,5 +1,15 @@
 # Gerrit Code Review - Building with Bazel
 
+## TL;DR
+
+如何依赖的工具、环境都准备好了，可以执行：
+
+```
+  $ bazel build gerrit
+```
+
+此时会生成一个 .war 文件，如： `bazel-bin/gerrit.war`.
+
 ## Prerequisites
 
 构建 gerrit 源码，需要工具如下：
@@ -9,10 +19,15 @@
 * Python 2 or 3
 * [Node.js (including npm)](https://github.com/nodesource/distributions/blob/master/README.md)
 * Bower (`sudo npm install -g bower`)
-* [Bazel](https://docs.bazel.build/versions/master/install.html)
+* [Bazel](https://docs.bazel.build/versions/master/install.html) 和 [Bazelisk](https://github.com/bazelbuild/bazelisk)
 * Maven
 * zip, unzip
+* curl
 * gcc
+
+### Bazel
+
+[Bazelisk](https://github.com/bazelbuild/bazelisk) 包括了 [Bazel](https://bazel.build/) 的版本检查和下载的功能。对 Gerrit 来说，`bazel` 使用 Bazelisk 进行启动。安装 Bazelisk 后，会自动创建 `bazel` 的链接文件，因此当执行 `bazel` 命令时，会调用 Bazelisk。
 
 ### Java
 
@@ -24,14 +39,14 @@ Java 可以在下面的路径中找到 "/System/Library/Frameworks/JavaVM.framew
 
 可以打开一个命令行窗口执行 `java -version` 命令来查看 Java 版本。
 
-#### Java 12 support
+#### Java 13 support
 
-通过配置 vanilla java toolchain [Bazel option](https://docs.bazel.build/versions/master/toolchains.html)，可以支持Java 12 (及以后版本)。
-若使用 Java 12 (及以后版本) 进行构建 Gerrit，需要在 JDK HOME 中明确 vanilla java toolchain：
+通过配置 vanilla java toolchain [Bazel option](https://docs.bazel.build/versions/master/toolchains.html)，可以支持Java 13 (及以后版本)。
+若使用 Java 13 (及以后版本) 进行构建 Gerrit，需要在 JDK HOME 中明确 vanilla java toolchain：
 
  ```
    $ bazel build \
-    --define=ABSOLUTE_JAVABASE=<path-to-java-12> \
+    --define=ABSOLUTE_JAVABASE=<path-to-java-13> \
     --javabase=@bazel_tools//tools/jdk:absolute_javabase \
      --host_javabase=@bazel_tools//tools/jdk:absolute_javabase \
      --host_java_toolchain=@bazel_tools//tools/jdk:toolchain_vanilla \
@@ -43,7 +58,7 @@ Java 可以在下面的路径中找到 "/System/Library/Frameworks/JavaVM.framew
 
 ```
   $ bazel test \
-    --define=ABSOLUTE_JAVABASE=<path-to-java-12> \
+    --define=ABSOLUTE_JAVABASE=<path-to-java-13> \
     --javabase=@bazel_tools//tools/jdk:absolute_javabase \
     --host_javabase=@bazel_tools//tools/jdk:absolute_javabase \
     --host_java_toolchain=@bazel_tools//tools/jdk:toolchain_vanilla \
@@ -55,7 +70,7 @@ Java 可以在下面的路径中找到 "/System/Library/Frameworks/JavaVM.framew
 
 ```
 $ cat << EOF > ~/.bazelrc
-> build --define=ABSOLUTE_JAVABASE=<path-to-java-12>
+> build --define=ABSOLUTE_JAVABASE=<path-to-java-13>
 > build --javabase=@bazel_tools//tools/jdk:absolute_javabase
 > build --host_javabase=@bazel_tools//tools/jdk:absolute_javabase
 > build --host_java_toolchain=@bazel_tools//tools/jdk:toolchain_vanilla
@@ -273,6 +288,12 @@ WAR 文件存放的位置如下：
   bazel test --test_tag_filters=-docker //...
 ```
 
+执行测试的时候，需要指定 git 协议的版本:
+
+```
+  bazel test --test_tag_filters=-git-protocol-v2 //...
+```
+
 忽略被缓存的测试相关数据：
 
 ```
@@ -293,6 +314,8 @@ WAR 文件存放的位置如下：
 * edit
 * elastic
 * git
+* git-protocol-v2
+* git-upload-archive
 * notedb
 * pgm
 * rest
@@ -301,9 +324,25 @@ WAR 文件存放的位置如下：
 
 ### Elasticsearch
 
-需要使用 docker 来完成对 Elasticsearch 的测试，并且本地需要配置 [virtual memory](https://www.elastic.co/guide/en/elasticsearch/reference/current/vm-max-map-count.html) 。
+需要使用 docker 来完成对 Elasticsearch 的测试，并且本地需要配置 [virtual memory](https://www.elastic.co/guide/en/elasticsearch/reference/current/vm-max-map-count.html) 和 [macOS](link:https://www.elastic.co/guide/en/elasticsearch/reference/current/docker.html#_set_vm_max_map_count_to_at_least_262144)。
+
+对于 macOS, 如果使用[Docker Desktop](https://docs.docker.com/docker-for-mac/)，可以根据实际情况设置内存的大小。默认内存的值偏小，需要将其调大，如：默认值是 2GB，但至少需要设置 5GB。
 
 如果没有明确 Docker，那么会忽略对 Elasticsearch 的测试。目前，bazel 不显示 [忽略的测试](https://github.com/bazelbuild/bazel/issues/3476) 的结果。
+
+### Controlling logging level
+
+所有测试的 logging 的默认级别为 `INFO` ，可以启动 `DEBUG` 级别的 log。
+
+IDE 中， 需要设置 VM 参数：`-Dgerrit.logLevel=debug`。并且使用 `bazel` 配置环境变量 `GERRIT_LOG_LEVEL=debug`，
+
+```
+  bazel test --test_filter=com.google.gerrit.server.notedb.ChangeNotesTest \
+  --test_env=GERRIT_LOG_LEVEL=debug \
+  javatests/com/google/gerrit/server:server_tests
+```
+
+log 结果可以安装下面路径进行查看：`bazel-testlogs/javatests/com/google/gerrit/server/server_tests/test.log`。
 
 ## Dependencies
 
@@ -410,10 +449,11 @@ PolyGerrit 的构建需要执行基于 NPM 的 JavaScript 的二进制文件。�
   package=some-npm-package
   version=1.2.3
 
-  npm install -g license-checker && \
+  # Note - yarn must be installed before running the following commands
+  yarn global add license-checker && \
   rm -rf /tmp/$package-$version && mkdir -p /tmp/$package-$version && \
   cd /tmp/$package-$version && \
-  npm install $package@$version && \
+  yarn add $package@$version && \
   license-checker | grep licenses: | sort -u
 ```
 
@@ -426,39 +466,29 @@ PolyGerrit 的构建需要执行基于 NPM 的 JavaScript 的二进制文件。�
   find . -type f | xargs file | grep -v 'ASCII\|UTF-8\|empty$'
 ```
 
-如果文件看起来像库文件或二进制文件，则不能使用 bundle。相反，可以创建 bundle 文件，并记录相关的 SHA-1：
+如果文件看起来像库文件或二进制文件，则不能使用 bundle。相反，可以使用下面命令进行安装相关文件：
 
 ```
-  $gerrit_repo/tools/js/npm_pack.py $package $version && \
-  sha1sum $package-$version.tgz
+# Add to ui_npm. Other packages.json can be updated in the same way
+cd $gerrit_repo/polygerrit-ui/app
+bazel run @nodejs//:yarn add $package
 ```
 
-在工作目录创建一个名为  `$package-$version.tgz` 的文件。
+更新 `polygerrit-ui/app/node_modules_licenses/licenses.ts` 文件。需要为 package 和 所有的依赖文件添加 licenses。如果忘记添加 license，`Documentation:check_licenses` 测试会失败。
 
-任何一个项目维护人员可以上传这种类型的文件到 [storage bucket](https://console.cloud.google.com/storage/browser/gerrit-maven/npm-packages)。
+更新后，需要对所有的修改进行提交 (包括 `yarn.lock`)。
 
-最后，构建过程中添加新的二进制文件：
-
+[说明]
 ```
-  # WORKSPACE
-  npm_binary(
-      name = "some-npm-package",
-      repository = GERRIT,
-  )
-
-  # lib/js/npm.bzl
-  NPM_VERSIONS = {
-    ...
-    "some-npm-package": "1.2.3",
-  }
-
-  NPM_SHA1S = {
-    ...
-    "some-npm-package": "<sha1>",
-  }
+如果 npm package 所依赖文件的 license 不允许使用，那么只能添加这个 package。
 ```
 
-为了使用 bazel 构建产生的二进制文件，可以使用 `run_npm_binary.py` 脚本。例如：参考 `tools/bzl/js.bzl` 中 `crisper` 的使用。
+* 将依赖的文件信息添加到 license.ts ，并标识：`allowed: false`
+
+* 更新 package.json 脚本，移除非 allowed 文件 (如果不更新 postinstall 脚本, `Documentation:check_licenses` 测试会识别)
+ 
+### Update NPM Binaries
+更新 NPM 文件后，需要执行上面的操作 (检查 licenses，更新 `licenses.ts` 文件等)。不同的地方是 package 的安装命令：`bazel run @nodejs//:yarn add $package` 替换为 e `bazel run @nodejs//:yarn upgrade ...`，相关的命令参数可以参考：[yarn 更新文档](https://classic.yarnpkg.com/en/docs/cli/upgrade/).
 
 ## Google Remote Build Support
 
@@ -478,7 +508,7 @@ gcloud alpha remote-build-execution worker-pools create default \
     --project=${PROJECT} \
     --instance=default_instance \
     --worker-count=50 \
-    --machine-type=n1-highcpu-4 \
+    --machine-type=e2-standard-4 \
     --disk-size=200
 ```
 

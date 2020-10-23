@@ -120,12 +120,12 @@ client so they are generally disabled by default. Optional fields are:
 
 #### Find groups that are owned by another group
 
-By setting `ownedBy` and specifying the `{group-id}` of another group, 
+By setting `owned-By` and specifying the `{group-id}` of another group, 
 it is possible to find all the groups for which the owning group is the given group.
 
 .Request
 ```
-  GET /groups/?ownedBy=7ca042f4d5847936fcb90ca91057673157fd06fc HTTP/1.0
+  GET /groups/?owned-By=7ca042f4d5847936fcb90ca91057673157fd06fc HTTP/1.0
 ```
 
 .Response
@@ -331,24 +331,19 @@ List all groups that match substring `test/`:
 
 ### Query Groups
 ```
-'GET /groups/?query2=<query>'
+'GET /groups/?query=<query>'
 ```
 
 Queries internal groups visible to the caller. The
 `query string` must be
-provided by the `query2` parameter. The `start` and `limit` parameters
+provided by the `query` parameter. The `start` and `limit` parameters
 can be used to skip/limit results.
 
 As result a list of `GroupInfo` entities is returned.
 
-[NOTE] `query2` is a temporary name and in future this option may be
-renamed to `query`. `query2` was chosen to maintain backwards
-compatibility with the deprecated `query` parameter on the
-`List Groups` endpoint.
-
 .Request
 ```
-  GET /groups/?query2=inname:test HTTP/1.0
+  GET /groups/?query=inname:test HTTP/1.0
 ```
 
 .Response
@@ -387,12 +382,12 @@ limit or a supplied `limit` query parameter, the last group object has
 a `_more_groups: true` JSON field set.
 
 #### Group Limit
-The `/groups/?query2=<query>` URL also accepts a limit integer in the
+The `/groups/?query=<query>` URL also accepts a limit integer in the
 `limit` parameter. This limits the results to `limit` groups.
 
 Query the first 25 groups in group list.
 ```
-  GET /groups/?query2=<query>&limit=25 HTTP/1.0
+  GET /groups/?query=<query>&limit=25 HTTP/1.0
 ```
 
 The `/groups/` URL also accepts a start integer in the `start`
@@ -400,7 +395,7 @@ parameter. The results will skip `start` groups from group list.
 
 Query 25 groups starting from index 50.
 ```
-  GET /groups/?query2=<query>&limit=25&start=50 HTTP/1.0
+  GET /groups/?query=<query>&limit=25&start=50 HTTP/1.0
 ```
 
 #### Group Options
@@ -492,8 +487,9 @@ describes the created group.
   }
 ```
 
-If the group creation fails because the name is already in use the
-response is "`409 Conflict`".
+If the group creation fails because the name is already in use, or the
+UUID was specified and the UUID is already in use, the response is
+"`409 Conflict`".
 
 ### Get Group Detail
 ```
@@ -1505,6 +1501,7 @@ a new internal group.
 |Field Name      ||Description
 | :------| :------| :------|
 |`name`          |optional|The name of the group (not encoded). If set, must match the group name in the URL.
+|`uuid`          |optional|The UUID of the group.
 |`description`   |optional|The description of the group.
 |`visible_to_all`|optional|Whether the group is visible to all registered users. `false` if not set.
 |`owner_id`      |optional|The URL encoded ID of the owner group. This can be a group UUID, a legacy numeric group ID or a unique group name. If not set, the new group will be self-owned.

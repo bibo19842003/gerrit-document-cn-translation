@@ -77,5 +77,5 @@ Gerrit 基于 REST API 来更新群组的 ref，使用 commit 的方式来记录
 
 ## Replication
 
-在 replication 的设置中(backups 或者 master/replica 配置)，`All-Users` 所有的 refs 需要进行传递，包括 `refs/groups/*`, `refs/meta/group-names` 和 `refs/sequences/groups`。
+在 replication 的设置中(backups 或者 primary/replica 配置)，`All-Users` 所有的 refs 需要进行传递，包括 `refs/groups/*`, `refs/meta/group-names` 和 `refs/sequences/groups`。
 

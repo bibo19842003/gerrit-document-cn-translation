@@ -18,9 +18,7 @@ Plugins 可以通过 [REST API](rest-api-plugins.md) 和 [SSH](cmd-plugin-instal
 
 ## Core Plugins
 
-Core plugins 被放在了 Gerrit 的 war 文件中，在 [初始化 Gerrit](pgm-init.md) 的时候很容易安装。
-
-core plugins 的开发和维护由 Gerrit 的维护人员和 Gerrit 团队来完成。
+[Core plugins](dev-core-plugins.md) 默认打包在 Gerrit war 文件中，在 [初始化 Gerrit](pgm-init.md) 的时候进行安装。
 
 需要说明的是，下面的文档及配置的链接都属于 plugin 的 master 分支。gerrit 不同的版本，使用的 plugin 的分支有可能不一样，请参考与 gerrit 对应的 plugin 分支。
 
@@ -501,3 +499,5 @@ Project-owner 可以配置对 commit 的校验，比如：根据文件名阻止�
 [Documentation](https://gerrit.googlesource.com/plugins/x-docs/+doc/master/src/main/resources/Documentation/about.md) |
 [Configuration](https://gerrit.googlesource.com/plugins/x-docs/+doc/master/src/main/resources/Documentation/config.md)
 
+
+上面的非 `core plugins` 描述已在官方指南中移除，现保留只用于存档，具体的 plugin 信息请参考官方的 [plugin 描述](https://www.gerritcodereview.com/plugins.html)。

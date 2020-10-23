@@ -4,9 +4,9 @@
 
 为了运行 Gerrit 服务, 需要如下：the following requirement must be met on the host:
 
-* JRE, version 1.8 [下载](http://www.oracle.com/technetwork/java/javase/downloads/index.html)
+* JRE, version 1.8 或 1.11 [下载](http://www.oracle.com/technetwork/java/javase/downloads/index.html)
 
-Gerrit 目前不支持 Java 9 及以后版本。
+Gerrit 目前不支持 Java 13 及以后版本。
 
 ## 配置 Java 的加密方式（可选）
 
@@ -174,4 +174,9 @@ plugin 存放在 `review_site/plugins` 目录下。
 ## 其他参考文档
 
 * [git-daemon](http://www.kernel.org/pub/software/scm/git/docs/git-daemon.html)
+
+## Backup
+
+请参考文档 [backup 说明](backup.md).
+
 

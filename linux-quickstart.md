@@ -15,10 +15,10 @@
 * 下载所需要的安装包
 
 如果要查看历史版本安装包，可参考[Gerrit Code Review: Releases](https://gerrit-releases.storage.googleapis.com/index.html)
-下面是 Gerrit 3.0.3 安装步骤:
+下面是 Gerrit 3.2.3 安装步骤:
 
 ```
-wget https://gerrit-releases.storage.googleapis.com/gerrit-3.0.3.war
+wget https://gerrit-releases.storage.googleapis.com/gerrit-3.2.3.war
 ```
 
 注意：如果要从源码构建安装，请参考 [Gerrit Code Review: 开发者设置](dev-readme.md)

@@ -187,6 +187,10 @@
 
 默认值是 `true`。
 
+### `label.Label-Name.copyValue`
+
+当新的 patch 上传的时候，可以将之前评审项的打分复制过来。可以配置多个打分项。默认不配置。
+
 ### `label.Label-Name.canOverride`
 
 如果值是 `false`，那么子 project 不能重载此打分项。默认值是 `true`。

@@ -375,6 +375,10 @@ Allows to listen to events visible to the specified user. These are the
 same [events](cmd-stream-events.md) that are also streamed
 by the [gerrit stream-events](cmd-stream-events.md) command.
 
+* `com.google.gerrit.extensions.events.AccountActivationListener`:
+
+User account got activated or deactivated
+
 * `com.google.gerrit.extensions.events.LifecycleListener`:
 
 Plugin start and stop
@@ -435,8 +439,8 @@ its own custom event class derived from
 
 ```java
 import com.google.gerrit.common.EventDispatcher;
+import com.google.gerrit.exceptions.StorageException;
 import com.google.gerrit.extensions.registration.DynamicItem;
-import com.google.exceptions.StorageException;
 import com.google.inject.Inject;
 
 class MyPlugin {
@@ -458,9 +462,9 @@ class MyPlugin {
 ```
 
 Plugins which define new Events should register them via the
-`com.google.gerrit.server.events.EventTypes.registerClass()`
-method. This will make the EventType known to the system.
-Deserializing events with the
+`com.google.gerrit.server.events.EventTypes.register()` method.
+This will make the EventType known to the system. Deserializing
+events with the
 `com.google.gerrit.server.events.EventDeserializer` class requires
 that the event be registered in EventTypes.
 
@@ -1236,6 +1240,38 @@ public class MyListener implements GitReferenceUpdatedListener {
 }
 ```
 
+## Trace Event origin
+
+When plugins are installed in a multi-master setups it can be useful to know
+the Gerrit `instanceId` of the server that has generated an Event.
+
+E.g. A plugin that sends an instance message for every comment on a change may
+want to react only if the event is generated on the local Gerrit master, for
+avoiding duplicating the notifications.
+
+If [instanceId](config-gerrit.md) is set, each Event will contain its
+origin in the `instanceId` field.
+
+Here and example of ref-updated JSON event payload with `instanceId`:
+
+```json
+{
+  "submitter": {
+    "name": "Administrator",
+    "email": "admin@example.com",
+    "username": "admin"
+  },
+  "refUpdate": {
+    "oldRev": "a69fc95c7aad5ad41c618d31548b8af835d2959a",
+    "newRev": "31da6556d638a74e5370b62f83e8007f94abb7c6",
+    "refName": "refs/changes/01/1/meta",
+    "project": "test"
+  },
+  "type": "ref-updated",
+  "eventCreatedOn": 1588849085,
+  "instanceId": "instance1"
+}
+```
 
 ## Plugin Owned Capabilities
 
@@ -1939,8 +1975,7 @@ $ curl http://review.example.com/plugins/helloworld/print
 
 Plugins can request a data directory with a `@PluginData` Path (or File,
 deprecated) dependency. A data directory will be created automatically
-by the server in `$site_path/data/$plugin_name` and passed to the
-plugin.
+by the server in `$site_path/data/$plugin_name` and passed to the plugin.
 
 Plugins can use this to store any data they want.
 
@@ -1979,10 +2014,17 @@ MySecureStore(@SitePath java.io.File sitePath) {
 No Guice bindings or modules are required. Gerrit will automatically
 discover and bind the implementation.
 
+## Gerrit Replica
+
+Gerrit can be run as a read-only replica. Some plugins may need to know
+whether Gerrit is run as a primary- or a replica instance. For that purpose
+Gerrit exposes the `@GerritIsReplica` annotation. A boolean annotated with
+this annotation will indicate whether Gerrit is run as a replica.
+
 ## Account Creation
 
 Plugins can hook into the
-link:rest-api-accounts.html#create-account[account creation] REST API and
+`account creation` REST API and
 inject additional external identifiers for an account that represents a user
 in some external user store. For that, an implementation of the extension
 point `com.google.gerrit.server.account.AccountExternalIdCreator`
@@ -2579,7 +2621,7 @@ are met, but marked as `OK`. If the requirements were not displayed, reviewers
 would need to use their precious time to manually check that they were met.
 
 Implementors of the `SubmitRule` interface should check whether they need to
-contribute to the link:#change-etag-computation[change ETag computation] to
+contribute to the `change ETag computation` to
 prevent callers using ETags from potentially seeing outdated submittability
 information.
 
@@ -2591,11 +2633,9 @@ interface plugins can contribute a value to the change ETag computation.
 Plugins can affect the result of the get change / get change details REST
 endpoints by:
 
-* providing link:#query_attributes[plugin defined attributes] in
-  link:rest-api-changes.html#change-info[ChangeInfo]
-* implementing a link:#pre-submit-evaluator[pre-submit evaluator] which affects
-  the computation of `submittable` field in
-  link:rest-api-changes.html#change-info[ChangeInfo]
+* providing `plugin defined attributes` in `ChangeInfo`
+* implementing a `pre-submit evaluator` which affects
+  the computation of `submittable` field in `ChangeInfo`
 
 If the plugin defined part of link:rest-api-changes.html#change-info[
 ChangeInfo] depends on plugin specific data, callers that use change ETags to
@@ -2644,6 +2684,9 @@ server nodes. E.g. if an operation fails because consensus for a Git
 update could not be achieved (e.g. due to slow responding server nodes)
 this interface can be used to retry the request instead of failing it
 immediately.
+
+It also allows implementors to group exceptions that have the same
+cause into one metric bucket.
 
 ## MailSoyTemplateProvider
 

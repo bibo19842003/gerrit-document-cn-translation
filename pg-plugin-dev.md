@@ -205,11 +205,6 @@ to be used by plugin authors.
 
 Note: TODO
 
-### changeView
-`plugin.changeView()`
-
-Note: TODO
-
 ### delete
 `plugin.delete(url, opt_callback)`
 

@@ -354,6 +354,12 @@ change 的 owner 和有 submit 权限的用户默认有 rebase 的权限。
 
 另外，如果用户更新了 change 的 patch-set ，那么此用户对此 change 有 rebase 的权限。
 
+### Revert
+
+此参数用于控制点击 Gerrit UI 的 `Revert Change` 按钮的权限。
+
+用户如果没有此权限，但有 upload 权限的话，仍然可以上传 `revert commit` 生成新的 change。
+
 ### Remove Reviewer
 
 可以把评审人员从评审列表中移除。
@@ -391,6 +397,12 @@ Gerrit 预置了 'Code-Review' 打分项，用户也可以 [自定义打分项](
 查看 private changes 和 编辑状态下的 change。
 
 如果用户没有 `View Private Changes` 权限，那么 change-owner 可以给指定的用户添加此权限。
+
+### Toggle Work In Progress state
+
+此参数用于控制 `Work In Progress` 的状态。
+
+Change owner, 管理员， project owners 默认有此权限，并不能取消。
 
 ### Delete Own Changes
 

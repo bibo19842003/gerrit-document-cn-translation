@@ -77,13 +77,14 @@ plugin 也要打 tag：
 
 ```
   bazel build release Documentation:searchfree
+  ./tools/maven/api.sh war_install
   ./tools/maven/api.sh install
 ```
 
 * 验证 WAR 版本:
 
 ```shell
-  java -jar ~/dl/gerrit-$version.war --version
+  java -jar bazel-bin/release.war --version
 ```
 
 * 测试更新一个站点并启动 gerrit 服务

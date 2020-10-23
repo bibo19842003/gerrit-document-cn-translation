@@ -65,6 +65,9 @@ _Response_
 
 Queries changes visible to the caller. The `query string` must be provided
 by the `q` parameter. The `n` parameter can be used to limit the returned results.
+The `no-limit` parameter can be used remove the default
+limit on queries and return all results. This might not be supported by
+all index backends.
 
 As result a list of ChangeInfo entries is returned.
 The change output is sorted by the last update time, most recently
@@ -279,17 +282,6 @@ default. Optional fields are:
 ```
 
 ```
-* `SKIP_MERGEABLE`: skip the `mergeable` field in
-ChangeInfo. For fast moving projects, this field must
-be recomputed often, which is slow for projects with big trees.
-
-When `change.api.excludeMergeableInChangeInfo` is set in the `gerrit.config`,
-the `mergeable` field will always be omitted and `SKIP_MERGEABLE` has no effect.
-
-A change's mergeability can be requested separately by calling the get-mergeable endpoint.
-```
-
-```
 * `SKIP_DIFFSTAT`: skip the 'insertions' and 'deletions' field in `ChangeInfo`.
  For large trees, their computation may be expensive.
 ```
@@ -320,10 +312,6 @@ A change's mergeability can be requested separately by calling the get-mergeable
 
 ```
 * `TRACKING_IDS`: include references to external tracking systems as TrackingIdInfo.
-```
-
-```
-* `NO-LIMIT`: Return all results
 ```
 
 _Request_
@@ -939,8 +927,6 @@ If the change has no assignee the response is "`204 No Content`".
 Returns a list of every user ever assigned to a change, in the order in which
 they were first assigned.
 
-[NOTE] Past assignees are only available when NoteDb is enabled.
-
 _Request_
 ```
   GET /changes/myProject~master~I8473b95934b5732ac55d26311a706c9c2bde9940/past_assignees HTTP/1.0
@@ -1379,6 +1365,10 @@ _Response_
 
 Reverts a change.
 
+The subject of the newly created change will be
+'Revert "<subject-of-reverted-change>"'. If the subject of the change reverted is
+above 63 characters, it will be cut down to 59 characters with "..." in the end.
+
 The request body does not need to include a `RevertInput` entity if no review comment is added.
 
 _Request_
@@ -1415,9 +1405,125 @@ _Response_
   }
 ```
 
+If the user doesn't have revert permission on the change or upload permission on
+the destination branch, the response is "`403 Forbidden`", and the error message is
+contained in the response body.
+
 If the change cannot be reverted because the change state doesn't
-allow reverting the change, the response is "`409 Conflict`" and
-the error message is contained in the response body.
+allow reverting the change the response is "`409 Conflict`", and the error
+message is contained in the response body.
+
+_Response_
+```
+  HTTP/1.1 409 Conflict
+  Content-Disposition: attachment
+  Content-Type: text/plain; charset=UTF-8
+
+  change is new
+```
+
+### Revert Submission
+```
+'POST /changes/{change-id}/revert_submission'
+```
+
+Creates open revert changes for all of the changes of a certain submission.
+
+The subject of each revert change will be 'Revert "subject-of-reverted-change"'.
+If the subject is above 60 characters, the subject will be cut to 56 characters
+with "..." in the end. However, whenever reverting the submission of a revert
+submission, the subject will be shortened from
+'Revert "Revert "subject-of-reverted-change""' to
+'Revert^2 "subject-of-reverted-change"'. Also, for every future revert submission,
+the only difference in the subject will be the number of the revert (instead of
+Revert^2 the subject will change to Revert^3 and so on).
+There are no guarantees about the subjects if the users change the default subjects.
+
+Details for the revert can be specified in the request body inside a link:#revert-input[
+RevertInput] The topic of all created revert changes will be
+`revert-{submission_id}-{random_string_of_size_10}`.
+
+The changes will not be rebased on onto the destination branch so the users may still
+have to manually rebase them to resolve conflicts and make them submittable.
+
+However, the changes that have the same project and branch will be rebased on top
+of each other. E.g, the first revert change will have the original change as a
+parent, and the second revert change will have the first revert change as a
+parent.
+
+There is one special case that involves merge commits; if a user has multiple
+changes in the same project and branch, but not in the same change series, those
+changes can still get submitted together if they have the same topic and
+link:config-gerrit.html#change.submitWholeTopic[`change.submitWholeTopic`] in
+gerrit.config is set to true. In the case, Gerrit may create merge commits on
+submit (depending on the link:config-project-config.html#submit-type[submit types]
+of the project).
+The first parent for the reverts will be the most recent merge commit that was
+created by Gerrit to merge the different change series into the target branch.
+
+_Request_
+```
+  POST /changes/myProject~master~I1ffe09a505e25f15ce1521bcfb222e51e62c2a14/revert_submission HTTP/1.0
+```
+
+As response link:#revert-submission-info[RevertSubmissionInfo] entity
+is returned. That entity describes the revert changes.
+
+_Request_
+```
+  HTTP/1.1 200 OK
+  Content-Disposition: attachment
+  Content-Type: application/json; charset=UTF-8
+
+  )]}'
+  "revert_changes":
+    [
+      {
+        "id": "myProject~master~I8473b95934b5732ac55d26311a706c9c2bde9940",
+        "project": "myProject",
+        "branch": "master",
+        "topic": "revert--1571043962462-3640749-ABCEEZGHIJ",
+        "change_id": "I8473b95934b5732ac55d26311a706c9c2bde9940",
+        "subject": "Revert \"Implementing Feature X\"",
+        "status": "NEW",
+        "created": "2013-02-01 09:59:32.126000000",
+        "updated": "2013-02-21 11:16:36.775000000",
+        "mergeable": true,
+        "insertions": 6,
+        "deletions": 4,
+        "_number": 3965,
+        "owner": {
+          "name": "John Doe"
+        }
+      },
+      {
+        "id": "anyProject~master~1eee2c9d8f352483781e772f35dc586a69ff5646",
+        "project": "anyProject",
+        "branch": "master",
+        "topic": "revert--1571043962462-3640749-ABCEEZGHIJ",
+        "change_id": "I1eee2c9d8f352483781e772f35dc586a69ff5646",
+        "subject": "Revert \"Implementing Feature Y\"",
+        "status": "NEW",
+        "created": "2013-02-04 09:59:33.126000000",
+        "updated": "2013-02-21 11:16:37.775000000",
+        "mergeable": true,
+        "insertions": 62,
+        "deletions": 11,
+        "_number": 3966,
+        "owner": {
+          "name": "Jane Doe"
+        }
+      }
+    ]
+```
+
+If the user doesn't have revert permission on the change or upload permission on
+the destination, the response is "`403 Forbidden`", and the error message is
+contained in the response body.
+
+If the change cannot be reverted because the change state doesn't
+allow reverting the change the response is "`409 Conflict`", and the error
+message is contained in the response body.
 
 _Response_
 ```
@@ -1897,8 +2003,8 @@ _Response_
           "name": "Code Analyzer",
           "email": "code.analyzer@example.com"
         },
-        "robotId": "importChecker",
-        "robotRunId": "76b1375aa8626ea7149792831fe2ed85e80d9e04"
+        "robot_Id": "importChecker",
+        "robot_Run_Id": "76b1375aa8626ea7149792831fe2ed85e80d9e04"
       },
       {
         "id": "TveXwFiA",
@@ -1910,8 +2016,8 @@ _Response_
           "name": "Code Analyzer",
           "email": "code.analyzer@example.com"
         },
-        "robotId": "styleChecker",
-        "robotRunId": "5c606c425dd45184484f9d0a2ffd725a7607839b"
+        "robot_Id": "styleChecker",
+        "robot_Run_Id": "5c606c425dd45184484f9d0a2ffd725a7607839b"
       }
     ]
   }
@@ -2251,8 +2357,6 @@ _Request_
 
 Gets the hashtags associated with a change.
 
-[NOTE] Hashtags are only available when NoteDb is enabled.
-
 _Request_
 ```
   GET /changes/myProject~master~I8473b95934b5732ac55d26311a706c9c2bde9940/hashtags HTTP/1.0
@@ -2279,8 +2383,6 @@ _Response_
 ```
 
 Adds and/or removes hashtags from a change.
-
-[NOTE] Hashtags are only available when NoteDb is enabled.
 
 The hashtags to add or remove must be provided in the request body inside a `HashtagsInput` entity.
 
@@ -2520,6 +2622,20 @@ _Request_
 ```
   PUT /changes/myProject~master~I8473b95934b5732ac55d26311a706c9c2bde9940/edit/foo HTTP/1.0
 ```
+
+To upload a file as binary data in the request body:
+
+_Request_
+```
+  PUT /changes/myProject~master~I8473b95934b5732ac55d26311a706c9c2bde9940/edit/foo HTTP/1.0
+  Content-Type: application/json; charset=UTF-8
+
+  {
+    "binary_content": "data:text/plain;base64,SGVsbG8sIFdvcmxkIQ=="
+  }
+```
+
+Note that it must be base-64 encoded data uri.
 
 When change edit doesn't exist for this change yet it is created. When file
 content isn't provided, it is wiped out for that file. As response
@@ -3642,6 +3758,10 @@ labels, adding reviewers or CCs, and modifying the work in progress property.
 
 The review must be provided in the request body as a `ReviewInput` entity.
 
+If the labels are set, the user sending the request will automatically be
+added as a reviewer, otherwise (if they only commented) they are added to
+the CC list.
+
 A review cannot be set on a change edit. Trying to post a review for a
 change edit fails with `409 Conflict`.
 
@@ -4179,7 +4299,7 @@ a project-specific rule.
 _Request_
 ```
   POST /changes/myProject~master~I8473b95934b5732ac55d26311a706c9c2bde9940/revisions/current/test.submit_type HTTP/1.0
-  Content-Type: text/plain; charset-UTF-8
+  Content-Type: text/plain; charset=UTF-8
 
   submit_type(cherry_pick).
 ```
@@ -4209,7 +4329,7 @@ a project-specific rule.
 _Request_
 ```
   POST /changes/myProject~master~I8473b95934b5732ac55d26311a706c9c2bde9940/revisions/current/test.submit_rule?filters=SKIP HTTP/1.0
-  Content-Type: text/plain; charset-UTF-8
+  Content-Type: text/plain; charset=UTF-8
 
   submit_rule(submit(R)) :-
     R = label('Any-Label-Name', reject(_)).
@@ -4593,8 +4713,8 @@ _Response_
           "name": "Code Analyzer",
           "email": "code.analyzer@example.com"
         },
-        "robotId": "importChecker",
-        "robotRunId": "76b1375aa8626ea7149792831fe2ed85e80d9e04"
+        "robot_Id": "importChecker",
+        "robot_Run_Id": "76b1375aa8626ea7149792831fe2ed85e80d9e04"
       },
       {
         "id": "TveXwFiA",
@@ -4606,8 +4726,8 @@ _Response_
           "name": "Code Analyzer",
           "email": "code.analyzer@example.com"
         },
-        "robotId": "styleChecker",
-        "robotRunId": "5c606c425dd45184484f9d0a2ffd725a7607839b"
+        "robot_Id": "styleChecker",
+        "robot_Run_Id": "5c606c425dd45184484f9d0a2ffd725a7607839b"
       }
     ]
   }
@@ -4645,8 +4765,8 @@ _Response_
       "name": "Code Analyzer",
       "email": "code.analyzer@example.com"
     },
-    "robotId": "importChecker",
-    "robotRunId": "76b1375aa8626ea7149792831fe2ed85e80d9e04"
+    "robot_Id": "importChecker",
+    "robot_Run_Id": "76b1375aa8626ea7149792831fe2ed85e80d9e04"
   }
 ```
 
@@ -5071,6 +5191,17 @@ differences are reported in the result.  Valid values are `IGNORE_NONE`,
 The `context` parameter can be specified to control the number of lines of surrounding context
 in the diff.  Valid values are `ALL` or number of lines.
 
+### Preview fix
+```
+'GET /changes/{change-id}>>/revisions/{revision-id}>>/fixes/{fix-id}>>/preview'
+```
+
+Gets the diffs of all files for a certain {fix-id}.
+As response, a map of DiffInfo entities is returned that describes the diffs.
+
+Each DiffInfo is the differences between the patch set indicated by revision-id and a virtual patch set with the applied fix.
+
+
 ### Get Blame
 ```
 'GET /changes/{change-id}/revisions/{revision-id}/files/{file-id}/blame'
@@ -5191,8 +5322,8 @@ _Request_
   }
 ```
 
-As response a `CherryPickChangeInfo`
-entity is returned that describes the resulting cherry-pick change.
+As response a ChangeInfo entity is returned that
+describes the resulting cherry-pick change.
 
 _Response_
 ```
@@ -5350,8 +5481,7 @@ _Response_
 Identifier that uniquely identifies one change. It contains the URL-encoded
 project name as well as the change number: "'$$<project>~<numericId>$$'"
 
-Depending on the server's configuration, Gerrit can still support the following
-deprecated identifiers. These will be removed in a future release:
+Gerrit also supports the following identifiers:
 
 * an ID of the change in the format "'$$<project>~<branch>~<Change-Id>$$'",
   where for the branch the `refs/heads/` prefix can be omitted
@@ -5359,10 +5489,6 @@ deprecated identifiers. These will be removed in a future release:
 * a Change-Id if it uniquely identifies one change
   ("I8473b95934b5732ac55d26311a706c9c2bde9940")
 * a numeric change ID ("4247")
-
-If you need more time to migrate off of old change IDs, please see
-`change.api.allowedIdentifier`
-for more information on how to enable the use of deprecated identifiers.
 
 ### {change-message-id}
 ID of a change message returned in a `ChangeMessageInfo`.
@@ -5513,7 +5639,7 @@ The `ChangeInfo` entity contains information about a change.
 |`stars`              |optional|A list of star labels that are applied by the calling user to this change. The labels are lexicographically sorted.
 |`reviewed`           |not set if `false`|Whether the change was reviewed by the calling user.Only set if `reviewed` is requested.
 |`submit_type`        |optional|The `submit type` of the change.Not set for merged changes.
-|`mergeable`          |optional|Whether the change is mergeable. Not set for merged changes, if the change has not yet been tested, or if the `skip_mergeable` option is set or when `change.api.excludeMergeableInChangeInfo` is set.
+|`mergeable`          |optional|Whether the change is mergeable. Only set for open changes if change.mergeabilityComputationBehavior is `API_REF_UPDATED_AND_CHANGE_REINDEX`.
 |`submittable`        |optional|Whether the change has been approved by the project submit rules.Only set if `requested`.
 |`insertions`         ||Number of inserted lines.
 |`deletions`          ||Number of deleted lines.
@@ -5528,7 +5654,7 @@ The `ChangeInfo` entity contains information about a change.
 |`removable_reviewers`|optional|The reviewers that can be removed by the calling user as a list of `AccountInfo` entities.Only set if `detailed labels` are requested.
 |`reviewers`          |optional|The reviewers as a map that maps a reviewer state to a list of `AccountInfo` entities.Possible reviewer states are `REVIEWER`, `CC` and `REMOVED`.`REVIEWER`: Users with at least one non-zero vote on the change.`CC`: Users that were added to the change, but have not voted.`REMOVED`: Users that were previously reviewers on the change, but have been removed.Only set if `detailed labels` are requested.
 |`pending_reviewers`  |optional|Updates to `reviewers` that have been made while the change was in the WIP state. Only present on WIP changes and only if there are pending reviewer updates to report. These are reviewers who have not yet been notified about being added to or removed from the change. Only set if `detailed labels` are requested.
-|`reviewer_updates`|optional|Updates to reviewers set for the change as ReviewerUpdateInfo entities.Only set if `reviewer updates` are requested and if NoteDb is enabled.
+|`reviewer_updates`|optional|Updates to reviewers set for the change as ReviewerUpdateInfo entities.Only set if `reviewer updates` are requested.
 |`messages`|optional|Messages associated with the change as a list of `ChangeMessageInfo` entities.Only set if `messages` are  requested.
 |`current_revision`   |optional|The commit ID of the current patch set of this change.Only set if `the current revision` is requested or if `all revisions` are requested.
 |`revisions`          |optional|All patch sets of this change as a map that maps the commit ID of the patch set to a RevisionInfo entity.Only set if `the current revision` is requested (in which case it will only contain a key for the current revision) or if `all revisions`   are requested.
@@ -5539,6 +5665,10 @@ The `ChangeInfo` entity contains information about a change.
 |`work_in_progress`   |optional, not set if `false`|When present, change is marked as Work In Progress.
 |`has_review_started` |optional, not set if `false`|When present, change has been marked Ready at some point in time.
 |`revert_of`          |optional|The numeric Change-Id of the change that this change reverts.
+|`submission_id`      |optional|ID of the submission of this change. Only set if the status is `MERGED`.This ID is equal to the numeric ID of the change that triggered the submission.If the change that triggered the submission also has a topic, it will be "<id>-<topic>" of the change that triggered the submission. The callers must not rely on the format of the submission ID. 
+|`cherry_pick_of_change`   |optional|The numeric Change-Id of the change that this change was cherry-picked from.
+|`cherry_pick_of_patch_set`|optional|The patchset number of the change that this change was cherry-picked from.
+|`contains_git_conflicts`  |optional, not set if `false`|Whether the change contains conflicts. If `true`, some of the file contents of the change contain git conflict markers to indicate the conflicts. Only set if this change info is returned in response to a request that creates a new change or patch set and conflicts are allowed. In particular this field is only populated if the change info is returned by one of the following REST endpoints: Create Change, Create Merge Patch Set For Change, Cherry Pick Revision,Cherry Pick Commit
 
 ### ChangeInput
 The `ChangeInput` entity contains information about creating a new change.
@@ -5547,15 +5677,16 @@ The `ChangeInput` entity contains information about creating a new change.
 | :------| :------| :------|
 |`project`            ||The name of the project.
 |`branch`             ||The name of the target branch. The `refs/heads/` prefix is omitted.
-|`subject`            ||The commit message of the change. Comment lines (beginning with `#`) will be removed.
-|`topic`              |optional|The topic to which this change belongs.
-|`status`             |optional, default to `NEW`|The status of the change (only `NEW` accepted here).
+|`subject`            ||The commit message of the change. Comment lines (beginning with `#`) will be removed. If the commit message contains a Change-Id (as a "Change-Id: I..." footer) that Change-Id will be used for the newly created changed. If a change with this Change-Id already exists for same repository and branch, the request is rejected since Change-Ids must be unique per repository and branch. If the commit message doesn't contain a Change-Id, a newly generated Change-Id is automatically inserted into the commit message.
+|`topic`              |optional|The topic to which this change belongs. Topic can't contain quotation marks.
+ |`status`             |optional, default to `NEW`|The status of the change (only `NEW` accepted here).
 |`is_private`         |optional, default to `false`|Whether the new change should be marked as private.
 |`work_in_progress`   |optional, default to `false`|Whether the new change should be set to work in progress.
 |`base_change`        |optional|A {change-id} that identifies the base change for a create change operation. Mutually exclusive with `base_commit`.
 |`base_commit`        |optional|A 40-digit hex SHA-1 of the commit which will be the parent commit of the newly created change. If set, it must be a merged commit on the destination branch.Mutually exclusive with `base_change`.
 |`new_branch`         |optional, default to `false`|Allow creating a new branch when set to `true`. Using this option is only possible for non-merge commits (if the `merge` field is not set).
 |`merge`              |optional|The detail of a merge commit as a `MergeInput` entity.If set, the target branch (see  `branch` field) must exist (it is not possible to create it automatically by setting the `new_branch` field to `true`.
+|`author`             |optional|An AccountInput entity that will set the author of the commit to create. The author must be specified as name/email combination. The caller needs "Forge Author" permission when using this field.This field does not affect the owner of the change, which will continue to use the identity of the caller.
 |`notify`             |optional|Notify handling that defines to whom email notifications should be sent after the change is created. Allowed values are `NONE`, `OWNER`, `OWNER_REVIEWERS` and `ALL`.If not set, the default is `ALL`.
 |`notify_details`     |optional|Additional information about whom to notify about the change creation as a map of recipient type to `NotifyInfo` entity.
 
@@ -5572,15 +5703,6 @@ The `ChangeMessageInfo` entity contains information about a message attached to 
 |`tag`                 |optional|Value of the `tag` field from `ReviewInput` set while posting the review. Votes/comments that contain `tag` with 'autogenerated:' prefix can be filtered out in the web UI. NOTE: To apply different tags on different votes/comments multiple invocations of the REST call are required.
 |`_revision_number`    |optional|Which patchset (if any) generated this message.
 
-### CherryPickChangeInfo
-The `CherryPickChangeInfo` entity contains information about a cherry-pick change.
-
-`CherryPickChangeInfo` has the same fields as ChangeInfo. In addition `CherryPickChangeInfo` has the following fields:
-
-|Field Name||Description
-| :------| :------| :------|
-|`contains_git_conflicts` |optional, not set if `false`|Whether any file in the change contains Git conflict markers.
-
 ### CherryPickInput
 The `CherryPickInput` entity contains information for cherry-picking a change to a new branch.
 
@@ -5590,10 +5712,12 @@ The `CherryPickInput` entity contains information for cherry-picking a change to
 |`destination`      ||Destination branch
 |`base`             |optional|40-hex digit SHA-1 of the commit which will be the parent commit of the newly created change.If set, it must be a merged commit or a change revision on the destination branch.
 |`parent`           |optional, defaults to 1|Number of the parent relative to which the cherry-pick should be considered.
-|`notify`           |optional|Notify handling that defines to whom email notifications should be sent after the cherry-pick. Allowed values are `NONE`, `OWNER`,`OWNER_REVIEWERS` and `ALL`.If not set, the default is `NONE`.
+|`notify`           |optional|Notify handling that defines to whom email notifications should be sent after the cherry-pick. Allowed values are `NONE`, `OWNER`,`OWNER_REVIEWERS` and `ALL`.If not set, the default is `ALL`.
 |`notify_details`   |optional|Additional information about whom to notify about the update as a map of recipient type to `NotifyInfo` entity.
 |`keep_reviewers`   |optional, defaults to false|If `true`, carries reviewers and ccs over from original change to newly created one.
-|`allow_conflicts`  |optional, defaults to false|If `true`, the cherry-pick uses content merge and succeeds also if there are conflicts. If there are conflicts the file contents of the created change contain git conflict markers to indicate the conflicts.Callers can find out if there were conflicts by checking the `contains_git_conflicts` field in the `CherryPickChangeInfo` that is returned by the cherry-pick REST endpoints. If there are conflicts the cherry-pick change is marked as work-in-progress.
+|`allow_conflicts`  |optional, defaults to false|If `true`, the cherry-pick uses content merge and succeeds also if there are conflicts. If there are conflicts the file contents of the created change contain git conflict markers to indicate the conflicts.Callers can find out if there were conflicts by checking the `contains_git_conflicts` field in the ChangeInfo. If there are conflicts the cherry-pick change is marked as work-in-progress. 
+|`topic`            |optional|The topic of the created cherry-picked change. If not set, the default depends on the source. If the source is a change with a topic, the resulting topic of the cherry-picked change will be {source_change_topic}-{destination_branch}.Otherwise, if the source change has no topic, or the source is a commit,the created change will have no topic.If the change already exists, the topic will not change if not set. If set, the topic will be overridden.
+|`allow_empty`      |optional, defaults to false|If `true`, the cherry-pick succeeds also if the created commit will be empty.If `false`, a cherry-pick that would create an empty commit fails without creating the commit.
 
 ### CommentInfo
 The `CommentInfo` entity contains information about an inline comment.
@@ -5613,6 +5737,7 @@ The `CommentInfo` entity contains information about an inline comment.
 |`author`      |optional|The author of the message as an `AccountInfo` entity.Unset for draft comments, assumed to be the calling user.
 |`tag`                 |optional|Value of the `tag` field from `ReviewInput` set while posting the review. NOTE: To apply different tags on different votes/comments multiple invocations of the REST call are required.
 |`unresolved`        |optional|Whether or not the comment must be addressed by the user. The state of resolution of a comment thread is stored in the last comment in that thread chronologically.
+|`change_message_id` |optional|Available with published comments. Contains the id of the change message that this comment is linked to.
 
 ### CommentInput
 The `CommentInput` entity contains information for creating an inline comment.
@@ -5931,7 +6056,9 @@ The `MergeInput` entity contains information about the merge
 |Field Name      ||Description
 | :------| :------| :------|
 |`source`   ||The source to merge from, e.g. a complete or abbreviated commit SHA-1,a complete reference name, a short reference name under `refs/heads`, `refs/tags`,or `refs/remotes` namespace, etc.
-|`strategy`     |optional|The strategy of the merge, can be `recursive`, `resolve`,`simple-two-way-in-core`, `ours` or `theirs`, default will use project settings.
+|`source_branch`  |optional|A branch from which `source` is reachable. If specified,`source` is checked for visibility and reachability against only this branch. This speeds up the operation, especially for large repos with many branches.
+|`strategy`       |optional|The strategy of the merge, can be `recursive`, `resolve`,`simple-two-way-in-core`, `ours` or `theirs`, default will use project settings.
+|`allow_conflicts`|optional, defaults to false|If `true`, creating the merge succeeds also if there are conflicts. If there are conflicts the file contents of the created change contain git conflict markers to indicate the conflicts. Callers can find out whether there were conflicts by checking the `contains_git_conflicts` field in the ChangeInfo. If there are conflicts the change is marked as work-in-progress.This option is not supported for all merge strategies (e.g. it's supported for `recursive` and `resolve`, but not for `simple-two-way-in-core`).
 
 ### MergePatchSetInput
 The `MergePatchSetInput` entity contains information about updating a new change by creating a new merge commit.
@@ -5939,8 +6066,8 @@ The `MergePatchSetInput` entity contains information about updating a new change
 |Field Name           ||Description
 | :------| :------| :------|
 |`subject`            |optional|The new subject for the change, if not specified, will reuse the current patch set's subject
-|`inheritParent`      |optional, default to `false`|Use the current patch set's first parent as the merge tip when set to `true`.
-|`base_change`        |optional|A {change-id} that identifies a change. When `inheritParent` is `false`, the merge tip will be the current patch set of the `base_change` if it's set. Otherwise, the current branch tip of the destination branch will be used.
+|`inherit_Parent`      |optional, default to `false`|Use the current patch set's first parent as the merge tip when set to `true`.
+|`base_change`        |optional|A {change-id} that identifies a change. When `inherit_Parent` is `false`, the merge tip will be the current patch set of the `base_change` if it's set. Otherwise, the current branch tip of the destination branch will be used.
 |`merge`              ||The detail of the source commit for merge as a `MergeInput` entity.
 
 ### MoveInput
@@ -6052,7 +6179,6 @@ The `Requirement` entity contains information about a requirement relative to a 
 |`status`        | | Status of the requirement. Can be either `OK`, `NOT_READY` or `RULE_ERROR`.
 |`fallbackText`  | | A human readable reason
 |`type`          | |Alphanumerical (plus hyphens or underscores) string to identify what the requirement is and why it was triggered. Can be seen as a class:requirements sharing the same type were created for a similar reason, and the data structure will follow one set of rules.
-|`data`          |optional|Holds custom key-value strings, used in templates to render richer status messages
 
 ### RestoreInput
 The `RestoreInput` entity contains information for restoring a change.
@@ -6069,7 +6195,14 @@ The `RevertInput` entity contains information for reverting a change.
 |`message`       |optional|Message to be added as review comment to the change when reverting the change.
 |`notify`        |optional|Notify handling that defines to whom email notifications should be sent for reverting the change.Allowed values are `NONE`, `OWNER`, `OWNER_REVIEWERS` and `ALL`.If not set, the default is `ALL`.
 |`notify_details`|optional|Additional information about whom to notify about the revert as a map of recipient type to `NotifyInfo` entity.
-|`topic`         |optional|Name of the topic for the revert change. If not set, the default is the topic of the change being reverted.
+|`topic`         |optional|Name of the topic for the revert change. If not set, the default for Revert endpoint is the topic of the change being reverted, and the default for the RevertSubmission endpoint is `revert-{submission_id}-{timestamp.now}`. Topic can't contain quotation marks. 
+
+### RevertSubmissionInfo
+The `RevertSubmissionInfo` entity describes the revert changes.
+
+|Field Name       | Description
+| :------| :------|
+|`revert_changes` |A list of ChangeInfo that describes the revert changes. Each entity in that list is a revert change that was created in that revert submission.
 
 ### ReviewInfo
 The `ReviewInfo` entity contains information about a review.
@@ -6245,7 +6378,7 @@ The `TopicInput` entity contains information for setting a topic.
 
 |Field Name    ||Description
 | :------| :------| :------|
-|`topic`       |optional|The topic. +The topic will be deleted if not set.
+|`topic`       |optional|The topic. +The topic will be deleted if not set.Topic can't contain quotation marks.
 
 ### TrackingIdInfo
 The `TrackingIdInfo` entity describes a reference to an external tracking system.

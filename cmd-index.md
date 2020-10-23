@@ -76,6 +76,9 @@ Gerrit 没有提供一个内部交互的 shell，可以通过客户端执行一�
 **[gerrit set-reviewers](cmd-set-reviewers.md)**
 	添加或移除评审人员
 
+**[gerrit set-topic](cmd-set-topic.md)**
+	设置 change 的 topic
+
 **[gerrit stream-events](cmd-stream-events.md)**
 	实时监听事件
 
@@ -155,6 +158,11 @@ Gerrit 没有提供一个内部交互的 shell，可以通过客户端执行一�
 
 **[gerrit set-account](cmd-set-account.md)**
 	更改用户的设置
+**[gerrit sequence set](cmd-sequence-set.md)**
+	设置新的 sequence 值
+
+**[gerrit sequence show](cmd-sequence-show.md)**
+	显示当前的 sequence 值
 
 **[gerrit set-members](cmd-set-members.md)**
 	设置群组成员

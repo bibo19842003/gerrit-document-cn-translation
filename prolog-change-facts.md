@@ -19,6 +19,7 @@ Prolog facts about the current change
 |`commit_committer/3` |`commit_committer(user(100000), 'John Doe', 'john.doe@example.com').`    |ID, full name 以及 commit 的 committer 邮箱 | numeric string string
 |`commit_label/2`  |`commit_label(label('Code-Review', 2), user(1000000)).` ; `commit_label(label('Verified', -1), user(1000001)).`| change 的最新 patch-set 的打分情况 | --
 |`commit_message/1`   |`commit_message('Fix bug X').`    | Commit message | string
+|`commit_parent_count/1`   |`commit_parent_count(1).`    |Nparent commits 的数量，可以用来检测 `merge commits`
 |`commit_stats/3`   |`commit_stats(5,20,50).`    | 修改行数, 添加行数，删除行数 | --
 |`pure_revert/1`     |`pure_revert(1).`    | change 是否 revert，1 为 revert，0 为非 revert | --
 |`uploader/1`     |`uploader(user(1000000)).`    | Uploader 的 `user(ID)`  | numeric

@@ -6,6 +6,7 @@ reindex - 重新构建 secondary index
 ## SYNOPSIS
 ```
 _java_ -jar gerrit.war _reindex_
+  -d <SITE_PATH>
   [--threads]
   [--changes-schema-version]
   [--verbose]

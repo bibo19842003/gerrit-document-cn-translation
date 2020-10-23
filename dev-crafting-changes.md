@@ -9,6 +9,34 @@ problems are often highlighted and we find it hard to look
 beyond simple spacing issues.  Blame it on our short attention
 spans, we really do want your code.
 
+## Branch
+
+Gerrit provides support for more than one version, which naturally
+raises the question of which branch you should start your contribution
+on. There are no hard and fast rules, but below we try to outline some
+guidelines:
+
+* Genuinely new and/or disruptive features, should generally start on
+  `master`. Also consider submitting a
+  [design doc](dev-design-docs.md) beforehand to allow discussion
+  by the ESC and the community.
+* Improvements of existing features should also generally go into
+  `master`. But we understand that if you cannot run `master`, it
+  might take a while until you could benefit from it. In that case,
+  start on the newest `stable-*` branch that you can run.
+* Bug-fixes should generally at least cover the oldest affected and
+  still supported version. If you're affected and run an even older
+  version, you're welcome to upload to that older version, even if
+  it is no longer officially supported, bearing in mind that
+  verification and release may happen only once merged upstream.
+
+Regardless of the above, changes might get moved to a different branch
+before being submitted or might get cherry-picked/re-merged to a
+different branch even after they've landed.
+
+For each of the above items, you'll find ad-hoc exceptions. The point
+is: We'd much rather see your code and fixes than not see them.
+
 ## Commit Message
 
 It is essential to have a good commit message if you want your
@@ -109,7 +137,9 @@ To format Java source code, Gerrit uses the
 [`google-java-format`](https://github.com/google/google-java-format)
 tool (version 1.7), and to format Bazel BUILD, WORKSPACE and .bzl files the
 [`buildifier`](https://github.com/bazelbuild/buildtools/tree/master/buildifier)
-tool (version 0.29.0).
+tool (version 3.3.0).
+[`unused_deps`](https://github.com/bazelbuild/buildtools/tree/master/unused_deps)
+build tool, a sibling of `buildifier`.
 These tools automatically apply format according to the style guides; this
 streamlines code review by reducing the need for time-consuming, tedious,
 and contentious discussions about trivial issues like whitespace.
@@ -118,19 +148,6 @@ You may download and run `google-java-format` on your own, or you may
 run `./tools/setup_gjf.sh` to download a local copy and set up a
 wrapper script. If you run your own copy, please use the same version,
 as there may be slight differences between versions.
-
-When considering the style beyond just formatting rules, it is often
-more important to match the style of the nearby code which you are
-modifying than it is to match the style guide exactly. This is
-especially true within the same file.
-
-Additionally, you will notice that most of the newline spacing
-is fairly consistent throughout the code in Gerrit, it helps to
-stick to the blank line conventions.  Here are some specific
-examples:
-
-  * Keep a blank line between all class and method declarations.
-  * Do not add blank lines at the beginning or end of class/methods.
 
 When to use `final` modifier and when not (in new code):
 
@@ -220,6 +237,12 @@ when coding:
 ## Tests
 
   * Tests for new code will greatly help your change get approved.
+
+## Javadoc
+
+  * Javadocs for new code (especially public classes and
+    public/protected methods) will greatly help your change get
+    approved.
 
 ## Change Size/Number of Files Touched
 

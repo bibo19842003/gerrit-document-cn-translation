@@ -299,7 +299,10 @@ The community managers should be a pair or trio that shares the work:
 Community managers must not be steering committee members at the same time so that they can represent
 the community without conflict of interest.
 
-Nomination process, election process and election period for the
+Anybody from the Gerrit community can candidate as community manager.
+This means, in contrast to candidating for the ESC, candidating as
+community manager is not limited to Gerrit maintainers. Otherwise the
+nomination process, election process and election period for the
 non-Google community manager are the same as for
 [steering committee members](dev-processes.md).
 

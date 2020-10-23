@@ -49,6 +49,13 @@ gerrit 使用 [`google-java-format`](https://github.com/google/google-java-forma
 
 ## Testing
 
+### PolyGerrit UI 需要先启动 `server.go` 进程
+执行如下命令:
+
+```
+  $ bazel run polygerrit-ui:devserver
+```
+
 ### Running the Daemon
 
 复制已存在的启动配置：

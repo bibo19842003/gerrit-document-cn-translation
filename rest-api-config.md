@@ -1356,6 +1356,7 @@ configuration from the `accounts` section.
 |Field Name           |Description
 | :------| :------|
 |`visibility`         |`Visibility setting for accounts`.
+|`default_display_name`|The default strategy for choosing the display name in the UI, see also gerrit.config.
 
 ### AuthInfo
 The `AuthInfo` entity contains information about the authentication configuration of the Gerrit server.
@@ -1373,7 +1374,7 @@ The `AuthInfo` entity contains information about the authentication configuratio
 |`register_text`              |optional|The `register text`. Only set if `authentication type` is `LDAP`,`LDAP_BIND` or `CUSTOM_EXTENSION`.
 |`edit_full_name_url`         |optional|The `URL to edit the full name`. Only set if `authentication type` is `LDAP`, `LDAP_BIND` or `CUSTOM_EXTENSION`.
 |`http_password_url`          |optional|The `URL to obtain an HTTP password`. Only set if `authentication type` is `CUSTOM_EXTENSION`.
-|`git_basic_auth_policy`      |optional|The `policy` to authenticate Git over HTTP and REST API requests when `authentication type` is `LDAP`. Can be `HTTP`, `LDAP` or `HTTP_LDAP`.
+|`git_basic_auth_policy`      |optional|The `policy` to authenticate Git over HTTP and REST API requests when `authentication type` is `LDAP`. `LDAP_BIND` or `OAUTH`. Can be `HTTP`, `LDAP`, `HTTP_LDAP` or `OAUTH`.
 
 ### CacheInfo
 The `CacheInfo` entity contains information about a cache.
@@ -1416,7 +1417,17 @@ configuration from the `change` section.
 |`update_delay`       ||`How often in seconds the web interface should poll for updates to the currently open change`
 |`submit_whole_topic` |not set if `false`|`A configuration if the whole topic is submitted`
 |`disable_private_changes` |not set if `false`|Returns true if private changes are disabled.
-|`exclude_mergeable_in_change_info` |not set if `false`|Value of the configuration parameter that controls whether the mergeability bit in ChangeInfo will never be set.
+|`mergeability_computation_behavior` ||Value of the configuration parameter that controls whether the mergeability bit in ChangeInfo will never be set and if the bit is indexed.
+|`enable_attention_set` |defaults to `false`|Returns true if attention set UI features are enabled.
+|`enable_assignee` |defaults to `true`|Returns true if assignee related UI features are enabled.
+
+### ChangeIndexConfigInfo
+The `ChangeIndexConfigInfo` entity contains information about Gerrit
+configuration from the index.change section.
+
+|Field Name           ||Description
+| :------| :------| :------|
+|`index_mergeable`|not set if `false`|Value of the configuration parameter that controls whether the mergeability bit is indexed (hence queryable using `is:mergeable`).
 
 ### CheckAccountExternalIdsInput
 The `CheckAccountExternalIdsInput` entity contains input for the
@@ -1550,6 +1561,14 @@ configuration from the `gerrit` section.
 |`edit_gpg_keys`     |not set if `false`|Whether to enable the web UI for editing GPG keys.
 |`report_bug_url`    |optional|`URL to report bugs`
 
+### IndexConfigInfo
+The `IndexConfigInfo` entity contains information about Gerrit
+configuration from the index section.
+
+|Field Name           ||Description
+| :------| :------| :------|
+|`change`||Information about the configuration from the index.change section as ChangeIndexConfigInfo entity.
+
 ### HitRatioInfo
 The `HitRatioInfo` entity contains information about the hit ratio of a cache.
 
@@ -1618,6 +1637,7 @@ The `ServerInfo` entity contains information about the configuration of the Gerr
 |`change`                  ||Information about the configuration from the `change` section as `ChangeConfigInfo` entity.
 |`download`                ||Information about the configured download options as `DownloadInfo` entity information about Gerrit
 |`gerrit`                  || Information about the configuration from the `gerrit` section as `GerritInfo` entity.
+|`index`                   ||Information about the configuration from the index section as `IndexConfigInfo` entity.
 |`note_db_enabled`         |not set if `false`|Whether the NoteDb storage backend is fully enabled.
 |`plugin`                  ||Information about Gerrit extensions by plugins as `PluginConfigInfo` entity.
 |`receive`                 |optional|Information about the receive-pack configuration as a `ReceiveInfo` entity.

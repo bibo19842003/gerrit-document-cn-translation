@@ -137,6 +137,20 @@ DOM 元素，用于现有组件的注册。
 
 提交的行为操作，包括 title 和 label，相关信息可参考 [ActionInfo](rest-api-changes.md) 的 `ActionInfo` 相关章节。
 
+### commit-container
+
+`commit-container` 扩展在 commit message 的末尾添加了 change view 信息。
+
+除了默认参数，下面参数也可使用：
+
+* `change`
+
+显示当前 change 信息，参考, [ChangeInfo](rest-api-changes.md) 的 `change-info` 相关部分。
+
+* `revision`
+
+显示当前 revision 信息，参考, [RevisionInfo](rest-api-changes.md) 的 `revision-info` 相关部分。
+
 ## Dynamic Plugin endpoints
 
 下面的 endpoint 可以被 plugin 使用。

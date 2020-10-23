@@ -1,4 +1,4 @@
-# Gerrit Code Review for Git (v3.1.0) 中文翻译
+# Gerrit Code Review for Git (v3.2.3) 中文翻译
 
 * 翻译说明
     * [翻译说明](README.md)
@@ -8,10 +8,13 @@
     * [为什么要 Code Review?](intro-rockstar.md)
     * [概述说明](intro-quick.md)
     * [Gerrit 是如何运行的](intro-how-gerrit-works.md)
-    * [Gerrit 演示](intro-gerrit-walkthrough.md)
+    * [Gerrit 演练](intro-gerrit-walkthrough.md)
+    * [针对 GitHub 用户的 Gerrit 演练](intro-gerrit-walkthrough-github.md)
+
+* Contributor Guides
     * [Gerrit Community](dev-community.md)
-    * [Contributor Guide](dev-contributing..md)
-* 指南
+    * [如何向社区贡献](dev-community.md)
+* 用户指南
     * [用户基本指南](intro-user.md)
     * [Project-Owner 指南](intro-project-owner.md)
     * [Android 默认工作流程](Default-Android-Workflow.md)

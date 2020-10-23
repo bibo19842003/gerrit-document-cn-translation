@@ -69,7 +69,7 @@
 
 每次启动 IntelliJ IDEA，需要确认每行代码都使用了 *Code → Reformat with google-java-format* 的设置，这样会代替默认的 CodeStyleManager 使用的风格。代码风格的设定可以通过依次点击 *Code -> Reformat Code*，或键盘的快捷键，或 commit 的时候选择 `google-java-format` plugin 来完成。
 
-可以参考[dev-contributing](dev-contributing.md) 的 `google-java-format` 相关章节。
+可以参考[dev-crafting-changes](dev-crafting-changes.md) 的 `google-java-format` 相关章节。
 
 #### Code style settings
 
@@ -110,7 +110,7 @@ cp -r tools/intellij/copyright .ijwb/.idea/
 
 如果在 IntelliJ IDEA 中使用 Git integration plugin，可以参考此部分的描述。
 
-创建与 [Gerrit 社区](dev-contributing.md) 兼容的 commit-msg 格式，可按如下步骤操作：
+创建与 [Gerrit 社区](dev-crafting-changes.md) 兼容的 commit-msg 格式，可按如下步骤操作：
 
 . 依次点击 *File -> Settings -> Version Control -> Commit Dialog*.
 . 在 *Commit message inspections* 中，激活下面三个检查：

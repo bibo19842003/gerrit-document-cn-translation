@@ -2491,9 +2491,8 @@ If the commit message is not set, the commit message of the source commit will b
   }
 ```
 
-As response a link:rest-api-changes.html#cherry-pick-change-info[
-CherryPickChangeInfo] entity is returned that describes the resulting
-cherry-picked change.
+As response a ChangeInfo entity
+is returned that describes the resulting cherry-picked change.
 
 .Response
 ```
@@ -2826,6 +2825,361 @@ requests.
   HTTP/1.1 204 No Content
 ```
 
+## Label Endpoints
+
+### List Labels
+```
+'GET /projects/{project-name}/labels/'
+```
+
+Lists the labels that are defined in this project.
+
+The calling user must have read access to the `refs/meta/config` branch of the
+project.
+
+.Request
+```
+  GET /projects/All-Projects/labels/ HTTP/1.0
+```
+
+As result a list of link:#label-definition-info[LabelDefinitionInfo] entities
+is returned that describe the labels that are defined in this project
+(inherited labels are not returned unless the `inherited` parameter is set, see
+link:#list-with-inherited-labels[below]). The returned labels are sorted by
+label name.
+
+.Response
+```
+  HTTP/1.1 200 OK
+  Content-Disposition: attachment
+  Content-Type: application/json; charset=UTF-8
+
+  )]}'
+  [
+    {
+      "name": "Code-Review",
+      "project": "All-Projects",
+      "function": "MaxWithBlock",
+      "values": {
+        " 0": "No score",
+        "-1": "I would prefer this is not merged as is",
+        "-2": "This shall not be merged",
+        "+1": "Looks good to me, but someone else must approve",
+        "+2": "Looks good to me, approved"
+      },
+      "default_value": 0,
+      "can_override": true,
+      "copy_min_score": true,
+      "copy_all_scores_if_no_change": true,
+      "copy_all_scores_on_trivial_rebase": true,
+      "allow_post_submit": true
+    }
+  ]
+```
+
+To include inherited labels from all parent projects the parameter `inherited`
+can be set.
+
+The calling user must have read access to the `refs/meta/config` branch of the
+project and all its parent projects.
+
+.Request
+```
+  GET /projects/My-Project/labels/?inherited HTTP/1.0
+```
+
+As result a list of link:#label-definition-info[LabelDefinitionInfo] entities
+is returned that describe the labels that are defined in this project and in
+all its parent projects. The returned labels are sorted by parent projects
+in-order from `All-Projects` through the project hierarchy to this project.
+Labels that belong to the same project are sorted by label name.
+
+.Response
+```
+  HTTP/1.1 200 OK
+  Content-Disposition: attachment
+  Content-Type: application/json; charset=UTF-8
+
+  )]}'
+  [
+    {
+      "name": "Code-Review",
+      "project": "All-Projects",
+      "function": "MaxWithBlock",
+      "values": {
+        " 0": "No score",
+        "-1": "I would prefer this is not merged as is",
+        "-2": "This shall not be merged",
+        "+1": "Looks good to me, but someone else must approve",
+        "+2": "Looks good to me, approved"
+      },
+      "default_value": 0,
+      "can_override": true,
+      "copy_min_score": true,
+      "copy_all_scores_if_no_change": true,
+      "copy_all_scores_on_trivial_rebase": true,
+      "allow_post_submit": true
+    },
+    {
+      "name": "Foo-Review",
+      "project": "My-Project",
+      "function": "MaxWithBlock",
+      "values": {
+        " 0": "No score",
+        "-1": "I would prefer this is not merged as is",
+        "-2": "This shall not be merged",
+        "+1": "Looks good to me, but someone else must approve",
+        "+2": "Looks good to me, approved"
+      },
+      "default_value": 0,
+      "can_override": true,
+      "copy_any_score": true,
+      "allow_post_submit": true
+    }
+  ]
+```
+
+### Get Label
+```
+'GET /projects/link:#project-name[\{project-name\}]/labels/link:#label-name[\{label-name\}]'
+```
+
+Retrieves the definition of a label that is defined in this project.
+
+The calling user must have read access to the `refs/meta/config` branch of the
+project.
+
+.Request
+```
+  GET /projects/All-Projects/labels/Code-Review HTTP/1.0
+```
+
+As response a link:#label-definition-info[LabelDefinitionInfo] entity is
+returned that describes the label.
+
+.Response
+```
+  HTTP/1.1 200 OK
+  Content-Disposition: attachment
+  Content-Type: application/json; charset=UTF-8
+
+  )]}'
+  {
+    "name": "Code-Review",
+    "project": "All-Projects",
+    "function": "MaxWithBlock",
+    "values": {
+      " 0": "No score",
+      "-1": "I would prefer this is not merged as is",
+      "-2": "This shall not be merged",
+      "+1": "Looks good to me, but someone else must approve",
+      "+2": "Looks good to me, approved"
+    },
+    "default_value": 0,
+    "can_override": true,
+    "copy_min_score": true,
+    "copy_all_scores_if_no_change": true,
+    "copy_all_scores_on_trivial_rebase": true,
+    "allow_post_submit": true
+  }
+```
+### Create Label
+```
+'PUT /projects/link:#project-name[\{project-name\}]/labels/link:#label-name[\{label-name\}]'
+```
+
+Creates a new label definition in this project.
+
+The calling user must have write access to the `refs/meta/config` branch of the
+project.
+
+If a label with this name is already defined in this project, this label
+definition is updated (see link:#set-label[Set Label]).
+
+.Request
+```
++  PUT /projects/My-Project/labels/Foo HTTP/1.0
++  Content-Type: application/json; charset=UTF-8
++
++  {
++    "commit_message": "Create Foo Label",
++    "values": {
++      " 0": "No score",
++      "-1": "I would prefer this is not merged as is",
++      "-2": "This shall not be merged",
++      "+1": "Looks good to me, but someone else must approve",
++      "+2": "Looks good to me, approved"
++    }
++  }
+```
+
+As response a link:#label-definition-info[LabelDefinitionInfo] entity is
+returned that describes the created label.
+
+.Response
+```
+  HTTP/1.1 200 OK
+  Content-Disposition: attachment
+  Content-Type: application/json; charset=UTF-8
+
+  )]}'
+  {
+    "name": "Foo",
+    "project_name": "My-Project",
+    "function": "MaxWithBlock",
+    "values": {
+      " 0": "No score",
+      "-1": "I would prefer this is not merged as is",
+      "-2": "This shall not be merged",
+      "+1": "Looks good to me, but someone else must approve",
+      "+2": "Looks good to me, approved"
+    },
+    "default_value": 0,
+    "can_override": true,
+    "copy_all_scores_if_no_change": true,
+    "allow_post_submit": true
+  }
+```
+### Set Label
+```
+'PUT /projects/link:#project-name[\{project-name\}]/labels/link:#label-name[\{label-name\}]'
+```
+
+Updates the definition of a label that is defined in this project.
+
+The calling user must have write access to the `refs/meta/config` branch of the
+project.
+
+Properties which are not set in the input entity are not modified.
+
+.Request
+```
+  PUT /projects/All-Projects/labels/Code-Review HTTP/1.0
+  Content-Type: application/json; charset=UTF-8
+
+  {
+    "commit_message": "Ignore self approvals for Code-Review label",
+    "ignore_self_approval": true
+  }
+```
+
+As response a link:#label-definition-info[LabelDefinitionInfo] entity is
+returned that describes the updated label.
+
+.Response
+```
+  HTTP/1.1 200 OK
+  Content-Disposition: attachment
+  Content-Type: application/json; charset=UTF-8
+
+  )]}'
+  {
+    "name": "Code-Review",
+    "project": "All-Projects",
+    "function": "MaxWithBlock",
+    "values": {
+      " 0": "No score",
+      "-1": "I would prefer this is not merged as is",
+      "-2": "This shall not be merged",
+      "+1": "Looks good to me, but someone else must approve",
+      "+2": "Looks good to me, approved"
+    },
+    "default_value": 0,
+    "can_override": true,
+    "copy_min_score": true,
+    "copy_all_scores_if_no_change": true,
+    "copy_all_scores_on_trivial_rebase": true,
+    "allow_post_submit": true,
+    "ignore_self_approval": true
+  }
+```
+### Delete Label
+```
+'DELETE /projects/link:#project-name[\{project-name\}]/labels/link:#label-name[\{label-name\}]'
+```
+
+Deletes the definition of a label that is defined in this project.
+
+The calling user must have write access to the `refs/meta/config` branch of the
+project.
+
+The request body does not need to include a link:#delete-label-input[
+DeleteLabelInput] entity if no commit message is specified.
+
+.Request
+```
+  DELETE /projects/My-Project/labels/Foo-Review HTTP/1.0
+  Content-Type: application/json; charset=UTF-8
+
+  {
+    "commit_message": "Delete Foo-Review label",
+  }
+```
+
+If a label was deleted the response is "`204 No Content`".
+
+.Response
+```
+  HTTP/1.1 204 No Content
+```
+### Batch Update Labels
+```
+'POST /projects/link:#project-name[\{project-name\}]/labels/'
+```
+
+Creates/updates/deletes multiple label definitions in this project at once.
+
+The calling user must have write access to the `refs/meta/config` branch of the
+project.
+
+The updates must be specified in the request body as
+link:#batch-label-input[BatchLabelInput] entity.
+
+The updates are processed in the following order:
+
+1. label deletions
+2. label creations
+3. label updates
+
+.Request
+```
+  POST /projects/My-Project/labels/ HTTP/1.0
+  Content-Type: application/json; charset=UTF-8
+
+  {
+    "commit_message": "Update Labels",
+    "delete": [
+      "Old-Review",
+      "Unused-Review"
+    ],
+    "create": [
+      {
+        "name": "Foo-Review",
+        "values": {
+          " 0": "No score",
+          "-1": "I would prefer this is not merged as is",
+          "-2": "This shall not be merged",
+          "+1": "Looks good to me, but someone else must approve",
+          "+2": "Looks good to me, approved"
+      }
+    ],
+    "update:" {
+      "Bar-Review": {
+        "function": "MaxWithBlock"
+      },
+      "Baz-Review": {
+        "copy_min_score": true
+      }
+    }
+  }
+```
+
+If the label updates were done successfully the response is "`200 OK`".
+
+.Response
+```
+  HTTP/1.1 200 OK
+```
 
 ## IDs
 
@@ -2843,6 +3197,9 @@ The ID of a dashboard in the format '<ref>:<path>'.
 
 A special dashboard ID is `default` which represents the default
 dashboard of a project.
+
+### {label-name}
+The name of a review label.
 
 ### {project-name}
 The name of the project.
@@ -2934,6 +3291,15 @@ The `CommentLinkInfo` entity describes a `commentlink`.
 
 |Field Name |        |Description
 | :------| :------| :------|
+|`match`    |        |A JavaScript regular expression to match positions to be replaced with a hyperlink, as documented in commentlink.name.match.
+|`link`     |        |The URL to direct the user to whenever the regular expression is matched, as documented in commentlink.name.link.
+|`enabled`  |optional|Whether the commentlink is enabled, as documented commentlink.name.enabled. If not set the commentlink is enabled.
+
+### CommentLinkInput
+The `CommentLinkInput` entity describes the input for a commentlink.
+
+|Field Name |        |Description
+| :------| :------| :------|
 |`match`    |        |A JavaScript regular expression to match positions to be replaced with a hyperlink, as documented in `commentlink.name.match`.
 |`link`     |        |The URL to direct the user to whenever the regular expression is matched, as documented in `commentlink.name.link`.
 |`enabled`  |optional|Whether the commentlink is enabled, as documented in `commentlink.name.enabled`. If not set the commentlink is enabled.
@@ -2981,6 +3347,7 @@ The `ConfigInput` entity describes a new project configuration.
 |`state`                                   |optional|The state of the project, can be `ACTIVE`, `READ_ONLY` or `HIDDEN`. Not set if the project state is `ACTIVE`. If not set, the project state is not updated.
 |`plugin_config_values`                    |optional|Plugin configuration values as map which maps the plugin name to a map of parameter names to values.
 |`reject_empty_commit`                     |optional|Whether empty commits should be rejected when a change is merged.Can be `TRUE`, `FALSE` or `INHERIT`. If not set, this setting is not updated.
+|`commentlinks`                         |optional|Map of commentlink names to CommentLinkInput entities to add or update on the project. If the given commentlink already exists, it will be updated with the given values, otherwise it will be created. If the value is null, that entry is deleted.
 
 ### ConfigParameterInfo
 The `ConfigParameterInfo` entity describes a project configuration parameter.
@@ -2998,7 +3365,6 @@ The `ConfigParameterInfo` entity describes a project configuration parameter.
 |`inheritable`     |`false` if not set|Whether the configuration parameter can be inherited.
 |`configured_value`|optional|The value of the configuration parameter that is configured on this project, only set if `inheritable` is true.
 |`inherited_value` |optional|The inherited value of the configuration parameter, only set if `inheritable` is true.
-|`permitted_values` |optional|The list of permitted values, only set if the `type` is `LIST`.
 
 ### DashboardInfo
 The `DashboardInfo` entity contains information about a project dashboard.
@@ -3032,6 +3398,14 @@ The `DashboardSectionInfo` entity contains information about a section in a dash
 | :------| :------|
 |`name`        |The title of the section.
 |`query`       |The query of the section. Tokens such as `${project}` are not resolved.
+
+### DeleteLabelInput
+The `DeleteLabelInput` entity contains information for deleting a label
+definition in a project.
+
+|Field Name      ||Description
+| :------| :------| :------|
+|`commit_message`|optional|Message that should be used to commit the deletion of the label in the `project.config` file to the `refs/meta/config` branch.
 
 ### DeleteBranchesInput
 The `DeleteBranchesInput` entity contains information about branches that should be deleted.
@@ -3080,6 +3454,51 @@ A boolean value that can also be inherited.
 |`configured_value` ||The configured value, can be `TRUE`, `FALSE` or `INHERITED`.
 |`inherited_value`  |optional|The boolean value inherited from the parent. Not set if there is no parent.
 
+### LabelDefinitionInfo
+The `LabelDefinitionInfo` entity describes a review label.
+
+|Field Name      ||Description
+| :------| :------| :------|
+|`name`          ||The name of the label.
+|`project_name`  ||The name of the project in which this label is defined.
+|`function`      ||The function of the label (can be `MaxWithBlock`, `AnyWithBlock`, `MaxNoBlock`, `NoBlock`, `NoOp` and `PatchSetLock`.
+|`values`        ||The values of the label as a map of label value to value description. The label values are formatted strings, e.g. "+1" instead of "1", " 0" instead of "0".
+|`default_value` ||The default value of the label (as integer).
+|`branches`      |optional|A list of branches for which the label applies. A branch can be a ref, a ref pattern or a regular expression. If not set, the label applies for all branches.
+|`can_override`  |`false` if not set|Whether this label can be overridden by child projects.
+|`copy_any_score`|`false` if not set|Whether copyAnyScore is set on the label.
+|`copy_min_score`|`false` if not set|Whether copyMinScore is set on the label.
+|`copy_max_score`|`false` if not set|Whether copyMaxScore is set on the label.
+|`copy_all_scores_if_no_change`|`false` if not set|Whether copyAllScoresIfNoChange is set on the label.
+|`copy_all_scores_if_no_code_change`|`false` if not set|Whether copyAllScoresIfNoCodeChange is set on the label.
+|`copy_all_scores_on_trivial_rebase`|`false` if not set|Whether copyAllScoresOnTrivialRebase is set on the label.
+|`copy_all_scores_on_merge_first_parent_update`|`false` if not set|Whether copyAllScoresOnMergeFirstParentUpdate is set on the label.
+|`copy_values`   |optional|List of values that should be copied forward when a new patch set is uploaded.
+|`allow_post_submit`|`false` if not set|Whether allowPostSubmit is set on the label.
+|`ignore_self_approval`|`false` if not set|Whether ignoreSelfApproval is set on the label.
+
+### LabelDefinitionInput
+The `LabelDefinitionInput` entity describes a review label.
+
+|Field Name      ||Description
+| :------| :------| :------|
+|`commit_message`|optional|Message that should be used to commit the change of the label in the `project.config` file to the `refs/meta/config` branch.Must not be set if this `LabelDefinitionInput` entity is contained in a BatchLabelInput entity.
+|`name`          |optional|The new name of the label.For label creation the name is required if this `LabelDefinitionInput` entity is contained in a BatchLabelInput entity.
+|`function`      |optional|The new function of the label (can be `MaxWithBlock`, `AnyWithBlock`, `MaxNoBlock`, `NoBlock`, `NoOp` and `PatchSetLock`.
+|`values`        |optional|The new values of the label as a map of label value to value description. The label values are formatted strings, e.g. "+1" instead of "1", " 0" instead of "0".
+|`default_value` |optional|The new default value of the label (as integer).
+|`branches`      |optional|The new branches for which the label applies as a list of branches. A branch can be a ref, a ref pattern or a regular expression. If not set, the label applies for all branches.
+|`can_override`  |optional|Whether this label can be overridden by child projects.
+|`copy_any_score`|optional|Whether copyAnyScore is set on the label.
+|`copy_min_score`|optional|Whether copyMinScore is set on the label.
+|`copy_max_score`|optional|Whether copyMaxScore is set on the label.
+|`copy_all_scores_if_no_change`|optional|Whether copyAllScoresIfNoChange is set on the label.
+|`copy_all_scores_if_no_code_change`|optional|Whether copyAllScoresIfNoCodeChange is set on the label.
+|`copy_all_scores_on_trivial_rebase`|optional|Whether copyAllScoresOnTrivialRebase is set on the label.
+|`copy_all_scores_on_merge_first_parent_update`|optional|Whether copyAllScoresOnMergeFirstParentUpdate is set on the label.
+|`copy_values`   |optional|List of values that should be copied forward when a new patch set is uploaded.
+|`allow_post_submit`|optional|Whether allowPostSubmit is set on the label.
+|`ignore_self_approval`|optional|Whether ignoreSelfApproval is set on the label.
 
 ### LabelTypeInfo
 The `LabelTypeInfo` entity contains metadata about the labels that a project has.
@@ -3097,6 +3516,17 @@ The `MaxObjectSizeLimitInfo` entity contains information about the `max object s
 |`value`           |optional|The effective value in bytes of the max object size limit. Not set if there is no limit for the object size.
 |`configured_value`|optional|The max object size limit that is configured on the project as a formatted string.Not set if there is no limit for the object size configured on project level.
 |`summary`         |optional|A string describing whether the value was inherited or overridden from the parent project or global config.Not set if not inherited or overridden.
+
+### BatchLabelInput
+The `BatchLabelInput` entity contains information for batch updating label
+definitions in a project.
+
+|Field Name      ||Description
+| :------| :------| :------|
+|`commit_message`|optional|Message that should be used to commit the label updates in the `project.config` file to the `refs/meta/config` branch.
+|`delete`        |optional|List of labels that should be deleted.
+|`create`        |optional|List of link:#label-definition-input[LabelDefinitionInput] entities that describe labels that should be created.
+|`update`        |optional|Map of label names to link:#label-definition-input[LabelDefinitionInput] entities that describe the updates that should be done for the labels.
 
 ### ProjectAccessInput
 The `ProjectAccessInput` describes changes that should be applied to a project access config.

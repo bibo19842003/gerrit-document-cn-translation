@@ -1,6 +1,6 @@
 # Gerrit Code Review - NoteDb Backend
 
-NoteDb 是下一代的 gerrit 后台存储，用来取代 change，账户和群组元数据的传统 SQL 后台存储。
+NoteDb 用来存储 code review 的 metadata。NoteDb 是基于 Git 的，因此 code reviews 和 代码可以存放到同一个 git project 中。NoteDb 取代了 2.x 版本的 change，账户和群组元数据的传统 SQL 后台存储。
 
 _优势_
 - *简单*: 所有的数据都存储在本地的 project 中。一些数据不在存储在外部的数据库中。
@@ -9,21 +9,14 @@ _优势_
 - *扩展*: Plugin 开发人员可以方便的在元数据中添加新的字段；而之前，添加新的字段的话需要在数据库中操作。
 - *新特性*: gerrit 服务器之间的联系更加方便；线下的 code review 可以更好的和其他工具集成。
 
-## Current Status
-
-- 在发布的 2.15 版本中，已实现 notedb 对 change 元数据的存储。对于新站点来说，默认使用 notedb。
-- 管理员可以通过线下或线上工具来实现 change 的元数据从 ReviewDb 迁移到 notedb。
-- 在发布的 2.15 版本中，已实现 notedb 对 用户元数据的存储。在执行 gerrit 升级过程中，用户的元数据从 ReviewDb 自动迁移到 notedb。
-- 在发布的 2.16 版本中，已实现 notedb 对 群组元数据的存储。在执行 gerrit 升级过程中，群组的元数据从 ReviewDb 自动迁移到 notedb。
-- `googlesource.com` 上的账户, 群组 和 change 的元数据已经集成到了 notedb。换句话说，[gerrit-review](https://gerrit-review.googlesource.com/) 已经在使用 notedb 了。
-- NoteDb 目前只有 Gerrit 3.0 支持。change 数据的迁移工具只存在于 Gerrit 2.15 和 2.16 版本中，Gerrit 3.0 不包含此工具。
-
-例如，对应 notedb 中 change ，下载命令为:
-
 ```
   git fetch https://gerrit.googlesource.com/gerrit refs/changes/70/98070/meta \
       && git log -p FETCH_HEAD
 ```
+
+## Current Status
+
+从 Gerrit 3.0 开始，支持 NoteDb。change 数据的集成工具，也只能在 Gerrit 2.16 中使用; 因此，Gerrit 2.x 升级到 3.x，需要先升级到 2.16。
 
 ## Migration
 
@@ -72,6 +65,7 @@ _劣势_
 
 **NOTE:**
 *数据迁移需要使用 heap，默认情况下大小和 gerrit 配置的 heap 相同。也可以在使用 `gerrit.war daemon` 命令时添加 `-Xmx` 参数来实现。*
+*上面的命令可以添加参数 `--reindex false` ，这样可以忽略 reindex 的操作，如果需要升级到最新的版本，那么这个参数可以节省升级中间版本所消耗的时间。*
 
 _优势_
 
@@ -102,6 +96,9 @@ _劣势_
 * 用来测试只有 notedb 才有的特性，如：hashtags
 
 执行试验模式后，可以使用线下或线上的操作来完成数据实际的迁移。若要返回到 ReviewDb-only 模式，可以在配置文件中移除 `noteDb.changes.read` 和 `noteDb.changes.write`，然后重启 gerrit 服务。
+
+## NoteDB to ReviewDB rollback
+如果 NoteDB 需要回滚到 ReviewDB, 那么所有的 meta refs 和 sequence ref 需要删除。可以使用 [remove-notedb-refs.sh](https://gerrit.googlesource.com/gerrit/+/refs/heads/master/contrib/remove-notedb-refs.sh) 进行自动处理。
 
 ## Configuration
 

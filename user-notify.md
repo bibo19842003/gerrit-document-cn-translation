@@ -85,7 +85,7 @@ Project-owner 和管理员可以配置 project 层级的通知邮件。通知邮
 
 **notify.<name>.filter**
 
-  [changes 搜索表达式](user-search.md) 可以用在此处作为 change 邮件通知的过滤。格式为：Git-style ，字符如果需要转义，那么需要加双引号，如：`filter = branch:\"^(maint|stable)-.*\"`。
+  [changes 搜索表达式](user-search.md) 可以用在此处作为 change 邮件通知的过滤。格式为：Git-style ，字符如果需要转义，那么需要加双引号，如：`filter = branch:\"^(maint|stable)-.*\"`。单引号是非法的，会被忽略。
 
  如果 notify 模块处只有 email 地址，系统会忽略读权限控制并认为当前的过滤条件是正确的。project-owner 可以添加过滤条件，如：`visibleto:groupname` 
 ```shell

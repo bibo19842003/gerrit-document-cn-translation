@@ -151,5 +151,4 @@ $ git push host HEAD:refs/for/master%edit
  - 从下拉菜单中选择下载方式
  - 命令行窗口中粘贴命令后即可下载
 
-![](images/inline-edit-actions-download.png)
 

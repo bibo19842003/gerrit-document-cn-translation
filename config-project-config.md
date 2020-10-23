@@ -186,17 +186,72 @@ change section 包括了对 change 的一些设置：
 
 submit section 包括了对 submit 的详细设置：
 
-* 'mergeContent': 定义是否自动 merge 文件的修改。有效值为 'true', 'false', 'INHERIT'。默认值为 'INHERIT'。
+**submit.mergeContent**
 
-* 'action': submit 的方式。有效值为 'fast forward only', 'merge if necessary', 'rebase if necessary', 'rebase always', 'merge always', 'cherry pick'。默认值为 'merge if necessary'。
+当有冲突的时候，是否进行自动的合入操作。有效值为：'true', 'false', 'INHERIT'。默认值为：'INHERIT'。此参数可以通过下面操作修改：`Browse`> `Repositories` > my/project > `Allow content merges`.
+ 
+**submit.action**
 
-* 'matchAuthorToCommitterDate': 是否将 author 时间修改为 commit 的合入时间，这样 git log 默认会按合入时间对 commit 节点进行排序。有效值为 'true', 'false', 'INHERIT'。默认值为 'INHERIT'。建议在 `Cherry Pick`, `Rebase Always`, `Rebase If Necessary` 情况下启用此参数。
+submit 的方式。有效值为 'fast forward only', 'merge if necessary', 'rebase if necessary', 'rebase always', 'merge always', 'cherry pick'。默认值为 'merge if necessary'。
+ 
+**submit.matchAuthorToCommitterDate**
 
-* 'rejectEmptyCommit': change 合入的时候是否拒绝 empty commit。上传 commit 的时候，并不少 empty commit，但由于执行 rebase 操作后，有可能使其变成 empty commit，此时如果将参数设置为 'true'，那么合入就会失败。分支的初始节点若是 empty commit，此种场景不受限制。
+是否将 author 时间修改为 commit 的合入时间，这样 git log 默认会按合入时间对 commit 节点进行排序。有效值为 'true', 'false', 'INHERIT'。默认值为 'INHERIT'。建议在 `Cherry Pick`, `Rebase Always`, `Rebase If Necessary` 情况下启用此参数。
+
+**ubmit.rejectEmptyCommit**
+
+change 合入的时候是否拒绝 empty commit。上传 commit 的时候，并不少 empty commit，但由于执行 rebase 操作后，有可能使其变成 empty commit，此时如果将参数设置为 'true'，那么合入就会失败。分支的初始节点若是 empty commit，此种场景不受限制。
+
+#### Submit Type
+
+'submit.action': change 合入的方式。
+
+如下操作可以进行修改：`Browse` > `Repositories` > my/project > 'Submit type'。
+通常，合入的时候会把所依赖的 change 都进行合入，下面是例外情况：
+
+下面的 submit 类型可以按照实际情况进行配置：
+
+* Inherit
+
+新创建 project 的默认参数为 `inherit`，此默认参数可以通过全局设置 `defaultSubmitType` 进行修改。
+
+Inherit 意味着继承 parent 的配置。`All-Projects` 中，配置的是 `Merge If Necessary`。
+
+* Fast Forward Only
+
+对于此方法，合入的时候 Gerrit 不会生成 merge 节点。merge 是可以合入的，不过需要在客户端生成后，经过评审才能合入。
+
+为了合入 change, change 必须是目的分支的超集。
+ 
+* Merge If Necessary
+
+change 在非 fast-forwarded 情形下，合入的时候会生成 merge 节点。
+ 
+* Always Merge
+
+change 合入的时候就会生成 merge 节点。
+
+* Cherry Pick
+
+合入的时候执行 cherry-pick 操作，生成一个新的 commit。
+
+合入的时候，gerrit 会自动在 commit-message 的尾部添加 change 的评审信息及 change 的链接；commit的信息中，committer 的信息会修改为 submitter 的信息，author 的信息不变。
+
+此类型合入的时候会忽略所依赖的 change，除非启用了 `change.submitWholeTopic` 配置。如果多个 change 有依赖的关系，需要注意 change 的合入顺序。
+
+* Rebase If Necessary
+
+change 在非 fast-forwarded 情形下，合入的时候会进行 rebase 操作。
+
+* Rebase Always
+
+与 `Rebase If Necessary` 类似，不过合入的时候会生成一个新的 patchset，此 patchset 的 footer 和 `Cherry Pick` 的 footer 类似。
+
+因此，`Rebase Always` 与 `Cherry Pick` 类似，但 `Rebase Always` 不会忽略所依赖的 change。
 
 ### Access section
 
-+access+ section 包含了 reference 的权限设置。配置权限时所涉及的群组，需要在 +groups+ 文件中有记录。
+access section 包含了 reference 的权限设置。配置权限时所涉及的群组，需要在 +groups+ 文件中有记录。
 
 可参考 [访问控制](access-control.md) 的 `Access Categories` 章节。
 
@@ -281,48 +336,4 @@ global:Registered-Users                        Registered Users
 
 可以参考 [Prolog 说明](prolog-cookbook.md)。
 
-### Submit Type
-
-change 合入到代码库的方式可以被修改，相关的参数值如下：
-
-* Inherit
-
- 新创建的 project 的默认值，可以在 gerrit.config 中进行配置参数 `defaultSubmitType`。
-
- submit type 会从父 project 继承。在 `All-Projects` 中，默认值是 `Merge If Necessary`。
-
-* Fast Forward Only
-
- 此方式在 submit change 的时候不会产生 merge 节点。change 合入的时候，commit 需要在合入分支的顶端。当 commit 较多的时候，合入的效率较低。
-
-* Merge If Necessary
-
- 线性合入的时候，不会产生 merge 节点；非线性合入的时候，会产生 merge 节点。和  `git merge --ff` 类似。
-
-* Always Merge
-
- 总会产生 merge 节点，和 `git merge --no-ff` 类似。
-
-* Cherry Pick
-
- 此方式会生成新的 patch-set，并且会忽略和以前的父节点的关联关系。
-
- 此方式的 commit 合入后，gerrit 会在 commit-mgs 的底部添加 change 的打分信息以及评审链接，committer 会变更为 submitter，而 author 却不会变化。
-
- 此方式会忽略 change 间的依赖关系。
-
- 如果对 change 的合入有顺序要求，建议使用 `Rebase Always` 方式。
-
-* Rebase If Necessary
-
- 线性合入的时候，不执行 rebase 操作；非线性合入的时候，执行 rebase 操作。
-
- change 合入的时候，有可能会有冲突。gerrit 把同一个文件的修改视为冲突，而 git 把同一个文件的同一行的修改视为冲突。
-
-* Rebase Always
-
- 此操作会生成新的 patch-set，与 cherry-pick 类似，但 rebase 不能忽略 commit 间的依赖关系。
-
-### Allow content merges
-如果启用 `Allow content merges`，那么 gerrit 会自动解决冲突，但不保证结果的质量。
 

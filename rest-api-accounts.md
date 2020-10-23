@@ -67,12 +67,14 @@ _Response_
       "name": "John Doe",
       "email": "john.doe@example.com",
       "username": "john"
+      "display_name": "John D"
     },
     {
       "_account_id": 1001439,
       "name": "John Smith",
       "email": "john.smith@example.com",
       "username": "jsmith"
+      "display_name": "John D"
     },
   ]
 ```
@@ -102,6 +104,7 @@ _Response_
     "name": "John Doe",
     "email": "john.doe@example.com",
     "username": "john"
+    "display_name": "Super John"
   }
 ```
 
@@ -122,6 +125,7 @@ _Request_
 
   {
     "name": "John Doe",
+    "display_name": "Super John",
     "email": "john.doe@example.com",
     "ssh_key": "ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEA0T...YImydZAw==",
     "http_password": "19D9aIn7zePb",
@@ -173,6 +177,7 @@ _Response_
     "name": "John Doe",
     "email": "john.doe@example.com",
     "username": "john"
+    "display_name": "Super John"
   }
 ```
 
@@ -360,6 +365,25 @@ _Request_
 ```
 
 响应为返回新的 username 。
+
+### Set Display Name
+```
+'PUT /accounts/{account-id}/displayname'
+```
+
+新的 display name 信息请参考本文的 UsernameInput 。
+
+_Request_
+```
+  PUT /accounts/self/displayname HTTP/1.0
+  Content-Type: application/json; charset=UTF-8
+
+  {
+    "display_name": "John"
+  }
+```
+
+响应为返回新的 display name 。
 
 ### Get Active
 
@@ -673,8 +697,8 @@ _Response_
   [
     {
       "seq": 1,
-      "ssh_public_key": "ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEA0T...YImydZAw\u003d\u003d john.doe@example.com",
-      "encoded_key": "AAAAB3NzaC1yc2EAAAABIwAAAQEA0T...YImydZAw\u003d\u003d",
+      "ssh_public_key": "ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEA0T...YImydZAw== john.doe@example.com",
+      "encoded_key": "AAAAB3NzaC1yc2EAAAABIwAAAQEA0T...YImydZAw==",
       "algorithm": "ssh-rsa",
       "comment": "john.doe@example.com",
       "valid": true
@@ -706,8 +730,8 @@ _Response_
   )]}'
   {
     "seq": 1,
-    "ssh_public_key": "ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEA0T...YImydZAw\u003d\u003d john.doe@example.com",
-    "encoded_key": "AAAAB3NzaC1yc2EAAAABIwAAAQEA0T...YImydZAw\u003d\u003d",
+      "ssh_public_key": "ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEA0T...YImydZAw== john.doe@example.com",
+      "encoded_key": "AAAAB3NzaC1yc2EAAAABIwAAAQEA0T...YImydZAw==",
     "algorithm": "ssh-rsa",
     "comment": "john.doe@example.com",
     "valid": true
@@ -729,9 +753,9 @@ SSH public key 在请求的主体中，不能换行，换句话说，只能是�
 _Request_
 ```
   POST /accounts/self/sshkeys HTTP/1.0
-  Content-Type: plain/text
+  Content-Type: text/plain
 
-  AAAAB3NzaC1yc2EAAAABIwAAAQEA0T...YImydZAw\u003d\u003d
+  ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEA0T...YImydZAw== john.doe@example.com
 ```
 
 响应返回的 SshKeyInfo 信息，具体可参考本文的 SshKeyInfo 。
@@ -745,8 +769,8 @@ _Response_
   )]}'
   {
     "seq": 2,
-    "ssh_public_key": "ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEA0T...YImydZAw\u003d\u003d john.doe@example.com",
-    "encoded_key": "AAAAB3NzaC1yc2EAAAABIwAAAQEA0T...YImydZAw\u003d\u003d",
+    "ssh_public_key": "ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEA0T...YImydZAw== john.doe@example.com",
+    "encoded_key": "AAAAB3NzaC1yc2EAAAABIwAAAQEA0T...YImydZAw==",
     "algorithm": "ssh-rsa",
     "comment": "john.doe@example.com",
     "valid": true
@@ -1163,7 +1187,6 @@ _Response_
   )]}'
   {
     "changes_per_page": 25,
-    "download_command": "CHECKOUT",
     "date_format": "STD",
     "time_format": "HHMM_12",
     "diff_view": "SIDE_BY_SIDE",
@@ -1216,7 +1239,6 @@ _Request_
   {
     "changes_per_page": 50,
     "expand_inline_diffs": true,
-    "download_command": "CHECKOUT",
     "date_format": "STD",
     "time_format": "HHMM_12",
     "size_bar_in_change_table": true,
@@ -1263,7 +1285,6 @@ _Response_
   {
     "changes_per_page": 50,
     "expand_inline_diffs": true,
-    "download_command": "CHECKOUT",
     "date_format": "STD",
     "time_format": "HHMM_12",
     "size_bar_in_change_table": true,
@@ -1324,7 +1345,6 @@ _Response_
   )]}'
   {
     "context": 10,
-    "theme": "DEFAULT",
     "ignore_whitespace": "IGNORE_ALL",
     "intraline_difference": true,
     "line_length": 100,
@@ -1354,7 +1374,6 @@ _Request_
 
   {
     "context": 10,
-    "theme": "ECLIPSE",
     "ignore_whitespace": "IGNORE_ALL",
     "intraline_difference": true,
     "line_length": 100,
@@ -1379,7 +1398,6 @@ _Response_
   )]}'
   {
     "context": 10,
-    "theme": "ECLIPSE",
     "ignore_whitespace": "IGNORE_ALL",
     "intraline_difference": true,
     "line_length": 100,
@@ -1415,8 +1433,6 @@ _Response_
 
   )]}'
   {
-    "theme": "ECLIPSE",
-    "key_map_type": "VIM",
     "tab_size": 4,
     "line_length": 80,
     "indent_unit": 2,
@@ -1447,8 +1463,6 @@ _Request_
   Content-Type: application/json;charset=UTF-8
 
   {
-    "theme": "ECLIPSE",
-    "key_map_type": "VIM",
     "tab_size": 4,
     "line_length": 80,
     "indent_unit": 2,
@@ -1474,8 +1488,6 @@ _Response_
 
   )]}'
   {
-    "theme": "ECLIPSE",
-    "key_map_type": "VIM",
     "tab_size": 4,
     "line_length": 80,
     "cursor_blink_rate": 530,
@@ -2084,6 +2096,7 @@ GPG key 标识。, `gpg --list-keys` 产生的 8 个 16进制字符，或 `gpg -
 | :------| :------| :------|
 |`username`     |可选|用户的 username。如果提供，需要与 API 的 URL 中的 username 一致。
 |`name`         |可选|用户的 full-name。
+|`display_name` |可选|用户的 display name
 |`email`        |可选|用户的 email
 |`ssh_key`      |可选|用户的 public SSH key
 |`http_password`|可选|用户的 HTTP password
@@ -2144,11 +2157,12 @@ The `AccountStatusInput` ，设置用户状态。
 
 `ContributorAgreementInfo` ，贡献者声明相关信息。
 
-|Field Name                 |Description
-| :------| :------|
-|`name`                     |声明的名称
-|`description`              |声明的描述
-|`url`                      |声明的 URL
+|Field Name                 | |Description
+| :------| :------| :------|
+|`name`                     | |声明的名称
+|`description`              | |声明的描述
+|`url`                      | |声明的 URL
+|`auto_verify_group`|可选|群组中的用户登录后可以在线签署贡献者声明，如果不设置，则不能进行在线签署。
 
 ### ContributorAgreementInput
 
@@ -2182,7 +2196,6 @@ The `AccountStatusInput` ，设置用户状态。
 |Field Name                    ||Description
 | :------| :------| :------|
 |`context`                     ||patch 的差异处显示上下文的行数
-|`theme`                       ||CodeMirror 的 theme 使用大写，如 `DEFAULT`。gerrit 可以使用 CodeMirror 发布的 theme。
 |`expand_all_comments`         |如果不显示，则为 `false`|是否自动显示 inline-comments。
 |`ignore_whitespace`           ||change 是否忽略空白。此处的有效值为：`IGNORE_NONE`, `IGNORE_TRAILING`,`IGNORE_LEADING_AND_TRAILING`, `IGNORE_ALL`。
 |`intraline_difference`        |如果不显示，则为 `false`|intraline differences 是否高亮
@@ -2238,8 +2251,6 @@ The `AccountStatusInput` ，设置用户状态。
 
 |Field Name                    ||Description
 | :------| :------| :------|
-|`theme`                       ||CodeMirror 的 theme 使用大写，如 `DEFAULT`。gerrit 可以使用 CodeMirror 发布的 theme。
-|`key_map_type`                ||CodeMirror key map 的类型，如下：`DEFAULT`, `EMACS`, `SUBLIME`, `VIM`。
 |`tab_size`                    ||一个 tab 对应空格的数量
 |`line_length`                 ||每行显示的字符数量
 |`indent_unit`                 ||自动缩进的时候，使用空格的数量
@@ -2328,7 +2339,6 @@ The `GpgKeyInfo` ，GPG public key 的相关信息
 |`changes_per_page`             ||页面显示 change 的数量，有效值为：`10`, `25`, `50`, `100`。
 |`expand_inline_diffs`          |如果不显示，则为 `false`|是否用自动展开 diff 的方式来替代打开单独的页面查看 diff (只支持 PolyGerrit)
 |`download_scheme`              |可选|下载命令的方式，比如 HTTP SSH
-|`download_command`             ||下载命令的种类
 |`date_format`                  ||日期格式，有效值为 `STD`, `US`, `ISO`, `EURO`, `UK`
 |`time_format`                  ||时间格式，有效值为 `HHMM_12`, `HHMM_24`
 |`relative_date_in_change_table`|如果不显示，则为 `false`|是否在 change 的表格中显示时间
@@ -2353,7 +2363,6 @@ The `GpgKeyInfo` ，GPG public key 的相关信息
 |`changes_per_page`             |可选|页面显示 change 的数量，有效值为：`10`, `25`, `50`, `100`。
 |`expand_inline_diffs`          |如果不显示，则为 `false`|是否用自动展开 diff 的方式来替代打开单独的页面查看 diff (只支持 PolyGerrit)
 |`download_scheme`              |可选|下载命令的方式，比如 HTTP SSH
-|`download_command`             |可选|下载命令的种类
 |`date_format`                  |可选|日期格式，有效值为 `STD`, `US`, `ISO`, `EURO`, `UK`
 |`time_format`                  |可选|时间格式，有效值为 `HHMM_12`, `HHMM_24`
 |`relative_date_in_change_table`|可选|是否在 change 的表格中显示时间
@@ -2405,6 +2414,13 @@ The `GpgKeyInfo` ，GPG public key 的相关信息
 |Field Name |Description
 | :------| :------|
 |`username` |account 的新 username
+
+### DisplayNameInput
+`DisplayNameInput` 包含的 display name 相关信息。
+
+|Field Name     |Description
+| :------| :------|
+|`display_name` |新账户的 display name
 
 ### ProjectWatchInfo
 

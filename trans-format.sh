@@ -46,6 +46,7 @@ sed -i '/^\[\[.*\]\]$/d' $filename
 
 # 删除行
 sed -i '/^\[verse\]$/d' $filename
+sed -i '/^\[\#/d' $filename
 
 
 # 图片格式

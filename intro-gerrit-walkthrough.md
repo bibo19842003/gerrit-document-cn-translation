@@ -124,6 +124,7 @@ Hannah 在 Max 的 change中注意到了一个有可能的问题, 因此她选�
 不久, Max 决定检查一下他的 change 并且注意到了 Hannah 的反馈．他打开了代码文件并按照她的反馈进行了修改．因为 Max 的 change 含有 change-id，因此他根据常规的 git 操作更新了他之前的 commit:
 * 检出 commit
 * amend commit
+* 如果有需要的话，可以做 rebase 操作
 * 推送 commit 到 Gerrit
 
 ```shell
@@ -133,6 +134,19 @@ $ git commit --amend
 [master 30a6f44] Change to a proper, yeast based pizza dough.
  Date: Fri Jun 8 16:28:23 2018 +0200
  1 file changed, 10 insertions(+), 5 deletions(-)
+```
+
+此时，Max 要确保 change 是当前分支的最新的节点。
+
+```shell
+$ git fetch
+$
+```
+
+Max 执行 fetch 命令后，并没有任何信息输出，这是一个好的情况。这意味着 Max 不需要再执行 [*rebase*](intro-user.md) 操作。
+Max 准备将 change 推向 gerrit:
+
+```shell
 $ git push origin HEAD:refs/for/master
 Counting objects: 3, done.
 Delta compression using up to 8 threads.

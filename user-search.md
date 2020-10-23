@@ -51,6 +51,10 @@
 
  Change 的处理人。
 
+**attention:'USER'**
+
+需要提醒的用户。
+
 **before:'TIME'/until:'TIME'**
 
 　在 'TIME'　之**前**所修改的 change．格式为： `2006-01-02[ 15:04:05[.890][ -0700]]`; 时间默认为 00:00:00 ；时区默认为： UTC.
@@ -94,6 +98,10 @@
 **revertof:'ID'**
 
  revert 后，产生的新 change。
+
+**submissionid:'ID'**
+
+Change 的 submission 'ID'.
 
 **reviewerin:'GROUP'**
 
@@ -142,6 +150,11 @@
 **hashtag:'HASHTAG'**
 
  通过 'HASHTAG' 搜索 change。
+
+**cherrypickof:'CHANGE[,PATCHSET]'**
+
+通过 'cherry-pick' 方式生成的 change，用来匹配源 change 的 change-id 和 patchset 信息。
+'PATCHSET' 是可选参数。例如，`cherrypickof:12345` 会匹配从 `change 12345` cherry-picked 的 change；`cherrypickof:12345,2` 会匹配从 `change 12345` 的 `第2个 patchset` cherry-picked 的 change。
 
 **ref:'REF'**
 
@@ -265,7 +278,7 @@
 
 **is:mergeable**
 
- 搜索可以点击合入到代码库 change。
+ 搜索可以点击合入到代码库 change。如果 Gerrit 的 index 配置了 'mergeable'，才能使用此搜索。可以参考 [Gerrit 配置](config-gerrit.md) 的 'indexMergeable' 部分。
 
 **is:ignored**
 
@@ -278,6 +291,10 @@
 **is:wip**
 
  搜索 wip 状态的 change。
+
+**is:merge**
+
+ 如果 change 是 merge 节点的话，则为 True
 
 **status:open, status:pending, status:new**
 

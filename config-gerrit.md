@@ -83,6 +83,18 @@ pool 中，idel 链接的最大值。如果 idel 链接数超过了最大值，�
 
 默认值：`ALL`。
 
+**accounts.defaultDisplayName**
+
+设置默认 'display name'。
+
+`FULL_NAME`, 显示 `AccountInfo` 的 (full) name。
+
+`FIRST_NAME`, 显示 `AccountInfo` 的 FIRST_NAME。
+
+`USERNAME`, 显示 `AccountInfo` 的 USERNAME。
+
+默认值：`FULL_NAME`.
+
 ### Section addreviewer
 
 **addreviewer.maxWithoutConfirmation**
@@ -452,6 +464,12 @@ gerrit 缓存的路径，用于缓存相关信息，便于搜索。如果 gerrit
 
 默认不配置，没有磁盘缓存。
 
+**cache.enableDiskStatMetrics**
+
+是否启用 'persistent caches' 的统计。统计需要花费很长很长的时间。
+
+默认值是：`false`。
+
 **cache.h2CacheSize**
 
 H2 数据库在内存缓存中的大小。
@@ -544,6 +562,12 @@ Cache 包含了用户的一些重要信息，如：`display name`, `preferences`
 
 只有在启用分支层级的访问控制时，可以使用 smart HTTP 进行推送。缓存信息包含了差异的 commit。smart HTTP 的推送需要两个 HTTP 的请求，第一个请求用于加载请求的状态，第二个请求用于确认传输完成。
 
+**cache `"default_preferences"`**
+
+缓存服务器默认的 general, edit 和 diff preferences。
+
+默认值为 1 ，缓存当前使用做多的配置。
+
 **cache `"changes"`**
 
 `memoryLimit` 的大小决定了缓存 change 的数量。如果此缓存设置为 1024，那么最多只能缓存 1024 个 project 的 change。
@@ -619,6 +643,14 @@ LDAP 群组使用的缓存为：`"ldap_groups"`
 **cache `"groups_bysubgroups"`**
 
 缓存父群组。
+
+**cache `"groups_external"`**
+
+缓存 Gerrit 发现的 `external groups`，此缓存使用 "groups_external_persisted" 加载对应的值。
+
+**cache `"groups_external_persisted"`**
+
+缓存 Gerrit 历史发现的 `external groups`，此缓存用于提高服务器性能。
 
 **cache `"ldap_groups"`**
 
@@ -758,23 +790,9 @@ gerrit 在启动时，加载缓存使用的线程的数量。缓存加载后，�
 
 默认值：true
 
-**change.api.allowedIdentifier**
-
-API 可以使用 change 相关标识进行搜索。可以参考 进行过滤。可以参考 [Change Id](rest-api-changes.md) 的 `Change Id` 相关章节。
-
-有效值为：`ALL`, `TRIPLET`, `NUMERIC_ID`, `I_HASH`, `COMMIT_HASH` 等。
-
-默认值：`ALL`
-
-**change.api.excludeMergeableInChangeInfo**
-
-如果设置为 true，不会显示 change 是否可以合入的状态。不过可以通过 get-mergeable api 进行查看。具体可以参考 [change api](rest-api-changes.md) 的 change-info 和 get-mergeable 相关章节。
-
-默认值：false
-
 **change.cacheAutomerge**
 
-当查看 commit 的差异的时候，页面的左侧会显示 merge 的输出结果。此参数用来控制 git 仓中是否存储输出结果。
+当查看 commit 的 merge 的时候，页面的左侧会显示 merge 的输出结果。此参数用来控制 git 仓中是否存储输出结果。
 
 如果设置为 true，automerge 的结果会存储在 git 仓的 `refs/cache-automerge/*` 分支中；change 的 diff 结果会存储在 diff 的缓存中。
 
@@ -782,11 +800,35 @@ API 可以使用 change 相关标识进行搜索。可以参考 进行过滤。�
 
 默认值：true
 
+**change.commentSizeLimit**
+
+change 每次发布评论大小的最大值。支持的单位：'k', 'm', 'g'。此数值需为正数。
+
+默认值：16kiB
+
+**change.cumulativeCommentSizeLimit**
+
+每个 change 中所有发布评论的最大值。支持的单位：'k', 'm', 'g'。此数值需为正数。
+
+默认值：3MiB
+
 **change.disablePrivateChanges**
 
 如果设置为 true, 用户不运行创建 private changes 。
 
 默认值：false
+
+**change.enableAttentionSet**
+
+所有的 UI 中启用 attention
+
+默认值：false
+
+**change.enableAssignee**
+
+所有的 UI 中启用 assignee
+
+默认值：true
 
 **change.largeChange**
 
@@ -795,6 +837,12 @@ API 可以使用 change 相关标识进行搜索。可以参考 进行过滤。�
 具体的值用来参考在 gerrit 页面上可视化显示修改量的大小。
 
 默认值：500
+
+**change.maxComments**
+
+每个 change 允许评论条目的最大数值。
+
+默认值：5000
 
 **change.maxUpdates**
 
@@ -810,6 +858,18 @@ change 最大的更新次数。只对 NoteDb 的 meta ref 的更新进行统计�
 * 通过 api 操作进行修复（可参考 api 相关章节的 `expect_merged_as` 部分内容）
 
 默认值：1000
+
+**change.mergeabilityComputationBehavior**
+
+此设置用来决定 gerrit 是否计算 change 的 mergeable 的状态。如果有很多未合入的 change ，那么会消耗很多的资源。
+
+下面是可配置的值：
+
+* `API_REF_UPDATED_AND_CHANGE_REINDEX`: Gerrit 对 `mergeability` 进行 index，查询中可以使用 `is:mergeable` 参数。为 ChangeInfo 对象提供 `mergeable` 服务。当目标 ref 有更新的时候，gerrit 会对所有的未合入的 change 重新做索引操作。
+* `REF_UPDATED_AND_CHANGE_REINDEX`: Gerrit 对 `mergeability` 进行 index，查询中可以使用 `is:mergeable` 参数。不会为 ChangeInfo 对象提供 `mergeable` 服务。当目标 ref 有更新的时候，gerrit 会对所有的未合入的 change 重新做索引操作。
+* `NEVER`: Gerrit 不对 `mergeable` 进行 index 操作，因此 `is:mergeable` 在查询中不能使用。
+
+默认值：`REF_UPDATED_AND_CHANGE_REINDEX`
 
 **change.move**
 
@@ -839,7 +899,7 @@ robot comment 大小的上限值。
 
 若参数值为 0 或者是负数，那么无大小限制。
 
-默认值：1024kB
+默认值：1M
 
 **change.showAssigneeInChangesTable**
 
@@ -925,9 +985,11 @@ open 状态的 change 自动被 abandon。
 
 **changeCleanup.abandonIfMergeable**
 
-可合入的 change 是否执行自动 abandon 的操作。
+可合入的 change 是否执行自动 abandon 的操作。如果设置为 `false`, 查询中使用 `-is:mergeable` 参数可搜索出哪些 change 可以自动 abondan。
 
 默认值：`true`
+
+如果 `change.mergeabilityComputationBehavior` 设置为 `NEVER`, 那么此参数值为 `false`。
 
 **changeCleanup.cleanupAccountPatchReview**
 
@@ -950,6 +1012,8 @@ change 被自动清理后，系统发布的相关信息。
 **changeCleanup.interval**
 
 执行清理的频率。
+
+如果 `auth.autoUpdateAccountActiveStatus` 设置为 true，那么可以定期执行此操作。
 
 配置可以参考本文的 `Schedule Configuration` 部分。
 
@@ -1087,6 +1151,12 @@ JGit 在所有平台上的默认值为：8 KiB
 JGit 在所有平台上的默认值为：10 MiB
 
 支持的单位如下：'k', 'm', 'g'
+
+**core.packedGitUseStrongRefs**
+
+如果设置为 `true`，缓存中不清除 refs；如果设置为 `false`，缓存中可以清除 refs。
+
+默认值：`false`
 
 **core.deltaBaseCacheLimit**
 
@@ -1414,6 +1484,19 @@ gerrit 页面上 `Weblink` 的名称。
 
 默认值：false
 
+**gerrit.xframeOption**
+
+给所有的 HTTP 响应的 头部添加 [`X-Frame-Options`](https://tools.ietf.org/html/rfc7034)。`X-Frame-Options` 决定了是否可以将页面呈现在 `<frame>`, `<iframe>`, `<embed>` 和 `<object>`。
+
+可以设置的值如下：
+
+1. ALLOW ：页面可以在 frame 中显示。
+2. SAMEORIGIN ：页面只能在原始网页中的 frame 中显示。
+
+如果 gerrit.canLoadInIFrame 设置为 false，此参数设置会被忽略，并且 `X-Frame-Options` 会被设置为 `DENY`。
+
+默认值：SAMEORIGIN
+
 **gerrit.cdnPath**
 
 如果使用了 CDN，此参数值为 PolyGerrit 静态资源的前缀。
@@ -1422,11 +1505,36 @@ gerrit 页面上 `Weblink` 的名称。
 
 PolyGerrit 的 favicon 的路径，包括 icon 名称和扩展名。
 
+**gerrit.instanceId**
+
+Gerrit instance 的标识。用来给一个服务器安装的多个 Gerrit 进行标识。此参数值在不出现在邮件模板中。
+
 **gerrit.instanceName**
 
 用于标识 gerrit，在众多的 gerrit 中可以进行识别。
 
 默认值为 gerrit 服务器的名称。
+
+**gerrit.experimentalRollingUpgrade**
+
+启用 Gerrit 的 rolling upgrade 功能。例如，当前 Gerrit v3.1 的版本为 N (All-Projects:refs/meta/version=181)，下一个版本 N+1 是 v3.2 (All-Projects:refs/meta/version=183)。允许 Gerrit 启动，即使 schema 的版本已经成为了下一个 Gerrit 版本（V3.2）。
+
+如果 Gerrit 配置了 [high-availability](https://gerrit.googlesource.com/plugins/high-availability/+/refs/heads/master/README.md)，那么此处可以设置为 true。
+
+默认值：false
+
+对于 rolling upgrade 进程来说，是复杂的。比如：Gerrit 有多个节点，并且多节点通过 NFS 共享 git project，更新可以参考如下操作：
+
+1. 所有的 Gerrit master 设置 gerrit.experimentalRollingUpgrade 为 true
+2. 将一个 master 标识为不健康（有问题）
+3. 将标识为有问题的 gerrit 服务关闭，并进行 [升级](install.md) 
+4. 启动升级后的 gerrit，并等待在线的 index 操作完成
+5. 验证升级是否成功，在线 index 是否完成
+6. 将升级后的 gerrit 标识为健康
+7. 重复步骤 2 - 6，将其他的节点升级完成
+
+**重要**
+Rolling upgrade 需要查看新版本的 releasenotes 是否支持此操作。
 
 **gerrit.serverId**
 
@@ -1548,6 +1656,18 @@ Gerrit web-UI 所显示的 gitweb 链接名称。
 ```
 
 设置此参数时，需要应验证系统中是否已有待命名的群组（区分大小写）。配置无效的名称会使 Gerrit 在启动时失败。Gerrit 设置后，确保无法使用此名称来创建群组。Gerrit 还会保留默认的名称，便于不能使用默认名称创建新的群组。这意味删除配置再改回默认名称时，不存在相关的风险。
+
+### Section has operand alias
+
+对应查询操作来说，可以对操作用新的别名来表示。
+
+示例:
+
+```
+[has-operand-alias "change"]
+  oldtopic = topic
+```
+别名会重载，同一个别名配置了多次，以最后的配置为准。 
 
 ### Section http
 
@@ -1812,6 +1932,26 @@ chmod 600 keystore
 	filterClass = org.anyorg.MySecureIPFilter
 ```
 
+**filterClass.<className>.initParam**
+
+Gerrit 的 `filterClass` 支持 HTTP 过定制。如下：
+
+```
+initParam = <key>=<value>
+```
+示例如下:
+
+```
+[httpd]
+	filterClass = org.anyorg.AFilter
+	filterClass = org.anyorg.BFilter
+[filterClass "org.anyorg.AFilter"]
+	key1 = value1
+	key2 = value2
+[filterClass "org.anyorg.BFilter"]
+	key3 = value3
+```
+
 **httpd.idleTimeout**
 
 链接闲置时间的最大值，与 TCP socket `SO_TIMEOUT` 对应。
@@ -1900,14 +2040,6 @@ chmod 600 keystore
 当 index type 设置为 `LUCENE` 时，还要设置每个 BooleanQuery 允许的最大值。这样可以强制所有的搜索上限是相同的。
 
 默认值：1024
-
-**index.reindexAfterRefUpdate**
-
-更新 ref 后，是否重新 index 受影响的 open 状态的 change，比如需要计算 open 状态的 change 是否为 "mergeable"。
-
-如果不启用此功能，那么相关 change 的信息不会刷新；如果启用，在有大量 open 状态 change 的情况下，会消耗系统的一些性能。
-
-默认值：true
 
 **index.autoReindexIfStale**
 
@@ -2028,8 +2160,7 @@ Lucene index 配置示例如下:
 
 WARNING: Elasticsearch 的支持还在实验阶段，不推荐在生产环境中使用。更多信息，可以参考 [project homepage](https://www.gerritcodereview.com/elasticsearch.html)。
 
-当使用 Elasticsearch version 5.6 时，open 和 closed 状态的 changes 存储在单一的 index 中，存储的类型为 `open_changes` 和 `closed_changes`。当使用 6.2 及以后的版本时，
-open 和 closed 状态的 changes 存储的类型为 `_doc`。账户和群组的 index 开始于 6.2 版本。
+当使用 6.2 及以后的版本时，open 和 closed 状态的 changes 存储的类型为 `_doc`。账户和群组的 index 开始于 6.2 版本。
 
 gerrit 配置 Elasticsearch 时，需要确保 Elasticsearch 可用。
 
@@ -2049,15 +2180,21 @@ Elasticsearch 服务器的 URI，格式为：`http[s]://hostname:port`。`port` 
 
 **elasticsearch.numberOfShards**
 
-每个 index 使用的 shard 的数量。可以参考 [Elasticsearch 文档](https://www.elastic.co/guide/en/elasticsearch/reference/current/getting-started-concepts.html#getting-started-shards-and-replicas)。
+每个 index 使用的 shard 的数量。可以参考 [Elasticsearch 文档](https://www.elastic.co/guide/en/elasticsearch/reference/current/index-modules.html#_static_index_settings)。
 
 Elasticsearch versions 5 或 6 的时候，默认值为 5；从 Elasticsearch 7 开始，默认值为 1 。
 
 **elasticsearch.numberOfReplicas**
 
-每个 index 使用的 replica 的数量。可以参考 [Elasticsearch 文档](https://www.elastic.co/guide/en/elasticsearch/reference/current/getting-started-concepts.html#getting-started-shards-and-replicas)。
+每个 index 使用的 replica 的数量。可以参考 [Elasticsearch 文档](https://www.elastic.co/guide/en/elasticsearch/reference/current/index-modules.html#_static_index_settings)。
 
 默认值：1
+
+**elasticsearch.maxResultWindow**
+
+对于搜索来说，为 `from + size` 设置最大值，可以参考 [Elasticsearch 文档](https://www.elastic.co/guide/en/elasticsearch/reference/current/index-modules.html#_static_index_settings)。
+
+默认值：10000
 
 #### Elasticsearch Security
 
@@ -2065,11 +2202,6 @@ Elasticsearch versions 5 或 6 的时候，默认值为 5；从 Elasticsearch 7 
 
 Elasticsearch 安全方面的设置，可以参考下面链接：
 
-* [Elasticsearch 5.6](https://www.elastic.co/guide/en/x-pack/5.6/security-getting-started.html)
-* [Elasticsearch 6.2](https://www.elastic.co/guide/en/x-pack/6.2/security-getting-started.html)
-* [Elasticsearch 6.3](https://www.elastic.co/guide/en/elastic-stack-overview/6.3/security-getting-started.html)
-* [Elasticsearch 6.4](https://www.elastic.co/guide/en/elastic-stack-overview/6.4/security-getting-started.html)
-* [Elasticsearch 6.5](https://www.elastic.co/guide/en/elastic-stack-overview/6.5/security-getting-started.html)
 * [Elasticsearch 6.6](https://www.elastic.co/guide/en/elastic-stack-overview/6.6/security-getting-started.html)
 
 **elasticsearch.username**
@@ -2092,7 +2224,7 @@ Gerrit 内部事件的参数列表。类似于 change 的 query 参数。
 
 依赖相关的设置，使用 stream event 可以使 event 序列化。
 
-此参数可以设置为 Gerrit event 的最小集合 (例如：`SKIP_MERGEABLE`,`SKIP_DIFFSTAT`)。
+此参数可以设置为 Gerrit event 的最小集合 (例如：`SKIP_DIFFSTAT`)。
 
 此处添加的参数会有性能方面的影响。因此参数建议配置所需要的最小集合。
 
@@ -2363,7 +2495,7 @@ plugin 的名称，此 plugin 用于为 `<project-name>/info/lfs/objects/batch` 
 
 **log.jsonLogging**
 
-如果设置为 true，使用 JSON 格式存储 log (文件名称: "logs/error_log.json")。
+如果设置为 true，使用 JSON 格式存储的 ssh/http log (文件名称: "logs/{error|sshd|httpd}_log.json")。
 
 默认值：false.
 
@@ -2418,6 +2550,16 @@ NoteDb 是基于 git 存储的数据库，用于 gerrit。更多信息可以参�
 
 默认值：1
 
+**notedb.changes.sequenceBatchSize**
+
+下一个可以使用的 change-id 存储在 `All-Projects` 的 `refs/sequences/changes` 下面的 UTF-8 文本中。
+
+为了降低系统的消耗，将即将使用的 change-id 数值分发到缓存中，直到用尽，再重新分发。
+
+此参数值用来表明进程每次可以缓存 change-id 的个数。
+
+默认值：20
+
 ### Section oauth
 
 只有 `auth.type` 设置为 `OAUTH` 才可以使用 OAuth 的集成。
@@ -2435,6 +2577,19 @@ NoteDb 是基于 git 存储的数据库，用于 gerrit。更多信息可以参�
 如果设置为 true，可以注册新邮箱。
 
 默认值：false
+
+### Section operator alias
+
+对应查询操作来说，可以对操作用新的别名来表示。
+
+示例:
+
+```
+[operator-alias "change"]
+  oldage = age
+  number = change
+```
+别名会重载，同一个别名配置了多次，以最后的配置为准。 
 
 ### Section pack
 
@@ -2545,6 +2700,14 @@ since the lag also includes the time to count objects on the client.
 如果信任用户不会伪造 SHA1，那么可以禁用此功能。
 
 默认值：true.
+
+**receive.enableInMemoryRefCache**
+
+如果设置为 true，Gerrit 将缓存所有的 refs。
+
+若使用 RefTable ，此值可设置为 false，加快响应速度。
+
+默认值：true
 
 **receive.enableSignedPush**
 
@@ -2913,6 +3076,14 @@ SMTP 服务器（sendemail.smtpserver）使用的端口
 
 如果设置了参数值，那么会被添加到白名单中，这样 gerrit 会按照白名单发送邮件。如果设置的是邮箱地址，那么邮箱会被添加到白名单；如果设置的是 domian 信息，那么此 domain 中的邮箱被被添加到白名单。
 
+如果配置了 allowrcpt，那么 a`llowed recipients` 的值为：`allowrcpt - denyrcpt`.
+
+默认不设置，允许发送到任何邮箱地址。
+
+**sendemail.denyrcpt**
+
+Gerrit 不能接收邮件的邮箱列表。
+
 默认不设置，允许发送到任何邮箱地址。
 
 **sendemail.includeDiff**
@@ -3242,6 +3413,14 @@ SSH daemon 在某个时间段之后，会发布重新加密。
 
 默认值：0
 
+**suggest.relevantChanges**
+
+根据历史的 change 信息，联系相关的 reviewer。
+
+此数值需要在速度和精度之间作出权衡。数值太大，精度比较准确，但会降低速度；数值太低，速度快了，精度会降低。
+
+默认值：50
+
 ### Section tracing
 
 **tracing.performanceLogging**
@@ -3527,7 +3706,14 @@ gerrit 后台执行的计划任务。
 
 非必要文件 `'$site_path'/etc/peer_keys` 用来控制用户谁可以登录 gerrit，需要执行 [suexec](cmd-suexec.md) 命令来实现。
 
-格式为每行存放一个基于 Base-64 加密的 public key。
+格式为每行存放一个基于 Base-64 加密的 public key，如下：
+
+```
+# Comments allowed at start of line
+AAAAC3...51R== john@example.net
+# Another comment
+AAAAB5...21S== jane@example.net
+```
 
 ### Configurable Parameters
 

@@ -242,10 +242,6 @@ change 页面中的 `Downloads` 下拉菜单，可以查到当前 patch-set 的�
 　
 　Gerrit 管理员可以配置 change 页面的下载命令显示．
 
- * [egit](https://gerrit-review.googlesource.com/admin/repos/plugins/egit) plugin:
-
-　`egit` plugin 用于使用 [EGit](https://www.eclipse.org/egit/) 下载 change 命令的显示．
-
  * [project-download-commands](https://gerrit-review.googlesource.com/admin/repos/plugins/project-download-commands) plugin:
 
 　`project-download-commands` plugin 用于显示 project-specific 的下载命令．例如：此命令可以用来更新代码，触发构建，执行测试，或者部署环境．
@@ -335,7 +331,11 @@ Gerrit 的核心功能不支持删除 project 操作，不过可以通过 [plugi
 
 Gerrit 的核心功能不支持删除 project 的重新命名操作.
 
-不过可以按照下面操作来实现重命名:
+如果安装了 plugin:[rename-project](https://gerrit-review.googlesource.com/admin/repos/plugins/rename-project), project 可以通过 ssh 命令 [rename-project](https://gerrit.googlesource.com/plugins/rename-project/+/refs/heads/master/src/main/resources/Documentation/cmd-rename.md) 对 project 进行重命名。
+
+相关说明可以参考：[plugin 说明](https://gerrit.googlesource.com/plugins/rename-project/+/refs/heads/master/src/main/resources/Documentation/about.md).
+
+如果不使用 `rename-project plugin`，可以按照下面操作来实现重命名:
 
 * 用新名字创建 project
 * 将老的 project 的 history 导入到新的 project 
@@ -343,5 +343,4 @@ Gerrit 的核心功能不支持删除 project 的重新命名操作.
 
 不过这个方法有弊端，会丢失 review 的记录，如：changes, review comments 等．
 
-另外, 通过 [plugin:importer](https://gerrit.googlesource.com/plugins/importer) 的方式，不会丢失相关的 review 记录．
 

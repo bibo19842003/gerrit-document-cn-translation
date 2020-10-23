@@ -32,7 +32,7 @@ auto-retry 的 trace IDs 以 `retry-on-failure-` 开头，例如 `retry-on-failu
 
 log 中查找 auto-retry 最好的方法是查找 `AutoRetry`。每次的 auto-retry 会在 log 中匹配到 1 - 2 条信息：
 
-* 一个是 auto-retry 的异常的 `ERROR` 信息。
+* 一个是 auto-retry 的异常的 `FINE` 信息。
 * 另一个是 auto-retry 的恢复的 `FINE` 信息。（auto-retry 成功的情况下）
 
 **NOTE:**

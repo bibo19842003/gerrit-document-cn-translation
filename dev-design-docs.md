@@ -1,119 +1,70 @@
 # Gerrit Code Review - Design Docs
 
-For the `design-driven contribution process` it is required to specify features
-upfront in a design doc.
+对于设计开发流程来说，`design doc` 中需要明确相关信息。
 
-## Design Doc Structure
+## Design Doc 结构
 
-A design doc should discuss the following aspects:
+design doc 需要包含下面部分：
 
 * Use-Cases:
-  The interactions between a user and a system to attain particular
-  goals.
+  用户和系统之间的交互，以实现特定目标。
 * Acceptance Criteria
-  Conditions that must be satisfied to consider the feature as done.
+  满足相关条件，相关功能已完成。
 * Background:
-  Stuff one needs to know to understand the use-cases (e.g. motivating
-  examples, previous versions and problems, links to related
-  changes/design docs, etc.)
+  需要了解相关的 use-cases (如，示例、先前版本的优缺点，相关的设计文档等)
 * Possible Solutions:
-  Possible solutions with the pros and cons, and explanation of
-  implementation details.
+  需要描述方案的实施细节及相关的利弊。
 * Conclusion:
-  Which decision was made and what were the reasons for it.
+  作出的每个决定都要给出响应的原因。
 
-As community we want to collaborate on design docs as much as possible
-and write them together, in an iterative manner. To make this work well
-design docs are split into multiple files that can be written and
-refined by several persons in parallel:
+作为一个团体，在设计文档方面大家尽可能通过迭代的方式一起合作来完成。为了让工作的效果更好，把设计文档拆分成几个部分，这样大家可以并行工作，效率更高：
 
 * `index.md`:
-  Entry file that links to the files below (also see
-  'dev-design-doc-index-template.md').
+  实体文件（参考 'dev-design-doc-index-template.md'），需包含下面文件的的链接。
 * `use-cases.md`:
-  Describes the use-cases, acceptance criteria and background (also see
-  'dev-design-doc-use-cases-template.md').
+  use-cases， acceptance criteria 和 background 的相关描述，具体可以参考 'dev-design-doc-use-cases-template.md'。
 * `solution-<n>.md`:
-  Each possible solution (with the pros and cons, and implementation
-  details) is described in a separate file (also see
-  'dev-design-doc-solution-template.md').
+  每个解决方案写一个文档（需要包含方案利弊，实现细节等），具体可以参考 'dev-design-doc-solution-template.md'。
 * `conclusion.md`:
-  Describes the conclusion of the design discussion (also see
-  'dev-design-doc-conclusion-template.md').
+  方案结论的讨论，具体参考 'dev-design-doc-conclusion-template.md'。
 
-It is expected that:
+期望:
 
-* An agreement on the use-cases is achieved before solutions are being
-  discussed in detail.
-* Anyone who has ideas for an alternative solution uploads a change
-  with a `solution-<n>.md` that describes their solution. In case of
-  doubt whether an idea is a refinement of an existing solution or an
-  alternative solution, it's up to the owner of the discussed solution
-  to decide if the solution should be updated, or if the proposer
-  should start a new alternative solution.
-* All possible solutions are fairly discussed with their pros and cons,
-  and treated equally until a conclusion is made.
-* Unrelated issues (judged by the design doc owner) that are identified
-  during discussions are extracted into new design docs (initially
-  consisting only of an `index.md` and a `use-cases.md` file).
-* Changes making iterative improvements can be submitted frequently
-  (e.g. additional uses-cases can be added later, solutions can be
-  submitted without describing implementation details, etc.).
-* After a conclusion has been approved contributors are expected to
-  keep the design doc updated and fill in gaps while they go forward
-  with the implementation.
+* 在评审之前，需要将 use-cases 进行归档。
+* 如果对解决方案有新的想法的话，需要在 `solution-<n>.md` 文档中进行详细描述并作为 change 上传。如果对现有方案进行修改的话，需要取得方案 owner 的同意。
+* 所有的解决方案需要讨论利弊，并最终给出结论。
+* 方案讨论过程中，识别出来的问题，要及时的更新到相关文件中。
+* change 可以频繁的进行提交。
+* 方案讨论通过后，需要更新设计文档，并开始实施。
 
-## How to propose a new design?
+## 如何提出新的 design
 
-To propose a new design, upload a change to the
-link:[homepage](https://gerrit-review.googlesource.com/admin/repos/homepage) repository that adds a new folder under `pages/design-docs/`
-which contains at least an `index.md` and a `uses-cases.md` file (see
-`design doc structure` above).
+对于新的 design，可以上传 change 到 [homepage](https://gerrit-review.googlesource.com/admin/repos/homepage) ，需要在 `pages/design-docs/` 下面添加新的目录，新目录需包含至少如下文件：`index.md` 和 `uses-cases.md` 。
 
-Pushing a design doc for review requires to be a
-[contributor](dev-roles.md).
+推动 design 文档的相关评审。可以参考: [contributor](dev-roles.md)。
 
-When contributing design docs, contributors should make clear whether
-they are committed to do the implementation. It is possible to
-contribute designs without having resources to do the implementation,
-but in this case the implementation is only done if someone volunteers
-to do it (which is not guaranteed to happen).
+design 文档尽可能在各个方面作出详细说明，便于相关人员评审
 
-Only very few maintainers actively watch out for uploaded design docs.
-To raise awareness you may want to send a notification to the
-[repo-discuss](https://groups.google.com/d/forum/repo-discuss)
-mailing list about your uploaded design doc. But the discussion should
-not take place on the mailing list, comments should be made by reviewing
-the change in Gerrit.
+评审人员需要仔细认真的进行评审。同时，也可以将相关信息发到 [repo-discuss](https://groups.google.com/d/forum/repo-discuss)，这样可以让更多的人看到并发起讨论。但评审的结论需要在 change 中说明，不能通过邮件来传递。
 
-## Design doc review
+## Design doc 评审
 
-Everyone in the link:html[Gerrit community](dev-roles.md) is welcome to
-take part in the design review and comment on the design.
+[Gerrit community](dev-roles.md) 中的每个人都可以对设计文档表达自己的看法，因此每个评审人员需要尊重[Code of Conduct](https://www.gerritcodereview.com/codeofconduct.html)。
 
-Ideas for alternative solutions should be uploaded as a change that
-describes the solution (see collaboration above).
+`Code-Review` 时，若新 patch 改动不大，`Code-Review+1` 和 `Code-Review+2` 需要在新 patch 中进行体现；若新 patch 改动较大，需要重新进行评审。
 
-Changes which make a conclusion on a design (changes that add/change
-the `conclusion.md` file, see `Design Doc Structure`)
-should stay open for a minimum of 10 calendar days so that everyone has
-a fair chance to see them. It is important that concerns regarding a
-feature are raised during this time frame since once a conclusion is
-approved and submitted the implementation may start immediately.
+解决方案若有变化，需要上传新的 change，并作出相关说明，并通知相关的已评审人员。
 
-Other design doc changes can and should be submitted quickly so that
-collaboration and iterative refinements work smoothly (see collaboration above).
+验证是通过 `jekyll` 站点的 `docker` 完成的，而不是通过相关的 `gitiles`。
 
-For proposed features the contributor should hear back from the
-link:dev-processes.html#steering-committee[engineering steering
-committee] within 14 calendar days whether the proposed feature is in
-scope of the project and if it can be accepted.
+关于 design 结论的 change，至少公示 10 天才能合入，目的是让更多的人可以看到并给出更多的合理的建议。
 
-## How to get notified for new design docs?
+其他相关文档的 change，可以随时合入。
 
-. Go to the
-  link:https://gerrit-review.googlesource.com/settings/#Notifications[
-  notification settings]
-. Add a project watch for the `homepage` repository with the following
-  query: `dir:pages/design-docs`
+对于申请，在无变化的情况下，评审人员需要在 14 天内给出结论。
+
+## design 变更了，如何获取相关信息
+
+* 进入页面：[notification settings](https://gerrit-review.googlesource.com/settings/#Notifications)
+* 对 `homepage` project 进行关注，如：'query: `dir:pages/design-docs`'。
 
