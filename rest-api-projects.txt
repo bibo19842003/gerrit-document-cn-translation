@@ -1153,7 +1153,7 @@ entity is returned.
         "owner": "Administrators",
         "owner_id": "d5b7124af4de52924ed397913e2c3b37bf186948",
         "created_on": "2009-06-08 23:31:00.000000000",
-        "name": "Non-Interactive Users"
+        "name": "Service Users"
       },
       "global:Anonymous-Users": {
         "options": {},
@@ -1249,6 +1249,57 @@ entity is returned.
         "options": {},
         "name": "Anonymous Users"
       }
+    }
+  }
+----
+
+[[create-change]]
+=== Create Change for review.
+
+This endpoint is functionally equivalent to
+link:rest-api-changes.html#create-change[create change in the change
+API], but it has the project name in the URL, which is easier to route
+in sharded deployments.
+
+.Request
+----
+  POST /projects/myProject/create.change HTTP/1.0
+  Content-Type: application/json; charset=UTF-8
+
+  {
+    "subject" : "Let's support 100% Gerrit workflow direct in browser",
+    "branch" : "master",
+    "topic" : "create-change-in-browser",
+    "status" : "NEW"
+  }
+----
+
+As response a link:#change-info[ChangeInfo] entity is returned that describes
+the resulting change.
+
+.Response
+----
+  HTTP/1.1 201 OK
+  Content-Disposition: attachment
+  Content-Type: application/json; charset=UTF-8
+
+  )]}'
+  {
+    "id": "myProject~master~I8473b95934b5732ac55d26311a706c9c2bde9941",
+    "project": "myProject",
+    "branch": "master",
+    "topic": "create-change-in-browser",
+    "change_id": "I8473b95934b5732ac55d26311a706c9c2bde9941",
+    "subject": "Let's support 100% Gerrit workflow direct in browser",
+    "status": "NEW",
+    "created": "2014-05-05 07:15:44.639000000",
+    "updated": "2014-05-05 07:15:44.639000000",
+    "mergeable": true,
+    "insertions": 0,
+    "deletions": 0,
+    "_number": 4711,
+    "owner": {
+      "name": "John Doe"
     }
   }
 ----
@@ -3586,7 +3637,7 @@ CommentlinkInfo] entity.
 |`plugin_config`                           |optional|
 Plugin configuration as map which maps the plugin name to a map of
 parameter names to link:#config-parameter-info[ConfigParameterInfo]
-entities.
+entities. Only filled for users who have read access to `refs/meta/config`.
 |`actions`                                 |optional|
 Actions the caller might be able to perform on this project. The
 information is a map of view names to

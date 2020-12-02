@@ -684,8 +684,11 @@ By default, false.
 
 [[auth.skipFullRefEvaluationIfAllRefsAreVisible]]auth.skipFullRefEvaluationIfAllRefsAreVisible::
 +
-Whether to skip the full ref visibility checks as a performance shortcut when all refs are
-visible to a user. Full ref filtering would filter out things like pending edits.
+Whether to skip the full ref visibility checks as a performance shortcut when a
+user has READ permission for all refs.
++
+The full ref filtering would filter out refs for pending edits, private changes
+and auto merge commits.
 +
 By default, true.
 
@@ -741,6 +744,24 @@ See link:http://www.h2database.com/html/features.html#auto_mixed_mode[here,role=
 for detail.
 +
 Default is false.
+
+[[cache.openFiles]]cache.openFiles::
++
+The number of file descriptors to add to the limit set by the Gerrit daemon.
++
+Persistent caches are stored on the file system and as such participate in the
+file descriptors utilization. The number of file descriptors can vary depending
+on the cache configuration and the specific backend used.
++
+The additional file descriptors required by the cache should be accounted for
+via this setting, so that the Gerrit daemon can adjust the ulimit accordingly.
++
+If you increase this to a larger setting you may need to also adjust
+the ulimit on file descriptors for the host JVM, as Gerrit needs
+additional file descriptors available for network sockets and other
+repository data manipulation.
++
+Default is 0.
 
 [[cache.name.maxAge]]cache.<name>.maxAge::
 +
@@ -824,9 +845,53 @@ Default is 128 MiB per cache, except:
 * `"change_notes"`: disk storage is disabled by default
 * `"diff_summary"`: default is `1g` (1 GiB of disk space)
 * `"external_ids_map"`: disk storage is disabled by default
+* `"persisted_projects"`: default is `1g` (1 GiB of disk space)
 
 +
 If 0 or negative, disk storage for the cache is disabled.
+
+[[cache.name.expireAfterWrite]]cache.<name>.expireAfterWrite::
++
+Duration after which a cached value will be evicted and not
+read anymore.
++
+Values should use common unit suffixes to express their setting:
++
+* ms, milliseconds
+* s, sec, second, seconds
+* m, min, minute, minutes
+* h, hr, hour, hours
++
+Disabled by default.
+
+[[cache.name.refreshAfterWrite]]cache.<name>.refreshAfterWrite::
++
+Duration after which we asynchronously refresh the cached value.
++
+Values should use common unit suffixes to express their setting:
++
+* ms, milliseconds
+* s, sec, second, seconds
+* m, min, minute, minutes
+* h, hr, hour, hours
++
+This applies only to these caches that support refreshing:
++
+* `"projects"`: Caching project information in-memory. Defaults to 15 minutes.
+
+[[cache.refreshThreadPoolSize]]cache.refreshThreadPoolSize::
++
+Number of threads that are available to refresh cached values that became
+out of date. This applies only to these caches that support refreshing:
++
+* `"projects"`: Caching project information in-memory
++
+Refreshes will only be scheduled on this executor if the values are
+out of sync.
+The check if they are is cheap and always happens on the thread that
+inquires for a cached value.
++
+Defaults to 2.
 
 ==== [[cache_names]]Standard Caches
 
@@ -1022,10 +1087,17 @@ Caches formatted plugin resources, such as plugin documentation that
 has been converted from Markdown to HTML. The memoryLimit refers to
 the bytes of memory dedicated to storing the documentation.
 
+cache `"persisted_projects"`::
++
+Caches the project description records, from the `refs/meta/config`
+branch of each project. This is the persisted variant of the
+`projects` cache. The intention is for this cache to have an in-memory
+size of 0.
+
 cache `"projects"`::
 +
-Caches the project description records, from the `projects` table
-in the database.  If a project record is updated or deleted, this
+Caches the project description records, from the `refs/meta/config`
+branch of each project. If a project record is updated or deleted, this
 cache should be flushed.  Newly inserted projects do not require
 a cache flush, as they will be read upon first reference.
 
@@ -1124,22 +1196,6 @@ this setting will fallback to `cache.diff.intraline` if not set in the
 configuration.
 +
 Default is true, enabled.
-
-[[cache.projects.checkFrequency]]cache.projects.checkFrequency::
-+
-How often project configuration should be checked for update from Git.
-Gerrit Code Review caches project access rules and configuration in
-memory, checking the refs/meta/config branch every checkFrequency
-minutes to see if a new revision should be loaded and used for future
-access. Values can be specified using standard time unit abbreviations
-('ms', 'sec', 'min', etc.).
-+
-If set to 0, checks occur every time, which may slow down operations.
-If set to 'disabled' or 'off', no check will ever be done.
-Administrators may force the cache to flush with
-link:cmd-flush-caches.html[gerrit flush-caches].
-+
-Default is 5 minutes.
 
 [[cache.projects.loadOnStartup]]cache.projects.loadOnStartup::
 +
@@ -1249,14 +1305,14 @@ The default is false.
 If set to true, then all UI features for using and interacting with the
 attention set are enabled.
 +
-The default is false for now, but will be changed to true in Q2 2020.
+The default is true.
 
 [[change.enableAssignee]]change.enableAssignee::
 +
 If set to true, then all UI features for using and interacting with the
 assignee are enabled.
 +
-The default is true for now, but will be changed to false in Q2 2020.
+The default is false.
 
 [[change.largeChange]]change.largeChange::
 +
@@ -1364,6 +1420,14 @@ and may be off by roughly 1%. Common unit suffixes of 'k', 'm', or 'g' are
 supported. Zero or negative values allow robot comments of unlimited size.
 +
 The default limit is 1MiB.
+
+[[change.sendNewPatchsetEmails]]change.sendNewPatchsetEmails::
++
+When false, emails will not be sent to owners, reviewers, and cc for
+creating a new patchset unless they are project watchers or have starred
+the change.
++
+Default is true.
 
 [[change.showAssigneeInChangesTable]]change.showAssigneeInChangesTable::
 +
@@ -2261,8 +2325,8 @@ Defaults to the full hostname of the Gerrit server.
 [[gerrit.experimentalRollingUpgrade]]gerrit.experimentalRollingUpgrade::
 +
 Enable Gerrit rolling upgrade to the next version.
-For example if Gerrit v3.1 is version N (All-Projects:refs/meta/version=181)
-then its next version N+1 is v3.2 (All-Projects:refs/meta/version=183).
+For example if Gerrit v3.2 is version N (All-Projects:refs/meta/version=183)
+then its next version N+1 is v3.3 (All-Projects:refs/meta/version=184).
 Allow Gerrit to start even if the underlying schema version has been bumped to
 the next Gerrit version.
 +
@@ -2279,7 +2343,7 @@ of the following steps:
 1. Set gerrit.experimentalRollingUpgrade to true on all Gerrit masters
 2. Set the first master unhealthy
 3. Shutdown the first master and [upgrade](install.html#init) to the next version
-4. Startup the first master, wait for the online reindex to complete
+4. Startup the first master, wait for the online reindex to complete (where applicable)
 5. Verify the the first master upgrade is successful and online reindex is complete
 6. Set the first master healthy
 7. Repeat steps 2. to 6. for all the other Gerrit nodes
@@ -2769,7 +2833,8 @@ By default, `gerrit`.
 +
 Enable (or disable) the `'$site_path'/logs/httpd_log` request log.
 If enabled, an NCSA combined log format request log file is written
-out by the internal HTTP daemon.
+out by the internal HTTP daemon. The httpd log format is documented
+link:logs.html#_httpd_log[here].
 +
 `log4j.appender` with the name `httpd_log` can be configured to overwrite
 programmatic configuration.
@@ -3256,9 +3321,10 @@ Defaults to 10000.
 When security is enabled in Elasticsearch, the username and password must be provided.
 Note that the same username and password are used for all servers.
 
-For further information about Elasticsearch security, please refer to the documentation:
-
-* link:https://www.elastic.co/guide/en/elastic-stack-overview/6.6/security-getting-started.html[Elasticsearch 6.6,role=external,window=_blank]
+For further information about Elasticsearch security, please refer to
+link:https://www.elastic.co/guide/en/elasticsearch/reference/current/security-getting-started.html[the documentation,role=external,window=_blank].
+This is the current documentation link. Select another Elasticsearch version
+from the dropdown menu available on that page if need be.
 
 [[elasticsearch.username]]elasticsearch.username::
 +
@@ -3347,6 +3413,11 @@ and group membership from.  Must be of the form `ldap://host` or
 If `auth.type` is `LDAP` this setting should use `ldaps://` to
 ensure the end user's plaintext password is transmitted only over
 an encrypted connection.
++
+If you want to configure multiple ldap servers you can try to put
+multiple ldap urls separated by a space:
+`server = ldaps://ldap1 ldaps://ldap2`
+See https://bugs.chromium.org/p/gerrit/issues/detail?id=10841[issue 10841].
 
 [[ldap.startTls]]ldap.startTls::
 +
@@ -4378,19 +4449,25 @@ Defaults to false.
 
 [[receiveemail.filter.mode]]receiveemail.filter.mode::
 +
-A black- and whitelist filter to filter incoming emails.
+An allow and block filter to filter incoming emails.
 +
 If `OFF`, emails are not filtered by the list filter.
 +
-If `WHITELIST`, only emails where a pattern from
+If `ALLOW`, only emails where a pattern from
 <<receiveemail.filter.patterns,receiveemail.filter.patterns>>
 matches 'From' will be processed.
 +
-If `BLACKLIST`, only emails where no pattern from
+If `BLOCK`, only emails where no pattern from
 <<receiveemail.filter.patterns,receiveemail.filter.patterns>>
 matches 'From' will be processed.
 +
 Defaults to `OFF`.
++
+The previous filter-names 'BLACKLIST' and 'WHITELIST' have been deprecated
+since they may be considered disrespectful and there's no technical or
+practical reason to use these exact terms for the filters.
+For backwards compatibility they are still supported but support for these
+deprecated terms will be removed in future releases.
 
 [[receiveemail.filter.patterns]]receiveemail.filter.patterns::
 +
@@ -4521,9 +4598,10 @@ Password for the account named by sendemail.smtpUser.
 
 [[sendemail.allowrcpt]]sendemail.allowrcpt::
 +
-If present, each value adds one entry to the whitelist of email
-addresses that Gerrit can send email to.  If set to a complete
-email address, that one address is added to the white list.
+If present, each value adds one entry to the list of allowed email
+addresses that Gerrit can send emails to.  If set to a complete
+email address, that one address is added to the list of allowed
+emails.
 If set to a domain name, any address at that domain can receive
 email from Gerrit.
 +
@@ -4534,9 +4612,10 @@ By default, unset, permitting delivery to any email address.
 
 [[sendemail.denyrcpt]]sendemail.denyrcpt::
 +
-If present, each value adds one entry to the blacklist of email
-addresses that Gerrit can send email to.  If set to a complete
-email address, that one address is added to the blacklist.
+If present, each value adds one entry to the list of email
+addresses that Gerrit can't send emails to.  If set to a complete
+email address, that one address is added to the list of blocked
+emails.
 If set to a domain name, any address at that domain can *not* receive
 email from Gerrit.
 +
@@ -4735,16 +4814,16 @@ concurrent Git requests for interactive users over SSH and HTTP together.
 [[sshd.batchThreads]]sshd.batchThreads::
 +
 Number of threads to allocate for SSH command requests from
-link:access-control.html#non-interactive_users[non-interactive users].
+link:access-control.html#service_users[service users].
 If equals to 0, then all non-interactive requests are executed in the same
 queue as interactive requests.
 +
 Any other value will remove the number of threads from the queue
 allocated to interactive users, and create a separate thread pool
 of the requested size, which will be used to run commands from
-non-interactive users.
+service users.
 +
-If the number of threads requested for non-interactive users is larger
+If the number of threads requested for service users is larger
 than the total number of threads allocated in sshd.threads, then the
 value of sshd.threads is increased to accommodate the requested value.
 +
@@ -4824,6 +4903,21 @@ Values should use common unit suffixes to express their setting:
 
 +
 By default, 30s.
+
+[[sshd.gracefulStopTimeout]]sshd.gracefulStopTimeout::
++
+Set a graceful stop time. If set, Gerrit ensures that all open SSH
+sessions are preserved for a maximum period of time, before forcing the
+shutdown of the SSH daemon. During this period, no new requests
+will be accepted. This option is meant to be used in setups performing
+rolling restarts.
++
+Values should use common unit suffixes to express their setting:
++
+* s, sec, second, seconds
+* m, min, minute, minutes
++
+By default, 0 seconds (immediate shutdown).
 
 [[sshd.maxConnectionsPerUser]]sshd.maxConnectionsPerUser::
 +
@@ -4950,6 +5044,7 @@ By default, `host/canonical.host.name`
 +
 Enable (or disable) the `'$site_path'/logs/sshd_log` request log.
 If enabled, a request log file is written out by the SSH daemon.
+The sshd log format is documented link:logs.html#_sshd_log[here].
 +
 `log4j.appender` with the name `sshd_log` can be configured to overwrite
 programmatic configuration.
@@ -5443,6 +5538,78 @@ Sample `etc/jgit.config` file:
 [core]
   trustFolderStat = false
 ----
+
+[[jgit-gc]]
+=== Section gc
+
+Options in section gc are used when command link:cmd-gc.html[gerrit gc] is used
+or scheduled via options link:cmd-gc.html#gc.startTime[gc.startTime] and
+link:cmd-gc.html#gc.interval[gc.interval].
+
+[[gc.auto]]gc.auto::
++
+When there are approximately more than this many loose objects in the repository,
+auto gc will pack them. Some commands use this command to perform a light-weight
+garbage collection from time to time. The default value is 6700.
++
+Setting this to 0 disables not only automatic packing based on the number of
+loose objects, but any other heuristic auto gc will otherwise use to determine
+if there’s work to do, such as link:#gc.autoPackLimit[gc.autoPackLimit].
+
+[[gc.autodetach]]gc.autodetach::
++
+Makes auto gc run in a background thread. Default is `true`.
+
+[[gc.autopacklimit]]gc.autopacklimit::
++
+When there are more than this many packs that are not marked with `*.keep` file
+in the repository, auto gc consolidates them into one larger pack. The
+default value is 50. Setting this to 0 disables it. Setting `gc.auto` to 0 will
+also disable this.
+
+[[gc.packRefs]]gc.packRefs::
++
+This variable determines whether gc runs git pack-refs. The default is `true`.
+
+[[gc.reflogExpire]]gc.reflogExpire::
++
+Removes reflog entries older than this time; defaults to 90 days. The value "now"
+expires all entries immediately, and "never" suppresses expiration altogether.
+
+[[gc.reflogExpireUnreachable]]gc.reflogExpireUnreachable::
++
+Removes reflog entries older than this time and not reachable from the
+current tip; defaults to 30 days. The value "now" expires all entries immediately,
+and "never" suppresses expiration altogether.
+
+[[jgit-protocol]]
+=== Section protocol
+
+[[protocol.version]]protocol.version::
++
+If set, the server will accept requests from a client attempting to communicate
+using the specified protocol version. Otherwise communication falls back to version 0.
+If set in file `etc/jgit.config` this option will be used for all repositories of
+the site. It can be overridden for a given repository by configuring a different
+value in the repository's `config` file.
++
+Supported versions:
+0:: the original wire protocol.
+1:: the original wire protocol with the addition of a version string in the initial response from the server.
+2:: wire protocol version 2. Speeds up fetches from repositories with many refs by allowing the client
+    to specify which refs to list before the server lists them.
+
+[[jgit-receive]]
+=== Section receive
+
+[[receive.autogc]]receive.autogc::
++
+By default, up to Gerrit 3.2 `git-receive-pack` will run auto gc after receiving data from git-push and updating refs.
+You can stop it by setting this variable to `false`. This is recommended in gerrit to avoid the
+additional load this creates. Instead schedule gc using link:cmd-gc.html#gc.startTime[gc.startTime]
+and link:cmd-gc.html#gc.interval[gc.interval] or e.g. in a cron job that runs gc in a separate process.
+Since Gerrit 3.3 the init command will auto-configure `git-receive-pack = false` in `etc/jgit.config` if
+it wasn't set manually and show a warning if it was set to `true` manually.
 
 GERRIT
 ------

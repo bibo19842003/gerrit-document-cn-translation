@@ -18,10 +18,10 @@ should generate a .war file under `bazel-bin/gerrit.war`.
 To build Gerrit from source, you need:
 
 * A Linux or macOS system (Windows is not supported at this time)
-* A JDK for Java 8|9|10|11|...
+* A JDK for Java 8|11|...
 * Python 2 or 3
 * link:https://github.com/nodesource/distributions/blob/master/README.md[Node.js (including npm),role=external,window=_blank]
-* Bower (`sudo npm install -g bower`)
+* Bower (`npm install -g bower`)
 * link:https://docs.bazel.build/versions/master/install.html[Bazel,role=external,window=_blank] -launched with
 link:https://github.com/bazelbuild/bazelisk[Bazelisk,role=external,window=_blank]
 * Maven
@@ -32,12 +32,11 @@ link:https://github.com/bazelbuild/bazelisk[Bazelisk,role=external,window=_blank
 [[bazel]]
 === Bazel
 
-link:https://github.com/bazelbuild/bazelisk[Bazelisk,role=external,window=_blank] includes a
-link:https://bazel.build/[Bazel,role=external,window=_blank] version check and downloads the correct
-`bazel` version for the git project/repository. Bazelisk is the recommended
-`bazel` launcher for Gerrit. Once Bazelisk is installed locally, a `bazel`
-symlink can be created towards it. This is so that every `bazel` command
-seamlessly uses Bazelisk, which then runs the proper `bazel` binary version.
+link:https://github.com/bazelbuild/bazelisk[Bazelisk,role=external,window=_blank] is a version
+manager for link:https://bazel.build/[Bazel,role=external,window=_blank], similar to how `nvm`
+manages `npm` versions. It takes care of downloading and installing Bazel itself, so you don't have
+to worry about using the correct version of Bazel. Bazelisk can be installed in different
+ways: link:https://docs.bazel.build/install-bazelisk.html[Install,role=external,window=_blank]
 
 [[java]]
 === Java
@@ -54,6 +53,26 @@ Java installations can typically be found in
 To check the installed version of Java, open a terminal window and run:
 
 `java -version`
+
+[[java-8]]
+==== Java 8 support (deprecated)
+
+Java 8 is a legacy Java release and support for Java 8 will be discontinued
+in future gerrit releases. To build Gerrit with Java 8 language level, run:
+
+```
+  $ bazel build --java_toolchain //tools:error_prone_warnings_toolchain :release
+```
+
+[[java-11]]
+==== Java 11 support
+
+Java language level 11 is the default. To build Gerrit with Java 11 language
+level, run:
+
+```
+  $ bazel build :release
+```
 
 [[java-13]]
 ==== Java 13 support
@@ -91,32 +110,16 @@ they could be added to ~/.bazelrc resource file:
 
 ```
 $ cat << EOF > ~/.bazelrc
-> build --define=ABSOLUTE_JAVABASE=<path-to-java-13>
-> build --javabase=@bazel_tools//tools/jdk:absolute_javabase
-> build --host_javabase=@bazel_tools//tools/jdk:absolute_javabase
-> build --host_java_toolchain=@bazel_tools//tools/jdk:toolchain_vanilla
-> build --java_toolchain=@bazel_tools//tools/jdk:toolchain_vanilla
-> EOF
+build --define=ABSOLUTE_JAVABASE=<path-to-java-13>
+build --javabase=@bazel_tools//tools/jdk:absolute_javabase
+build --host_javabase=@bazel_tools//tools/jdk:absolute_javabase
+build --host_java_toolchain=@bazel_tools//tools/jdk:toolchain_vanilla
+build --java_toolchain=@bazel_tools//tools/jdk:toolchain_vanilla
+EOF
 ```
 
 Now, invoking Bazel with just `bazel build :release` would include
 all those options.
-
-[[java-11]]
-==== Java 11 support
-
-Java 11 is supported through alternative java toolchain
-link:https://docs.bazel.build/versions/master/toolchains.html[Bazel option].
-To build Gerrit with Java 11, specify JDK 11 java toolchain:
-
-```
-  $ bazel build \
-      --host_javabase=@bazel_tools//tools/jdk:remote_jdk11 \
-      --javabase=@bazel_tools//tools/jdk:remote_jdk11 \
-      --host_java_toolchain=@bazel_tools//tools/jdk:toolchain_java11 \
-      --java_toolchain=@bazel_tools//tools/jdk:toolchain_java11 \
-      :release
-```
 
 === Node.js and npm packages
 See link:https://gerrit.googlesource.com/gerrit/+/master/polygerrit-ui/README.md#installing-node_js-and-npm-packages[Installing Node.js and npm packages,role=external,window=_blank].
