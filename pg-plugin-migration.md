@@ -68,9 +68,6 @@ public class SamplePluginModule extends AbstractModule {
   <script>
     Gerrit.install(plugin => {
         // Setup block, is executed before sampleplugin.js
-
-        // Install deprecated JS APIs (onAction, popup, etc)
-        plugin.deprecated.install();
     });
   </script>
 
@@ -89,10 +86,6 @@ public class SamplePluginModule extends AbstractModule {
 - 由于 UI scripts 有可能同名或者有不同的扩展，PolyGerrit 需要检查迁移所使用到的脚本。
     PolyGerrit 加载 `sampleplugin.html` 并且忽略 `sampleplugin.js`
     PolyGerrit 为 `Gerrit.install()` 的调用重新使用 `plugin` (aka `self`) 实例
-- 由于 `sampleplugin.js` 与 `sampleplugin.html` 有关联，因此会被加载
-- 在 `sampleplugin.js` 执行之前设置 script 的 tag code 
-- 在 `sampleplugin.js` 执行之后清除 script 的 tag code 
-- 在 `sampleplugin.js` 加载前，`plugin.deprecated.install()` 启用被弃用的 APIs (onAction(), popup() 等)。
 
 这意味着，plugin 的实例在 .html 文件和 .js 文件中被共享。这允许逐步将代码转到新的 API 。
 

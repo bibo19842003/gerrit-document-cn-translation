@@ -15,14 +15,16 @@ gerrit 发布新的版本需要处理大量的复杂任务，很容易错过一�
 
 * 建议把相关的发布计划推送到维护人员的邮件列表中
 
+* Release 计划在 [网站](https://www.gerritcodereview.com/news.html) 上进行发布
+
 * 创建 gerrit `rc0` 版本
 
-* 如果需要，创建 gerrit `rc1` 版本
+* 如果需要，创建 gerrit `rc1` `rc2` `rc3`版本
 
 **NOTE:**
 *此版本需要包含一些新的功能。*
 
-* 如果需要，创建 gerrit `rc2` 版本
+* 如果需要，创建 gerrit `rc4` 版本
 
 *此版本不包含新功能，只有一些 bug 的修复。*
 
@@ -43,6 +45,26 @@ gerrit 发布新的版本需要处理大量的复杂任务，很容易错过一�
 对于安全相关的问题，重要的是只有在修复后，相关版本才会公布出来。因此，`security-fix` 的发布不会在公开的 gerrit 中出现。
 
 `security-fix` 的版本在 `gerrit-security-fixes` project 中维护，只有 gerrit 的维护人员才可以访问。只有 `security-fix` 的版本发布后，才会把相关的 commit 从 `gerrit-security-fixes` 移植到公开的 gerrit 中。
+
+## Upload the final Release Notes change
+
+上传 change 到 `homepage project`:
+
+* 移除 'In Development' 的相关信息
+
+* 添加已发布 `.war` 文件的链接，并更新最新版本的链接
+
+上传的 change 不再需要确认，但需要作为发布评审的一部分。
+
+### Update homepage links
+
+更新 [homepage project](https://gerrit-review.googlesource.com/admin/repos/homepage) 的版本信息。
+
+### Update the Issues
+
+手动更新 issue 列表。
+
+发布前，对已解决的 issue 需要做如下相关列表更新：`Status = Submitted, FixedIn-$version`。
 
 ## Create the Actual Release
 
@@ -161,7 +183,7 @@ plugin 也要打 tag：
 
     已发布的 artifacts 可以在 https://oss.sonatype.org/content/repositories/releases/com/google/gerrit/ 进行查看。
 
-    直到 Maven 中心库(http://central.maven.org/maven2/com/google/gerrit/)同步到 artifacts，大概需要 2 个小时的时间。
+    直到 Maven 中心库(http://repo1.maven.org/maven2/com/google/gerrit/)同步到 artifacts，大概需要 2 个小时的时间。
 
 * 可选操作: 下载查看静态文件
 
@@ -205,22 +227,12 @@ plugin 也要打 tag：
 
 ### Finalize the Release Notes
 
-向 homepage project 上传 change:
-
-* 相关部分中移除关于 'In Development' 的描述。
-
-* 添加已发布的 .war 文件和 文档的链接，并将最新版本的字体进行加粗处理。
-
 #### Update homepage links
 
-向 [homepage project](https://gerrit-review.googlesource.com/admin/repos/homepage) 上传 change 将版本号更新到最新。
-
+在 homepage project 中合入与 notes 相关的 change。
+ 
 #### Update the Issues
-
-手动更新问题的状态，没有脚本支持。
-
-在发布之前，如果有 change 提交，那么将当前问题的状态更新为：`Status = Submitted, FixedIn-$version`。
-
+ 
 在发布后，搜索 `Status=Submitted FixedIn=$version`，并将状态更新为 to say `Status=Released`。
 
 #### Announce on Mailing List

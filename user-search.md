@@ -180,7 +180,11 @@ Change 的 submission 'ID'.
 
  根据文件路径搜索 change。如果使用则在表达式，要以 `^` 开头，可以参考 [dk.brics.automatonlibrary](http://www.brics.dk/automaton/)。例如匹配所有的 XML 文件  `file:^.*\.xml$`；匹配多个 XML 文件  'name1.xml', 'name2.xml', 和 'name3.xml' ，格式为： `file:"^name[1-3].xml"`。
 
- 写下 ('/') 用作路径分割。
+ 斜线 ('/') 用作路径分割。
+
+ 例如：
+* `-file:^path/.*` - 在 `path/` 路径下修改文件的 change。
+* `file:{^~(path/.*)}` - 未在 `path/` 路径下修改文件的 change。
 
 **file:'NAME', f:'NAME'**
 
@@ -431,7 +435,7 @@ label 名字后必须要有分值或状态描述。
 
 匹配 +1 以及评审人员在 ldap/linux.workflow 群组中的 change。
 
-**`label:Code-Review<=-1`**
+**`label:Code-Review\<=-1`**
 
 匹配 -1, -2, 或更低打分。
 

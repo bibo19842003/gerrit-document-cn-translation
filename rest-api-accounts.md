@@ -42,7 +42,7 @@ _Response_
 
  `o` 此参数可以显示一些额外的字段信息，每个选项会减慢对客户端的搜索响应时间，因此默认不使用这些参数。可选字段如下：
 
-* `DETAILS`: 包括 full-name, 首选 email, 用户名，帐号头像，状态
+* `DETAILS`: 包括 full-name, 首选 email, 用户名，帐号头像，状态，tags
 * `ALL_EMAILS`: 包括所有的已注册的 email。执行命令需要全局设置中的 `Modify Account` 权限。
 
 `suggest` 参数用来显示参考帐号的信息，并且需要和搜索参数 `q` 一起使用。`n` 的默认值是 10。返回的响应结果包含上面参数 `DETAILS` 和 `ALL_EMAILS` 的信息。
@@ -1187,6 +1187,7 @@ _Response_
   )]}'
   {
     "changes_per_page": 25,
+    "theme": "LIGHT",
     "date_format": "STD",
     "time_format": "HHMM_12",
     "diff_view": "SIDE_BY_SIDE",
@@ -1238,6 +1239,7 @@ _Request_
 
   {
     "changes_per_page": 50,
+    "theme": "DARK",
     "expand_inline_diffs": true,
     "date_format": "STD",
     "time_format": "HHMM_12",
@@ -1284,6 +1286,7 @@ _Response_
   )]}'
   {
     "changes_per_page": 50,
+    "theme": "DARK",
     "expand_inline_diffs": true,
     "date_format": "STD",
     "time_format": "HHMM_12",
@@ -2086,7 +2089,8 @@ GPG key 标识。, `gpg --list-keys` 产生的 8 个 16进制字符，或 `gpg -
 |`avatars`         |可选|avatars 相关信息
 |`_more_accounts`  |可选, 如果不显示，则为 `false`|由于搜索结果受限，标识还有未显示的搜索结果。只在最后一个帐号的后面显示。
 |`status`          |可选|帐号的状态信息
-|`inactive`        |如果不显示，则为 `false`|账户是否为 inactive
+|`inactive`        |如果不显示，则为 `false`|无论账户是否为 inactive
+|`tags`            |可选, 如果不设置则为空|列出账户添加的 tag。参考[DETAILED_ACCOUNTS](rest-api-changes.md)
 
 ### AccountInput
 
@@ -2337,6 +2341,7 @@ The `GpgKeyInfo` ，GPG public key 的相关信息
 |Field Name                     ||Description
 | :------| :------| :------|
 |`changes_per_page`             ||页面显示 change 的数量，有效值为：`10`, `25`, `50`, `100`。
+|`theme`                        ||选择 theme，有效值为：`DARK` 和 `LIGHT`。
 |`expand_inline_diffs`          |如果不显示，则为 `false`|是否用自动展开 diff 的方式来替代打开单独的页面查看 diff (只支持 PolyGerrit)
 |`download_scheme`              |可选|下载命令的方式，比如 HTTP SSH
 |`date_format`                  ||日期格式，有效值为 `STD`, `US`, `ISO`, `EURO`, `UK`
@@ -2349,7 +2354,7 @@ The `GpgKeyInfo` ，GPG public key 的相关信息
 |`signed_off_by`                |如果不显示，则为 `false`|在线编辑创建 change 时，是否自动插入 Signed-off-by
 |`my`                           ||顶级菜单 `MY` 的子列表
 |`change_table`                 ||change 的表格中显示的列 (只支持 PolyGerrit)。默认值为空，默认由前端决定。
-|`email_strategy`               ||是否启用 email 通知。`ENABLED`, 用户会收到系统发的 email；`CC_ON_OWN_COMMENTS`，用户会收到关于自己评论的 email；`DISABLED`，用户不会收到系统的 email 通知。有效值为 `ENABLED`, `CC_ON_OWN_COMMENTS`,`DISABLED`。
+|`email_strategy`               ||是否启用 email 通知。`ENABLED`, 用户会收到系统发的 email；`CC_ON_OWN_COMMENTS`，用户会收到关于自己评论的 email；`ATTENTION_SET_ONLY`, 只有设置了 attention 的用户才会收到邮件;`DISABLED`，用户不会收到系统的 email 通知。有效值为 `ENABLED`, `CC_ON_OWN_COMMENTS`,`ATTENTION_SET_ONLY`，`DISABLED`。
 |`default_base_for_merges`      ||change 页面中，merge 节点的 'Diff Against' 下拉菜单中的默认值。有效值为 `AUTO_MERGE` `FIRST_PARENT`
 |`publish_comments_on_push`     |如果不显示，则为 `false`|是否在 push 的时候发布 `draft comment`。
 |`work_in_progress_by_default`  |如果不显示，则为 `false`|是否将新生成的 change 设置为 WIP 状态。
@@ -2361,6 +2366,7 @@ The `GpgKeyInfo` ，GPG public key 的相关信息
 |Field Name                     ||Description
 | :------| :------| :------|
 |`changes_per_page`             |可选|页面显示 change 的数量，有效值为：`10`, `25`, `50`, `100`。
+|`theme`                        |可选|选择的主题类型，可选值为 `DARK` 和 `LIGHT`。
 |`expand_inline_diffs`          |如果不显示，则为 `false`|是否用自动展开 diff 的方式来替代打开单独的页面查看 diff (只支持 PolyGerrit)
 |`download_scheme`              |可选|下载命令的方式，比如 HTTP SSH
 |`date_format`                  |可选|日期格式，有效值为 `STD`, `US`, `ISO`, `EURO`, `UK`
@@ -2373,7 +2379,7 @@ The `GpgKeyInfo` ，GPG public key 的相关信息
 |`signed_off_by`                |可选|在线编辑创建 change 时，是否自动插入 Signed-off-by
 |`my`                           |可选|顶级菜单 `MY` 的子列表
 |`change_table`                 ||change 的表格中显示的列 (只支持 PolyGerrit)。默认值为空，默认由前端决定。
-|`email_strategy`               |可选|是否启用 email 通知。`ENABLED`, 用户会收到系统发的 email；`CC_ON_OWN_COMMENTS`，用户会收到关于自己评论的 email；`DISABLED`，用户不会收到系统的 email 通知。有效值为 `ENABLED`, `CC_ON_OWN_COMMENTS`,`DISABLED`。
+|`email_strategy`               |可选|是否启用 email 通知。`ENABLED`, 用户会收到系统发的 email；`CC_ON_OWN_COMMENTS`，用户会收到关于自己评论的 email；`ATTENTION_SET_ONLY`, 只有设置了 attention 的用户才会收到邮件;`DISABLED`，用户不会收到系统的 email 通知。有效值为 `ENABLED`, `CC_ON_OWN_COMMENTS`,`ATTENTION_SET_ONLY`，`DISABLED`。
 |`default_base_for_merges`      |可选|change 页面中，merge 节点的 'Diff Against' 下拉菜单中的默认值。有效值为 `AUTO_MERGE` `FIRST_PARENT`
 
 ### QueryLimitInfo

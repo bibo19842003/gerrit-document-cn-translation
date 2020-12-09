@@ -92,6 +92,15 @@ _Response_
       "id": "demo~master~Idaf5e098d70898b7119f6f4af5a6c13343d64b57",
       "project": "demo",
       "branch": "master",
+      "attention_set": [
+        {
+          "account": {
+            "name": "John Doe"
+          },
+         "last_update": "2012-07-17 07:19:27.766000000",
+         "reason": "reviewer or cc replied"
+        }
+      ]
       "change_id": "Idaf5e098d70898b7119f6f4af5a6c13343d64b57",
       "subject": "One change",
       "status": "NEW",
@@ -481,6 +490,15 @@ _Response_
     "id": "myProject~master~I8473b95934b5732ac55d26311a706c9c2bde9940",
     "project": "myProject",
     "branch": "master",
+    "attention_set": [
+      {
+        "account": {
+          "name": "John Doe"
+        },
+       "last_update": "2013-02-21 11:16:36.775000000",
+       "reason": "reviewer or cc replied"
+      }
+    ]
     "change_id": "I8473b95934b5732ac55d26311a706c9c2bde9940",
     "subject": "Implementing Feature X",
     "status": "NEW",
@@ -530,6 +548,18 @@ _Response_
     "id": "myProject~master~I8473b95934b5732ac55d26311a706c9c2bde9940",
     "project": "myProject",
     "branch": "master",
+    "attention_set": [
+      {
+        "account": {
+          "_account_id": 1000096,
+          "name": "John Doe",
+          "email": "john.doe@example.com",
+          "username": "jdoe"
+        },
+       "last_update": "2013-02-21 11:16:36.775000000",
+       "reason": "reviewer or cc replied"
+      }
+    ]
     "change_id": "I8473b95934b5732ac55d26311a706c9c2bde9940",
     "subject": "Implementing Feature X",
     "status": "NEW",
@@ -1068,6 +1098,8 @@ Abandons a change.
 
 The request body does not need to include a `AbandonInput` entity if no review comment is added.
 
+Abandoning a change also removes all users from the `attention set`.
+
 _Request_
 ```
   POST /changes/myProject~master~I8473b95934b5732ac55d26311a706c9c2bde9940/abandon HTTP/1.0
@@ -1543,6 +1575,8 @@ Submits a change.
 
 The request body only needs to include a `SubmitInput` entity if submitting on behalf of another user.
 
+Submitting a change also removes all users from the `attention set`.
+
 _Request_
 ```
   POST /changes/myProject~master~I8473b95934b5732ac55d26311a706c9c2bde9940/submit HTTP/1.0
@@ -1834,7 +1868,7 @@ _Response_
         }
       }
     }
-```
+  ]
   "non_visible_changes": 0
 }
 ```
@@ -1924,6 +1958,10 @@ Returns a map of file paths to lists of `CommentInfo`
 entries. The entries in the map are sorted by file path, and the
 comments for each path are sorted by patch set number. Each comment has
 the `patch_set` and `author` fields set.
+
+If the `enable_context` request parameter is set to true, the comment entries
+will contain a list of `ContextLine` containing the lines of
+the source file where the comment was written.
 
 _Request_
 ```
@@ -2184,6 +2222,9 @@ The request body does not need to include a
 is added. Actions that create a new patch set in a WIP change default to
 notifying *OWNER* instead of *ALL*.
 
+Marking a change work in progress also removes all users from the
+`attention set`.
+
 _Request_
 ```
   POST /changes/myProject~master~I8473b95934b5732ac55d26311a706c9c2bde9940/wip HTTP/1.0
@@ -2210,6 +2251,9 @@ only be marked ready by the owner, project owners or site administrators.
 Activates notifications of reviewer. The request body does not need
 to include a `WorkInProgressInput` entity
 if no review comment is added.
+
+Marking a change ready for review also adds all of the reviewers of the change
+to the `attention set`.
 
 _Request_
 ```
@@ -2649,7 +2693,7 @@ _Response_
 When the change edit is a no-op, for example when providing the same file
 content that the file already has, '409 no changes were made' is returned.
 
-.Response
+_Response_
 ```
   HTTP/1.1 409 no changes were made
 ```
@@ -3088,6 +3132,10 @@ reviewer state of that user is updated to CC. If a user that is already
 a CC on the change is added as reviewer, the reviewer state of that
 user is updated to reviewer.
 
+Adding a new reviewer also adds that reviewer to the attention set, unless
+the change is work in progress.
+Also, moving a reviewer to CC removes that user from the attention set.
+
 _Request_
 ```
   POST /changes/myProject~master~I8473b95934b5732ac55d26311a706c9c2bde9940/reviewers HTTP/1.0
@@ -3224,6 +3272,7 @@ An email will be sent using the "newchange" template.
 ```
 
 Deletes a reviewer from a change.
+Deleting a reviewer also removes that user from the attention set.
 
 _Request_
 ```
@@ -3761,6 +3810,33 @@ The review must be provided in the request body as a `ReviewInput` entity.
 If the labels are set, the user sending the request will automatically be
 added as a reviewer, otherwise (if they only commented) they are added to
 the CC list.
+
+Some updates to the attention set occur here. If more than one update should
+occur, only the first update in the order of the below documentation occurs:
+
+If a user is part of remove_from_attention_set, the user will be explicitly
+removed from the attention set.
+
+If a user is part of add_to_attention_set, the user will be explicitly
+added to the attention set.
+
+If the boolean ignore_default_attention_set_rules is set to true, all
+other rules below will be ignored:
+
+The user who created the review is removed from the attention set.
+
+If the change is ready for review, the following also apply:
+
+When the uploader replies, the owner is added to the attention set.
+
+When the owner or uploader replies, all the reviewers are added to
+the attention set.
+
+When neither the owner nor the uploader replies, add the owner and the
+uploader to the attention set.
+
+Then, new reviewers are added to the attention set, and removed reviewers
+(by becoming CC) are removed from the attention set.
 
 A review cannot be set on a change edit. Trying to post a review for a
 change edit fails with `409 Conflict`.
@@ -4627,7 +4703,7 @@ _Response_
 
 ### Delete Comment
 ```
-'DELETE /changes/{change-id}/revisions/{revision-id}/comments/{comment-id}' +
+'DELETE /changes/{change-id}/revisions/{revision-id}/comments/{comment-id}'
 'POST /changes/{change-id}/revisions/{revision-id}/comments/{comment-id}/delete'
 ```
 
@@ -4770,9 +4846,138 @@ _Response_
   }
 ```
 
+### Get Ported Comments
+```
+'GET /changes/{change-id}/revisions/{revision-id}/ported_comments'
+```
+
+Ports comments of other revisions to the requested revision.
+
+Only comments added on earlier patchsets are ported. That set of comments is filtered even further
+due to some additional rules. Callers of this endpoint shouldn't rely on the exact logic of which
+comments are ported as that logic might change in the future. Instead, callers must be able to
+handle any smaller/larger set of comments returned by this endpoint.
+
+Typically, a comment thread is returned fully or excluded fully. However, draft comments and
+robot comments are ignored and not returned via this endpoint. Hence, it's possible to get ported
+comments from this endpoint which are a reply to a non-ported robot comment. Callers must be
+able to deal with this situation.
+
+The returned comments are organized in a map of file path to `CommentInfo` entries
+in the same fashion as for the `List Revision Comments` endpoint.
+The map is filled with the original comment attributes except for these attributes: `path`, `line`,
+and `range` point to the computed position in the target revision. If the exactly correct position
+can't be determined, those fields will be filled with the next best position. That can also mean
+not filling the `line` or `range` attribute anymore and thus converting the comment to a file
+comment (or even moving the comment to a different file or the patchset level). Callers of this
+endpoint must be able to deal with this and not rely on the original comment position.
+
+It's possible that this endpoint returns different `CommentInfo` entries with
+the same comment UUID. This is not a bug but a feature. If a comment appears on a file which Gerrit
+recognizes as copied between patchsets, the ported version of this comment consists of two ported
+instances having the same UUID but different `file`/`line`/`range` positions. Callers must be able
+to handle this situation.
+
+Repeated calls of this endpoint might produce different results. Internal errors during the
+position computation are mapped to fallback locations for affected comments. Those errors might
+have vanished on later calls, upon which this endpoint returns the actually mapped position. In
+addition, comments can be deleted and draft comments can be published, upon which the set of ported
+comments may change.
+
+_Request_
+```
+  GET /changes/myProject~master~I8473b95934b5732ac55d26311a706c9c2bde9940/revisions/4/ported_comments/ HTTP/1.0
+```
+
+_Response_
+```
+  HTTP/1.1 200 OK
+  Content-Disposition: attachment
+  Content-Type: application/json; charset=UTF-8
+
+  )]}'
+  {
+    "gerrit-server/src/main/java/com/google/gerrit/server/project/RefControl.java": [
+      {
+        "id": "TvcXrmjM",
+        "patch_set": 2,
+        "line": 23,
+        "message": "[nit] trailing whitespace",
+        "updated": "2013-02-26 15:40:43.986000000",
+        "author": {
+          "_account_id": 1000096,
+          "name": "John Doe",
+          "email": "john.doe@example.com"
+        },
+        "unresolved": true
+      },
+      {
+        "id": "TveXwFiA",
+        "patch_set": 2,
+        "line": 23,
+        "in_reply_to": "TvcXrmjM",
+        "message": "Done",
+        "updated": "2013-02-26 15:40:45.328000000",
+        "author": {
+          "_account_id": 1000097,
+          "name": "Jane Roe",
+          "email": "jane.roe@example.com"
+        },
+        "unresolved": true
+      }
+    ]
+  }
+```
+
+### Get Ported Drafts
+```
+'GET /changes/{change-id}/revisions/{revision-id}/ported_drafts'
+```
+
+Ports draft comments of other revisions to the requested revision.
+
+This endpoint behaves similarly to the `Get Ported Comments` endpoint.
+With this endpoint, only draft comments of the calling user are ported, though. If a draft comment
+is a reply to a published comment, only the ported draft comment is returned.
+
+Depending on the filtering rules, it's possible that this endpoint returns a draft comment which is
+a reply to a comment thread which is not returned by the
+`Get Ported Comments` endpoint. That's intended behavior. Callers must be
+able to handle this situation. The same holds for drafts which are a reply to a robot comment.
+
+Different than the `Get Ported Comments` endpoint, the `author` of the
+returned comments is not filled for this endpoint as only comments of the calling user are returned.
+
+_Request_
+```
+  GET /changes/myProject~master~I8473b95934b5732ac55d26311a706c9c2bde9940/revisions/674ac754f91e64a0efb8087e59a176484bd534d1/ported_drafts/ HTTP/1.0
+```
+
+_Response_
+```
+  HTTP/1.1 200 OK
+  Content-Disposition: attachment
+  Content-Type: application/json; charset=UTF-8
+
+  )]}'
+  {
+    "gerrit-server/src/main/java/com/google/gerrit/server/project/RefControl.java": [
+      {
+        "id": "TveXwFiA",
+        "patch_set": 2,
+        "line": 23,
+        "in_reply_to": "TvcXrmjM",
+        "message": "Done",
+        "updated": "2013-02-26 15:40:45.328000000",
+        "unresolved": true
+      }
+    ]
+  }
+```
+
 ### Apply Fix
 ```
-'POST /changes/<<change-id,{change-id}>>/revisions/<<revision-id,{revision-id}>>/fixes/<<fix-id,{fix-id}>>/apply'
+'POST /changes/`{change-id}/revisions/{revision-id}/fixes/{fix-id}/apply'
 ```
 
 Applies a suggested fix by creating a change edit which includes the
@@ -5034,7 +5239,6 @@ _Response_
   Content-Disposition: attachment
   Content-Type: application/json; charset=UTF-8
 
-```
   {
     "meta_a": {
       "name": "gerrit-server/src/main/java/com/google/gerrit/server/project/RefControl.java",
@@ -5104,7 +5308,6 @@ _Response_
   Content-Disposition: attachment
   Content-Type: application/json; charset=UTF-8
 
-```
   {
     "meta_a": {
       "name": "gerrit-server/src/main/java/com/google/gerrit/server/project/RefControl.java",
@@ -5140,8 +5343,8 @@ _Response_
           ]
         ]
       }
-      ]
-    }
+    ]
+  }
 ```
 
 The `base` parameter can be specified to control the base patch set from which the diff should
@@ -5163,7 +5366,6 @@ _Response_
   Content-Disposition: attachment
   Content-Type: application/json; charset=UTF-8
 
-```
   {
     "meta_a": {
       "name": "gerrit-server/src/main/java/com/google/gerrit/server/project/RefControl.java",
@@ -5187,9 +5389,6 @@ _Response_
 The `whitespace` parameter can be specified to control how whitespace
 differences are reported in the result.  Valid values are `IGNORE_NONE`,
 `IGNORE_TRAILING`, `IGNORE_LEADING_AND_TRAILING` or `IGNORE_ALL`.
-
-The `context` parameter can be specified to control the number of lines of surrounding context
-in the diff.  Valid values are `ALL` or number of lines.
 
 ### Preview fix
 ```
@@ -5223,7 +5422,6 @@ _Response_
   Content-Disposition: attachment
   Content-Type: application/json; charset=UTF-8
 
-```
   {
     [
       {
@@ -5471,6 +5669,168 @@ _Response_
   HTTP/1.1 204 No Content
 ```
 
+## Attention Set Endpoints
+
+### Get Attention Set
+```
+'GET /changes/{change-id}/attention'
+```
+
+Returns all users that are currently in the attention set.
+As response a list of `AttentionSetInfo`
+entity is returned.
+
+_Request_
+```
+  GET /changes/myProject~master~I8473b95934b5732ac55d26311a706c9c2bde9940/attention HTTP/1.0
+```
+
+_Response_
+```
+  HTTP/1.1 200 OK
+  Content-Disposition: attachment
+  Content-Type: application/json; charset=UTF-8
+
+  )]}'
+  [
+    {
+      "account": {
+        "_account_id": 1000096,
+        "name": "John Doe",
+        "email": "john.doe@example.com",
+        "username": "jdoe"
+      },
+      "last_update": "2013-02-01 09:59:32.126000000",
+      "reason": "reviewer or cc replied"
+    },
+    {
+      "account": {
+        "_account_id": 1000097,
+        "name": "Jane Doe",
+        "email": "jane.doe@example.com",
+        "username": "janedoe"
+      },
+      "last_update": "2013-02-01 09:59:32.126000000",
+      "reason": "Reviewer was added"
+    }
+  ]
+```
++
+### Add To Attention Set
+```
+'POST /changes/{change-id}/attention'
+```
+
+Adds a single user to the attention set of a change.
+
+A user can only be added if they are not in the attention set.
+If a user is added while already in the attention set, the
+request is silently ignored.
+
+_Request_
+```
+  POST /changes/myProject~master~I8473b95934b5732ac55d26311a706c9c2bde9940/attention HTTP/1.0
+```
+
+Details should be provided in the request body as an
+`AttentionSetInput` entity.
+
+_Request_
+```
+  POST /changes/myProject~master~I8473b95934b5732ac55d26311a706c9c2bde9940/attention HTTP/1.0
+  Content-Type: application/json; charset=UTF-8
+
+  {
+    "user": "John Doe",
+    "reason": "reason"
+  }
+```
+
+_Response_
+```
+  HTTP/1.1 200 OK
+  Content-Disposition: attachment
+  Content-Type: application/json; charset=UTF-8
+
+  )]}'
+  {
+    "_account_id": 1000096,
+    "name": "John Doe",
+    "email": "john.doe@example.com",
+    "username": "jdoe"
+  }
+```
+
+### Remove from Attention Set
+```
+'DELETE /changes/{change-id}/attention/{account-id}'
+'POST /changes/{change-id}/attention/{account-id}/delete'
+```
+
+Deletes a single user from the attention set of a change.
+
+A user can only be removed from the attention set if they
+are currently in the attention set. Otherwise, the request
+is silently ignored.
+
+_Request_
+```
+  DELETE /changes/myProject~master~I8473b95934b5732ac55d26311a706c9c2bde9940/attention/John%20Doe HTTP/1.0
+  POST /changes/myProject~master~I8473b95934b5732ac55d26311a706c9c2bde9940/attention/John%20Doe/delete HTTP/1.0
+```
+
+Reason can be provided in the request body as an
+`AttentionSetInput` entity.
+
+User must be left empty, or the user must be exactly
+the same user as in the request header.
+
+_Request_
+```
+  POST /changes/myProject~master~I8473b95934b5732ac55d26311a706c9c2bde9940/attention/John%20Doe/delete HTTP/1.0
+  Content-Type: application/json; charset=UTF-8
+
+  {
+    "reason": "reason"
+  }
+```
+
+_Response_
+```
+  HTTP/1.1 204 No Content
+```
+
+### Attention Set
+Attention Set is the set of users that should perform some action on the
+change. E.g, reviewers should review the change, owner/uploader should
+add a new patchset or respond to comments.
+
+Users are added to the attention set if one the following apply:
+
+* They are manually added in `ReviewInput` in
+ add_to_attention_set.
+* They are added as reviewers.
+* The change is marked ready for review.
+* As an owner/uploader, when someone replies on your change.
+* As a reviewer, when the owner/uploader replies.
+
+Users are removed from the attention set if one the following apply:
+
+* They are manually removed in `ReviewInput` in
+ remove_from_attention_set.
+* They are removed from reviewers.
+* The change is marked work in progress, abandoned, or submitted.
+* When the user replies on a change.
+
+If the ignore_default_attention_set_rules in `ReviewInput`
+is set to true, no other changes to the attention set will occur during the
+`set-review`.
+Also, users specified in the list will occur instead of any of the implicit
+changes to the attention set. E.g, if a user is added by add_to_attention_set
+in `ReviewInput`, but also the change is marked work in
+progress, the user will still be added.
+
+
 ## IDs
 
 ### {account-id}
@@ -5517,6 +5877,11 @@ information and the committer information.
 The list of commits that are being integrated into the destination
 branch by submitting the merge commit.
 
+* `/PATCHSET_LEVEL`:
+
+This file path is used exclusively for posting and indicating
+patchset-level comments, thus not relevant for other use-cases.
+
 ### {fix-id}
 UUID of a suggested fix.
 
@@ -5541,7 +5906,7 @@ The `AbandonInput` entity contains information for abandoning a change.
 | :------| :------| :------|
 |`message`       |optional|Message to be added as review comment to the change when abandoning the change.
 |`notify`        |optional|Notify handling that defines to whom email notifications should be sent after the change is abandoned.Allowed values are `NONE`, `OWNER`, `OWNER_REVIEWERS` and `ALL`.If not set, the default is `ALL`.
-|`notify_details`|optional|Additional information about whom to notify about the update as a map of recipient type to `NotifyInfo` entity.
+|`notify_details`|optional|Additional information about whom to notify about the update as a map of `recipient type` to `NotifyInfo` entity.
 
 ### ActionInfo
 The `ActionInfo` entity describes a REST API call the client can
@@ -5587,6 +5952,28 @@ The `AssigneeInput` entity contains the identity of the user to be set as assign
 | :------| :------| :------|
 |`assignee`     ||The `ID` of one account that should be added as assignee.
 
+### AttentionSetInfo
+The `AttentionSetInfo` entity contains details of users that are in
+the `attention set`.
+
+|Field Name    ||Description
+| :------| :------| :------|
+|`account`     || `AccountInfo` entity.
+|`last_update` || The `[timestamp` of the last update.
+|`reason`      || The reason of for adding or removing the user.
+
+### AttentionSetInput
+The `AttentionSetInput` entity contains details for adding users to the
+`attention set` and removing them from it.
+
+|Field Name        ||Description
+| :------| :------| :------|
+|`user`            |optional| ID of the account that should be added to the attention set. For removals, this field should be empty or the same as the field in the request header.
+|`reason`          || The reason of for adding or removing the user.
+|`notify`          |optional|Notify handling that defines to whom email notifications should be sent after the change is created.Allowed values are `NONE`, `OWNER`, `OWNER_REVIEWERS` and `ALL`.If not set, the default is `OWNER`.
+|`notify_details`  |optional|Additional information about whom to notify about the change creation as a map of `recipient type` to
+`NotifyInfo` entity.
+
 ### BlameInfo
 The `BlameInfo` entity stores the commit metadata with the row coordinates where
 it applies.
@@ -5626,6 +6013,7 @@ The `ChangeInfo` entity contains information about a change.
 |`project`            ||The name of the project.
 |`branch`             ||The name of the target branch.The `refs/heads/` prefix is omitted.
 |`topic`              |optional|The topic to which this change belongs.
+|`attention_set`      |optional|The map that maps `account IDs` to `AttentionSetInfo` of that account.
 |`assignee`           |optional|The assignee of the change as an `AccountInfo` entity.
 |`hashtags`           |optional|List of hashtags that are set on the change (only populated when NoteDb is enabled).
 |`change_id`          ||The Change-Id of the change.
@@ -5726,7 +6114,7 @@ The `CommentInfo` entity contains information about an inline comment.
 | :------| :------| :------|
 |`patch_set`   |optional|The patch set number for the comment; only set in contexts where comments may be returned for multiple patch sets.
 |`id`          ||The URL encoded UUID of the comment.
-|`path`        |optional|The path of the file for which the inline comment was done. Not set if returned in a map where the key is the file path.
+|`path`        |optional|`The file path` for which the inline comment was done. Not set if returned in a map where the key is the file path.
 |`side`        |optional|The side on which the comment was added. Allowed values are `REVISION` and `PARENT`. If not set, the default is `REVISION`.
 |`parent`      |optional|The 1-based parent number. Used only for merge commits when `side == PARENT`.When not set the comment is for the auto-merge tree.
 |`line`        |optional|The number of the line for which the comment was done. If range is set, this equals the end line of the range. If neither line nor range is set, it's a file comment.
@@ -5737,7 +6125,9 @@ The `CommentInfo` entity contains information about an inline comment.
 |`author`      |optional|The author of the message as an `AccountInfo` entity.Unset for draft comments, assumed to be the calling user.
 |`tag`                 |optional|Value of the `tag` field from `ReviewInput` set while posting the review. NOTE: To apply different tags on different votes/comments multiple invocations of the REST call are required.
 |`unresolved`        |optional|Whether or not the comment must be addressed by the user. The state of resolution of a comment thread is stored in the last comment in that thread chronologically.
-|`change_message_id` |optional|Available with published comments. Contains the id of the change message that this comment is linked to.
+|`change_message_id` |optional|Available with the `list change comments` endpoint.Contains the `id` of the change message that this comment is linked to.
+|`commit_id` |optional|Hex commit SHA1 (40 characters string) of the commit of the patchset to which this comment applies.
+|`context_lines` |optional|A list of `ContextLine` containing the lines of the source file where the comment was written. Available only if the "enable_context" parameter (see `List Change Comments`) is set.
 
 ### CommentInput
 The `CommentInput` entity contains information for creating an inline comment.
@@ -5745,7 +6135,7 @@ The `CommentInput` entity contains information for creating an inline comment.
 |Field Name    ||Description
 | :------| :------| :------|
 |`id`          |optional|The URL encoded UUID of the comment if an existing draft comment should be updated.
-|`path`        |optional|The path of the file for which the inline comment should be added. Doesn't need to be set if contained in a map where the key is the file path.
+|`path`        |optional|The file path for which the inline comment should be added. Doesn't need to be set if contained in a map where the key is the file path.
 |`side`        |optional|The side on which the comment should be added. Allowed values are `REVISION` and `PARENT`.If not set, the default is `REVISION`.
 |`line`        |optional|The number of the line for which the comment should be added. `0` if it is a file comment. If neither line nor range is set, a file comment is added. If range is set, this value is ignored in favor of the `end_line` of the range.
 |`range`       |optional|The range of the comment as a `CommentRange` entity.
@@ -5773,6 +6163,15 @@ to 0 will not include any characters on line 5,
 |`start_character`   ||The character position in the start line. (0-based)
 |`end_line`          ||The end line number of the range. (1-based)
 |`end_character`     ||The character position in the end line. (0-based)
+
+### ContextLine
+The `ContextLine` entity contains the line number and line text of a single
+line of the source file content.
+
+|Field Name          |Description
+| :------| :------|
+|`line_number`       |The line number of the source line.
+|`context_line`      |String containing the line text.
 
 ### CommitInfo
 The `CommitInfo` entity contains information about a commit.
@@ -5847,6 +6246,7 @@ in a file.
 |`edit_a`       |only present when the `intraline` parameter is set and the DiffContent is a replace, i.e. both `a` and `b` are present| Text sections deleted from side A as a `DiffIntralineInfo` entity.
 |`edit_b`       |only present when the `intraline` parameter is set and the DiffContent is a replace, i.e. both `a` and `b` are present|Text sections inserted in side B as a `DiffIntralineInfo` entity.
 |`due_to_rebase`|not set if `false`|Indicates whether this entry was introduced by a rebase.
+|`due_to_move`|not set if `false`|Indicates whether this entry was introduced by a move operation.
 |`skip`         |optional|count of lines skipped on both sides when the file is too large to include all common lines.
 |`common`       |optional|Set to `true` if the region is common according to the requested ignore-whitespace parameter, but a and b contain differing amounts of whitespace. When present and true a and b are used instead of ab.
 
@@ -5963,8 +6363,8 @@ The `FixReplacementInfo` entity describes how the content of a file should be re
 
 |Field Name      |Description
 | :------| :------|
-|`path`          |The path of the file which should be modified. Any file in the repository may be modified.
-|`range`         |A <<comment-range,CommentRange>> indicating which content of the file should be replaced. Lines in the file are assumed to be separated by the line feed character, the carriage return character, the carriage return followed by the line feed character, or one of the other Unicode linebreak sequences supported by Java.
+|`path`          |The path of the file which should be modified. Any file in the repository may be modified.The commit message can be modified via the magic file `/COMMIT_MSG` though only the part below the generated header of that magic file can be modified.References to the header lines will result in errors when the fix is applied.
+|`range`         |A CommentRange indicating which content of the file should be replaced. Lines in the file are assumed to be separated by the line feed character.
 |`replacement`   |The content which should be used instead of the current one.
 
 ### GitPersonInfo
@@ -6069,6 +6469,7 @@ The `MergePatchSetInput` entity contains information about updating a new change
 |`inherit_Parent`      |optional, default to `false`|Use the current patch set's first parent as the merge tip when set to `true`.
 |`base_change`        |optional|A {change-id} that identifies a change. When `inherit_Parent` is `false`, the merge tip will be the current patch set of the `base_change` if it's set. Otherwise, the current branch tip of the destination branch will be used.
 |`merge`              ||The detail of the source commit for merge as a `MergeInput` entity.
+|`author`             |optional|An `AccountInput` entity that will set the author of the commit to create. The author must be specified as name/email combination.The caller needs "Forge Author" permission when using this field.This field does not affect the owner of the change, which will continue to use the identity of the caller.
 
 ### MoveInput
 The `MoveInput` entity contains information for moving a change to a new branch.
@@ -6083,8 +6484,7 @@ The `NotifyInfo` entity contains detailed information about who should
 be notified about an update. These notifications are sent out even if a
 `notify` option in the request input disables normal notifications.
 `NotifyInfo` entities are normally contained in a `notify_details` map
-in the request input where the key is the recipient type. The recipient
-type can be `TO`, `CC` and `BCC`.
+in the request input where the key is the `recipient type`.
 
 |Field Name||Description
 | :------| :------| :------|
@@ -6177,7 +6577,7 @@ The `Requirement` entity contains information about a requirement relative to a 
 |Field Name      | |Description
 | :------| :------| :------|
 |`status`        | | Status of the requirement. Can be either `OK`, `NOT_READY` or `RULE_ERROR`.
-|`fallbackText`  | | A human readable reason
+|`fallback_text`  | | A human readable reason
 |`type`          | |Alphanumerical (plus hyphens or underscores) string to identify what the requirement is and why it was triggered. Can be seen as a class:requirements sharing the same type were created for a similar reason, and the data structure will follow one set of rules.
 
 ### RestoreInput
@@ -6196,6 +6596,7 @@ The `RevertInput` entity contains information for reverting a change.
 |`notify`        |optional|Notify handling that defines to whom email notifications should be sent for reverting the change.Allowed values are `NONE`, `OWNER`, `OWNER_REVIEWERS` and `ALL`.If not set, the default is `ALL`.
 |`notify_details`|optional|Additional information about whom to notify about the revert as a map of recipient type to `NotifyInfo` entity.
 |`topic`         |optional|Name of the topic for the revert change. If not set, the default for Revert endpoint is the topic of the change being reverted, and the default for the RevertSubmission endpoint is `revert-{submission_id}-{timestamp.now}`. Topic can't contain quotation marks. 
+|`work_in_progress` |optional|When present, change is marked as Work In Progress. This will also override the notify value to `OWNER`. If not set, the default is false.
 
 ### RevertSubmissionInfo
 The `RevertSubmissionInfo` entity describes the revert changes.
@@ -6234,11 +6635,14 @@ The `ReviewInput` entity contains information for adding a review to a revision.
 |`drafts`                 |optional|Draft handling that defines how draft comments are handled that are already in the database but that were not also described in this input. Allowed values are `PUBLISH`, `PUBLISH_ALL_REVISIONS` and `KEEP`. All values except `PUBLISH_ALL_REVISIONS` operate only on drafts for a single revision.Only `KEEP` is allowed when used in conjunction with `on_behalf_of`.If not set, the default is `KEEP`. If `on_behalf_of` is set, then no other value besides `KEEP` is allowed.
 |`notify`                 |optional|Notify handling that defines to whom email notifications should be sent after the review is stored.Allowed values are `NONE`,`OWNER`, `OWNER_REVIEWERS` and `ALL`.If not set, the default is `ALL`.
 |`notify_details`         |optional|Additional information about whom to notify about the update as a map of recipient type to `NotifyInfo` entity.
-|`omit_duplicate_comments`|optional|If `true`, comments with the same content at the same place will be omitted.
-|`on_behalf_of`           |optional|{account-id} the review should be posted on behalf of. To use this option the caller must have been granted `labelAs-NAME` permission for all keys of labels.
-|`reviewers`              |optional|A list of `ReviewerInput` representing reviewers that should be added to the change.
-|`ready`                  |optional|If true, and if the change is work in progress, then start review.It is an error for both `ready` and `work_in_progress` to be true.
-|`work_in_progress`         |optional|If true, mark the change as work in progress. It is an error for both `ready` and `work_in_progress` to be true.
+|`omit_duplicate_comments`             |optional| If `true`, comments with the same content at the same place will be omitted.
+|`on_behalf_of`                        |optional| `account-id` the review should be posted on behalf of. To use this option the caller must  have been granted `labelAs-NAME` permission for all keys of labels.
+|`reviewers`                           |optional| A list of `ReviewerInput` representing reviewers that should be added to the change.
+|`ready`                               |optional|If true, and if the change is work in progress, then start review. It is an error for both `ready` and `work_in_progress` to be true.
+|`work_in_progress`                    |optional|If true, mark the change as work in progress. It is an error for both `ready` and `work_in_progress` to be true.
+|`add_to_attention_set`                |optional|list of AttentionSetInput entities to add to the attention set.
+|`remove_from_attention_set`           |optional|list of AttentionSetInput entities to remove from the attention set.
+|`ignore_automatic_attention_set_rules`|optional|If set to true, ignore all automatic attention set rules described in the attention set. Updates in add_to_attention_set and remove_from_attention_set are not ignored.
 
 ### ReviewResult
 The `ReviewResult` entity contains information regarding the updates that were made to a review.
@@ -6295,7 +6699,7 @@ be obtained by adding `o` parameters as described in `Query Changes`.
 ### RobotCommentInfo
 The `RobotCommentInfo` entity contains information about a robot inline comment.
 
-`RobotCommentInfo` has the same fields as `CommentInfo`.
+`RobotCommentInfo` has the same fields as `CommentInfo` except for the `unresolved` field which doesn't exist for robot comments.
 In addition `RobotCommentInfo` has the following fields:
 
 |Field Name       ||Description
@@ -6309,7 +6713,19 @@ In addition `RobotCommentInfo` has the following fields:
 ### RobotCommentInput
 The `RobotCommentInput` entity contains information for creating an inline robot comment.
 
-`RobotCommentInput` has the same fields as `RobotCommentInfo`.
+|Field Name    ||Description
+| :------| :------| :------|
+|`path`        ||`The file path` for which the inline comment should be added.
+|`side`        |optional|The side on which the comment should be added.Allowed values are `REVISION` and `PARENT`. If not set, the default is `REVISION`.
+|`line`        |optional|The number of the line for which the comment should be added. `0` if it is a file comment. If neither line nor range is set, a file comment is added. If range is set, this value is ignored in favor of the `end_line` of the range.
+|`range`       |optional|The range of the comment as a `CommentRange` entity.
+|`in_reply_to` |optional|The URL encoded UUID of the comment to which this comment is a reply.
+|`message`     |optional|The comment message.
+|`robot_id`       ||The ID of the robot that generated this comment.
+|`robot_run_id`   ||An ID of the run of the robot.
+|`url`            |optional|URL to more information.
+|`properties`     |optional|Robot specific properties as map that maps arbitrary keys to values.
+|`fix_suggestions`|optional|Suggested fixes for this robot comment as a list of FixSuggestionInfo entities.
 
 ### RuleInput
 The `RuleInput` entity contains information to test a Prolog rule.

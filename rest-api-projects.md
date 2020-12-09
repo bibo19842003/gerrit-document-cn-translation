@@ -1118,7 +1118,7 @@ As result a `ProjectAccessInfo` entity is returned.
         "owner": "Administrators",
         "owner_id": "d5b7124af4de52924ed397913e2c3b37bf186948",
         "created_on": "2009-06-08 23:31:00.000000000",
-        "name": "Non-Interactive Users"
+        "name": "Service Users"
       },
       "global:Anonymous-Users": {
         "options": {},
@@ -1213,6 +1213,55 @@ entity is returned.
         "options": {},
         "name": "Anonymous Users"
       }
+    }
+  }
+```
+
+### Create Change for review.
+
+This endpoint is functionally equivalent to
+[create change in the change API](rest-api-changes.md), but it has the project name in the URL, which is easier to route
+in sharded deployments.
+
+.Request
+```
+  POST /projects/myProject/create.change HTTP/1.0
+  Content-Type: application/json; charset=UTF-8
+
+  {
+    "subject" : "Let's support 100% Gerrit workflow direct in browser",
+    "branch" : "master",
+    "topic" : "create-change-in-browser",
+    "status" : "NEW"
+  }
+```
+
+As response a `ChangeInfo` entity is returned that describes
+the resulting change.
+
+.Response
+```
+  HTTP/1.1 201 OK
+  Content-Disposition: attachment
+  Content-Type: application/json; charset=UTF-8
+
+  )]}'
+  {
+    "id": "myProject~master~I8473b95934b5732ac55d26311a706c9c2bde9941",
+    "project": "myProject",
+    "branch": "master",
+    "topic": "create-change-in-browser",
+    "change_id": "I8473b95934b5732ac55d26311a706c9c2bde9941",
+    "subject": "Let's support 100% Gerrit workflow direct in browser",
+    "status": "NEW",
+    "created": "2014-05-05 07:15:44.639000000",
+    "updated": "2014-05-05 07:15:44.639000000",
+    "mergeable": true,
+    "insertions": 0,
+    "deletions": 0,
+    "_number": 4711,
+    "owner": {
+      "name": "John Doe"
     }
   }
 ```
@@ -3326,7 +3375,7 @@ The `ConfigInfo` entity contains information about the effective project configu
 |`match_author_to_committer_date` |optional|`InheritedBooleanInfo` that indicates whether a change's author date will be changed to match its submitter date upon submit.
 |`state`                     |optional|The state of the project, can be `ACTIVE`, `READ_ONLY` or `HIDDEN`. Not set if the project state is `ACTIVE`.
 |`commentlinks`              ||Map with the comment link configurations of the project. The name of the comment link configuration is mapped to a `CommentlinkInfo` entity.
-|`plugin_config`                           |optional|Plugin configuration as map which maps the plugin name to a map of parameter names to `ConfigParameterInfo` entities.
+|`plugin_config`                           |optional|Plugin configuration as map which maps the plugin name to a map of parameter names to `ConfigParameterInfo` entities. Only filled for users who have read access to `refs/meta/config`.
 |`actions`                                 |optional|Actions the caller might be able to perform on this project. The information is a map of view names to
 |`reject_empty_commit`                     |optional|`InheritedBooleanInfo` that tells whether empty commits should be rejected when a change is merged.`ActionInfo` entities.
 

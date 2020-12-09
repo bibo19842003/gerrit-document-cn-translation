@@ -13,12 +13,12 @@ Please also take note of the general information on the
 
 Returns the version of the Gerrit server.
 
-.Request
+_Request_
 ```
   GET /config/server/version HTTP/1.0
 ```
 
-.Response
+_Response_
 ```
   HTTP/1.1 200 OK
   Content-Type: application/json; charset=UTF-8
@@ -34,14 +34,14 @@ Returns the version of the Gerrit server.
 
 Returns the information about the Gerrit server configuration.
 
-.Request
+_Request_
 ```
   GET /config/server/info HTTP/1.0
 ```
 
 As result a `ServerInfo` entity is returned.
 
-.Response
+_Response_
 ```
   HTTP/1.1 200 OK
   Content-Type: application/json; charset=UTF-8
@@ -144,7 +144,7 @@ Runs consistency checks and returns detected problems.
 Input for the consistency checks that should be run must be provided in
 the request body inside a `ConsistencyCheckInput` entity.
 
-.Request
+_Request_
 ```
   POST /config/server/check.consistency HTTP/1.0
   Content-Type: application/json; charset=UTF-8
@@ -157,7 +157,7 @@ the request body inside a `ConsistencyCheckInput` entity.
 
 As result a `ConsistencyCheckInfo` entity is returned that contains detected consistency problems.
 
-.Response
+_Response_
 ```
   HTTP/1.1 200 OK
   Content-Type: application/json; charset=UTF-8
@@ -201,7 +201,7 @@ and applied._
 If a config entry is added or removed from gerrit.config, but still brings
 no effect due to a matching default value, no output for this entry is shown.
 
-.Request
+_Request_
 ```
   POST /config/server/reload HTTP/1.0
 ```
@@ -209,7 +209,7 @@ no effect due to a matching default value, no output for this entry is shown.
 As result a `ConfigUpdateInfo` entity is returned that
 contains information about how the updated config entries were handled.
 
-.Response
+_Response_
 ```
   HTTP/1.1 200 OK
   Content-Type: application/json; charset=UTF-8
@@ -237,7 +237,7 @@ Confirms that the user owns an email address.
 
 The email token must be provided in the request body inside an `EmailConfirmationInput` entity.
 
-.Request
+_Request_
 ```
   PUT /config/server/email.confirm HTTP/1.0
   Content-Type: application/json; charset=UTF-8
@@ -271,12 +271,12 @@ As result a map of `CacheInfo` entities is returned.
 
 The entries in the map are sorted by cache name.
 
-.Request
+_Request_
 ```
   GET /config/server/caches/ HTTP/1.0
 ```
 
-.Response
+_Response_
 ```
   HTTP/1.1 200 OK
   Content-Type: application/json; charset=UTF-8
@@ -481,12 +481,12 @@ Returns the cache names as JSON list.
 
 The cache names are lexicographically sorted.
 
-.Request
+_Request_
 ```
   GET /config/server/caches/?format=LIST HTTP/1.0
 ```
 
-.Response
+_Response_
 ```
   HTTP/1.1 200 OK
   Content-Type: application/json; charset=UTF-8
@@ -525,12 +525,12 @@ cache names are delimited by '\n'.
 
 The cache names are lexicographically sorted.
 
-.Request
+_Request_
 ```
   GET /config/server/caches/?format=TEXT_LIST HTTP/1.0
 ```
 
-.Response
+_Response_
 ```
   HTTP/1.1 200 OK
   Content-Type: text/plain; charset=UTF-8
@@ -556,7 +556,7 @@ Executes a cache operation that is specified in the request body in a `CacheOper
 
 #### Flush All Caches
 
-.Request
+_Request_
 ```
   POST /config/server/caches/ HTTP/1.0
   Content-Type: application/json; charset=UTF-8
@@ -566,14 +566,14 @@ Executes a cache operation that is specified in the request body in a `CacheOper
   }
 ```
 
-.Response
+_Response_
 ```
   HTTP/1.1 200 OK
 ```
 
 #### Flush Several Caches At Once
 
-.Request
+_Request_
 ```
   POST /config/server/caches/ HTTP/1.0
   Content-Type: application/json; charset=UTF-8
@@ -587,7 +587,7 @@ Executes a cache operation that is specified in the request body in a `CacheOper
   }
 ```
 
-.Response
+_Response_
 ```
   HTTP/1.1 200 OK
 ```
@@ -608,12 +608,12 @@ following capabilities:
 
 As result a `CacheInfo` entity is returned.
 
-.Request
+_Request_
 ```
   GET /config/server/caches/projects HTTP/1.0
 ```
 
-.Response
+_Response_
 ```
   HTTP/1.1 200 OK
   Content-Type: application/json; charset=UTF-8
@@ -645,12 +645,12 @@ The caller must be a member of a group that is granted one of the following capa
 * `Maintain Server` (any cache   including "web_sessions")
 * `Administrate Server`   (any cache including "web_sessions")
 
-.Request
+_Request_
 ```
   POST /config/server/caches/projects/flush HTTP/1.0
 ```
 
-.Response
+_Response_
 ```
   HTTP/1.1 200 OK
 ```
@@ -675,14 +675,14 @@ Includes a JVM summary.
 Requests a Java garbage collection before computing the information
 about the Java memory heap.
 
-.Request
+_Request_
 ```
   GET /config/server/summary?jvm HTTP/1.0
 ```
 
 As result a `SummaryInfo` entity is returned.
 
-.Response
+_Response_
 ```
   HTTP/1.1 200 OK
   Content-Type: application/json; charset=UTF-8
@@ -748,12 +748,12 @@ As result a map of `CapabilityInfo` entities is returned.
 
 The entries in the map are sorted by capability ID.
 
-.Request
+_Request_
 ```
   GET /config/server/capabilities/ HTTP/1.0
 ```
 
-.Response
+_Response_
 ```
   HTTP/1.1 200 OK
   Content-Type: application/json; charset=UTF-8
@@ -857,12 +857,12 @@ As result a list of `TaskInfo` entities is returned.
 
 The entries in the list are sorted by task state, remaining delay and command.
 
-.Request
+_Request_
 ```
   GET /config/server/tasks/ HTTP/1.0
 ```
 
-.Response
+_Response_
 ```
   HTTP/1.1 200 OK
   Content-Type: application/json; charset=UTF-8
@@ -907,12 +907,12 @@ following capabilities:
 
 As result a `TaskInfo` entity is returned.
 
-.Request
+_Request_
 ```
   GET /config/server/tasks/1e688bea HTTP/1.0
 ```
 
-.Response
+_Response_
 ```
   HTTP/1.1 200 OK
   Content-Type: application/json; charset=UTF-8
@@ -952,12 +952,12 @@ Members of a group granted one of the following capabilities may view all tasks:
 * `Maintain Server`
 * `Administrate Server`
 
-.Request
+_Request_
 ```
   DELETE /config/server/tasks/1e688bea HTTP/1.0
 ```
 
-.Response
+_Response_
 ```
   HTTP/1.1 204 No Content
 ```
@@ -969,14 +969,14 @@ Members of a group granted one of the following capabilities may view all tasks:
 
 Returns the list of additional top menu entries.
 
-.Request
+_Request_
 ```
   GET /config/server/top-menus HTTP/1.0
 ```
 
 As response a list of the additional top menu entries as `TopMenuEntryInfo` entities is returned.
 
-.Response
+_Response_
 ```
   HTTP/1.1 200 OK
   Content-Type: application/json; charset=UTF-8
@@ -1003,14 +1003,14 @@ As response a list of the additional top menu entries as `TopMenuEntryInfo` enti
 
 Returns the default user preferences for the server.
 
-.Request
+_Request_
 ```
   GET /a/config/server/preferences HTTP/1.0
 ```
 
 As response a `PreferencesInfo` is returned.
 
-.Response
+_Response_
 ```
   HTTP/1.1 200 OK
   Content-Type: application/json; charset=UTF-8
@@ -1067,7 +1067,7 @@ The new user preferences must be provided in the request body as a `PreferencesI
 
 To be allowed to set default preferences, a user must be a member of a group that is granted the `Administrate Server` capability.
 
-.Request
+_Request_
 ```
   PUT /a/config/server/preferences HTTP/1.0
   Content-Type: application/json; charset=UTF-8
@@ -1080,7 +1080,7 @@ To be allowed to set default preferences, a user must be a member of a group tha
 As response a link:rest-api-accounts.html#preferences-info[
 PreferencesInfo] is returned.
 
-.Response
+_Response_
 ```
   HTTP/1.1 200 OK
   Content-Type: application/json; charset=UTF-8
@@ -1133,14 +1133,14 @@ PreferencesInfo] is returned.
 
 Returns the default diff preferences for the server.
 
-.Request
+_Request_
 ```
   GET /a/config/server/preferences.diff HTTP/1.0
 ```
 
 As response a `DiffPreferencesInfo` is returned.
 
-.Response
+_Response_
 ```
   HTTP/1.1 200 OK
   Content-Type: application/json; charset=UTF-8
@@ -1174,7 +1174,7 @@ The new diff preferences must be provided in the request body as a `DiffPreferen
 
 To be allowed to set default diff preferences, a user must be a member of a group that is granted the `Administrate Server` capability.
 
-.Request
+_Request_
 ```
   PUT /a/config/server/preferences.diff HTTP/1.0
   Content-Type: application/json; charset=UTF-8
@@ -1198,7 +1198,7 @@ To be allowed to set default diff preferences, a user must be a member of a grou
 As response a link:rest-api-accounts.html#diff-preferences-info[
 DiffPreferencesInfo] is returned.
 
-.Response
+_Response_
 ```
   HTTP/1.1 200 OK
   Content-Type: application/json; charset=UTF-8
@@ -1228,14 +1228,14 @@ DiffPreferencesInfo] is returned.
 
 Returns the default edit preferences for the server.
 
-.Request
+_Request_
 ```
   GET /a/config/server/preferences.edit HTTP/1.0
 ```
 
 As response a `EditPreferencesInfo` is returned.
 
-.Response
+_Response_
 ```
   HTTP/1.1 200 OK
   Content-Type: application/json; charset=UTF-8
@@ -1268,7 +1268,7 @@ The new edit preferences must be provided in the request body as a `EditPreferen
 To be allowed to set default edit preferences, a user must be a member
 of a group that is granted the `Administrate Server` capability.
 
-.Request
+_Request_
 ```
   PUT /a/config/server/preferences.edit HTTP/1.0
   Content-Type: application/json; charset=UTF-8
@@ -1289,7 +1289,7 @@ of a group that is granted the `Administrate Server` capability.
 
 As response a `EditPreferencesInfo` is returned.
 
-.Response
+_Response_
 ```
   HTTP/1.1 200 OK
   Content-Type: application/json; charset=UTF-8
@@ -1317,7 +1317,7 @@ by providing a IndexChangesInput entity.
 
 Using this endpoint Gerrit admins can also index change(s) which are not visible to them.
 
-.Request
+_Request_
 ```
   POST /config/server/index.changes HTTP/1.0
   Content-Type: application/json; charset=UTF-8
@@ -1325,7 +1325,7 @@ Using this endpoint Gerrit admins can also index change(s) which are not visible
   {changes: ["foo~101", "bar~202"]}
 ```
 
-.Response
+_Response_
 ```
   HTTP/1.1 200 OK
   Content-Disposition: attachment
@@ -1490,7 +1490,7 @@ The `ConsistencyProblemInfo` entity contains information about a consistency pro
 
 |Field Name|Description
 | :------| :------|
-|`status`  |The status of the consistency problem. Possible values are `ERROR` and `WARNING`.
+|`status`  |The status of the consistency problem. Possible values are `FATAL`, `ERROR` and `WARNING`.
 |`message` |Message describing the consistency problem.
 
 ### ConfigUpdateInfo
@@ -1644,7 +1644,7 @@ The `ServerInfo` entity contains information about the configuration of the Gerr
 |`sshd`                    |optional|Information about the configuration from the `sshd` section as `SshdInfo` entity. Not set if SSHD is disabled.
 |`suggest`                 ||Information about the configuration from the `suggest` section as `SuggestInfo` entity.
 |`user`                    ||Information about the configuration from the `user` section as `UserConfigInfo` entity.
-|`default_theme`           |optional|URL to a default PolyGerrit UI theme plugin, if available.Located in `/static/gerrit-theme.html` by default.
+|`default_theme`           |optional|URL to a default PolyGerrit UI theme plugin, if available.Located in `/static/gerrit-theme.js` by default.
 
 ### SshdInfo
 The `SshdInfo` entity contains information about Gerrit

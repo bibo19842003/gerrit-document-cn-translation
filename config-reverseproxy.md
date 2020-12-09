@@ -13,6 +13,10 @@ Gerrit 可以在第三方 web 服务器的后面运行服务。这需要 web 服
   	listenUrl = proxy-http://127.0.0.1:8081/r/
 ```
 
+## Reverse proxy and client IPs
+
+配置 reverse proxy 后，http_log 会把 reverse proxy 的 IP 作为客户端的 IP 进行记录。若要记录正确的客户端 IP，reverse proxy 需要提供 'X-Forwarded-For' 的 header 信息。
+
 ## Apache 2 Configuration
 
 Apache 服务器使用 'mod_proxy'，需要确保启用了必要的 Apache2 模块:

@@ -202,4 +202,7 @@ Max 现在准备 submit 他的 change. 他在网页上打开了这个 change 页
 这个演示提供了 Gerrit 默认工作流程中的 change　大致演变过程，如果想了解更多，可以：
 * 阅读 [用户基本指南](intro-user.md) 
 * 参考 [项目 Owner 指南](intro-project-owner.md) 学习更多的 Gerrit 配置新，包括权限配置，Verified配置等
+* 阅读 Git 和 Gerrit 的相关资料进一步来了解相关的概念和工作流程，如下：
+    * [Git explained: Git Concepts and Workflows](https://docs.google.com/presentation/d/1IQCRPHEIX-qKo7QFxsD3V62yhyGA9_5YsYXFOiBpgkk/edit?usp=sharing)
+    * [Gerrit explained: Gerrit Concepts and Workflows](https://docs.google.com/presentation/d/1C73UgQdzZDw0gzpaEqIC6SPujZJhqamyqO1XOHjH-uk/edit?usp=sharing)
 

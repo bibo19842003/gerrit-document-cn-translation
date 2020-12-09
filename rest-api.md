@@ -8,18 +8,25 @@ Gerrit Code Review 内置基于 HTTP 的 REST API。API 适用于自动化工具
 
 **[/access/](rest-api-access.md)**
   Access Right related REST endpoints
+
 **[/accounts/](rest-api-accounts.md)**
   Account related REST endpoints
+
 **[/changes/](rest-api-changes.md)**
   Change related REST endpoints
+
 **[/config/](rest-api-config.md)**
   Config related REST endpoints
+
 **[/groups/](rest-api-groups.md)**
   Group related REST endpoints
+
 **[/plugins/](rest-api-plugins.md)**
   Plugin related REST endpoints
+
 **[/projects/](rest-api-projects.md)**
   Project related REST endpoints
+
 **[/Documentation/](rest-api-documentation.md)**
   Documentation related REST endpoints
 
@@ -52,9 +59,6 @@ Gerrit 接受额外的查询参数 `$m` 来重载请求方式（PUT，POST，DEL
 JSON 的相应使用 UTF-8 编码，内容类型使用 `application/json`。
 
 默认，API 会返回容读格式的 JSON，这样的格式中包含一些额外的空格。
-
-Compact JSON can be requested by setting the `pp=0` query parameter,
-or by setting the `Accept` HTTP request header to include `application/json`:
 
 通过设置 `pp=0` 查询参数或者设置 `Accept`（不过需要 HTTP 的请求头部需要包含 `application/json`）来发送 JSON 格式的请求：
 

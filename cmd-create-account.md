@@ -19,7 +19,7 @@ _ssh_ -p <port> <host> _gerrit create-account_
 
 创建用户时如果没有添加 email，那么只能创建 batch 角色，例如自动构建系统的帐号，或者用于监控 [gerrit stream-events](cmd-stream-events.md) 的帐号。
 
-batch 角色的帐号，需要添加到群组 'Non-Interactive Users' 中。
+batch 角色的帐号，需要添加到群组 'Service Users' 中。
 
 如果使用了 LDAP 认证的方式，创建用户的时候不会与校验 LADP 系统进行校验，因此有时会创建出 LDAP 系统中不存在的帐号。
 
@@ -51,9 +51,9 @@ batch 角色的帐号，需要添加到群组 'Non-Interactive Users' 中。
 	新用户的 HTTP 密码
 
 ## EXAMPLES
-创建用户 `watcher` ，batch 角色，并添加到群组 'Non-Interactive Users' 
+创建用户 `watcher` ，batch 角色，并添加到群组 'Service Users'
 
 ```
-$ cat ~/.ssh/id_watcher.pub | ssh -p 29418 review.example.com gerrit create-account --group "'Non-Interactive Users'" --ssh-key - watcher
+$ cat ~/.ssh/id_watcher.pub | ssh -p 29418 review.example.com gerrit create-account --group "'Service Users'" --ssh-key - watcher
 ```
 

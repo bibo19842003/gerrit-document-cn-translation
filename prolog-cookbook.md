@@ -846,6 +846,25 @@ set_pure_revert_label(label('Is-Pure-Revert', need(_))).
 
 不用在 project.config 文件中配置 `Is-Pure-Revert`，`'Needs Is-Pure-Revert'` 仅用于在 gerrit 页面上显示，当所有的 comment 都解决了，那么 change 就可以合入了。
 
+### Example 17: Make a change submittable if it doesn't include specific files
+
+如果指定的文件有修改，可以阻止此 change 的合入:
+
+`rules.pl`
+
+```prolog
+submit_rule(submit(R)) :-
+  gerrit:includes_file(file(_,_,'SUBMODULE')),
+  !,
+  R = label('All-Submodules-Resolved', need(_)).
+submit_rule(submit(label('All-Submodules-Resolved', ok(A)))) :-
+  gerrit:commit_author(A).
+```
+
+`include_files/1` 可以设置为不同的参数，如文件路径，文件操作，文件类型等。例如：`include_files('a.txt',_,_)`，"a.txt" 更新；('a.txt','D',_) ，删除 "a.txt" 文件的操作。通常 (_,_,_) 表明所有文件 (而不是 magic 文件)。
+
+include_file` 参数介绍:第一个参数为文件名称；第二个参数为文件的修改类型 ('A' 为 'added', 'M' 为 'modified','D' 为 'deleted', 'R' 为 'renamed', 'C' 为 'COPIED' ，'W' 为 'rewrite')；第三个参数为文件类型（'SUBMODULE' 为 submodule 的文件；'REGULAR' 为 non-submodule 文件）。
+
 ## Examples - Submit Type
 
 下面的例子展示了如何定义 submit-type。

@@ -58,6 +58,9 @@ Gerrit 内部的运行情况的数据可以通过 plugin 发送给外部的监�
 * `caches/memory_eviction_count`: Memory 条目移除的数量
 * `caches/disk_cached`: Disk 缓存条目的数量
 * `caches/disk_hit_ratio`: Disk 缓存条目使用的频率
+* `caches/refresh_count`: 缓存的刷新次数
+
+磁盘缓存的度量需要耗费较多的性能，度量默认是关闭的，可以设置 `cache.enableDiskStatMetrics` 参数启动度量。
 
 ### Change
 

@@ -47,7 +47,7 @@ Predefined groups 与 system groups 不同，predefined groups 在 gerrit 初始
 Gerrit 有两个 predefined groups:
 
 * Administrators
-* Non-Interactive Users
+* Service Users
 
 
 ### Administrators
@@ -56,17 +56,17 @@ Gerrit 有两个 predefined groups:
 
 即使用户在管理员群组中，如果没有 'Administrate Server' 权限，那么还是没有管理员权限。
 
-### Non-Interactive-Users
+### Service Users
 
-gerrit 初始化的时候，系统默认给 `Non-Interactive Users` 添加了 'Priority BATCH' 和 'Stream Events' 权限。
+gerrit 初始化的时候，系统默认给 `Service Users` 添加了 'Priority BATCH' 和 'Stream Events' 权限。
 
 此群组中的用户不能在网页上做相关操作，只能通过命令行进行操作。
 
-`Non-Interactive Users` 与 `interactive users` 的线程池是分开的，互相独立的。
+`Service Users` 与 `interactive users` 的线程池是分开的，互相独立的。
 
-一般来说，CI 帐号需要添加到 `Non-Interactive Users` 群组，如果 CI 帐号使用的线程较多的话，不会影响 `interactive users` 的正常使用。
+一般来说，CI 帐号需要添加到 `Service Users` 群组，如果 CI 帐号使用的线程较多的话，不会影响 `interactive users` 的正常使用。
 
-如果帐号同时在 `Non-Interactive Users` 和 `interactive users` 群组中，那么把此帐号视为 `interactive users` 。
+如果帐号同时在 `Service Users` 和 `interactive users` 群组中，那么把此帐号视为 `interactive users` 。
 
 ## Account Groups
 
@@ -93,6 +93,8 @@ LDAP groups 属于 Account Groups 并在 LDAP 系统中进行维护。LDAP group
 ## Project Access Control Lists
 
 全局的访问控制权限可以在 `All-Projects` 中进行配置。project 间的继承关系可以通过命令 [gerrit set-project-parent](cmd-set-project-parent.md) 来实现。
+
+当 project 设置为 `parent projects`，其 `child projects` 会继承 `parent projects` 所有的权限。`All-Projects` 被视为所有 project 的 `parent projects`。
 
 每个 project 可以按需求进行单独的权限配置。
 
@@ -398,6 +400,10 @@ Gerrit 预置了 'Code-Review' 打分项，用户也可以 [自定义打分项](
 
 如果用户没有 `View Private Changes` 权限，那么 change-owner 可以给指定的用户添加此权限。
 
+**NOTE:**
+* 如果 gerrit.config 文件中 `auth.skipFullRefEvaluationIfAllRefsAreVisible` 设置为 `true` (默认配置为 true)，那么`privates changes` 和所有 `change` 的 edit refs 对于用户是可见的，因此有 `refs/*` 读的权限。*
+
+
 ### Toggle Work In Progress state
 
 此参数用于控制 `Work In Progress` 的状态。
@@ -671,7 +677,7 @@ child-project: project.config
 
 ### Create Account
 
-使用 [account creation over the ssh prompt](cmd-create-account.md) 命令创建用户，包括 non-interactive 角色的用户（此用户用于 CI 系统）。
+使用 [account creation over the ssh prompt](cmd-create-account.md) 命令创建用户，包括 Service Users 角色的用户（此用户用于 CI 系统）。
 
 ### Create Group
 
@@ -714,7 +720,7 @@ child-project: project.config
 
 ### Priority
 
-此权限允许 'Non-Interactive Users' 用户使用保留的线程池（参考 [系统配置](config-gerrit.md) 的 batchThreads 部分）。线程池是一个二进制的值。
+此权限允许 'Service Users' 用户使用保留的线程池（参考 [系统配置](config-gerrit.md) 的 batchThreads 部分）。线程池是一个二进制的值。
 
 此权限有三种模式，如下：
 
@@ -722,7 +728,7 @@ child-project: project.config
  用户没有被赋予任何 priority 权限，默认工作在 'INTERACTIVE' 线程池。
 
 **'BATCH'**
- 如果为 'Non-Interactive Users' 配置了线程池，并且用户被赋予了 'BATCH' 权限，那么此用户会在这个独立的线程池中工作。
+ 如果为 'Service Users' 配置了线程池，并且用户被赋予了 'BATCH' 权限，那么此用户会在这个独立的线程池中工作。
 
 **'INTERACTIVE'**
  如果用户赋予了 'INTERACTIVE' 权限，即使被赋予了 'BATCH' 权限，此用户仍然在 'INTERACTIVE' 线程池。

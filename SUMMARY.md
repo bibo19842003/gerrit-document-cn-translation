@@ -1,4 +1,4 @@
-# Gerrit Code Review for Git (v3.1.0) 中文翻译
+# Gerrit Code Review for Git (v3.3.0) 中文翻译
 
 * 翻译说明
     * [翻译说明](README.md)
@@ -8,10 +8,13 @@
     * [为什么要 Code Review?](intro-rockstar.md)
     * [概述说明](intro-quick.md)
     * [Gerrit 是如何运行的](intro-how-gerrit-works.md)
-    * [Gerrit 演示](intro-gerrit-walkthrough.md)
+    * [Gerrit 演练](intro-gerrit-walkthrough.md)
+    * [针对 GitHub 用户的 Gerrit 演练](intro-gerrit-walkthrough-github.md)
+
+* Contributor Guides
     * [Gerrit Community](dev-community.md)
-    * [Contributor Guide](dev-contributing..md)
-* 指南
+    * [如何向社区贡献](dev-community.md)
+* 用户指南
     * [用户基本指南](intro-user.md)
     * [Project-Owner 指南](intro-project-owner.md)
     * [Android 默认工作流程](Default-Android-Workflow.md)
@@ -58,8 +61,8 @@
     * [安装指导](install.md)
     * [系统配置](config-gerrit.md)
     * [命令行](cmd-index.md)
-    * [Replication](aaaaaa.md)
     * [Plugins](config-plugins.md)
+    * [Log Files](log.md)
     * [Metrics](metrics.md)
     * [反向代理](config-reverseproxy.md)
     * [启动阶段的站点自动初始化](config-auto-site-initialization.md)
@@ -129,7 +132,6 @@
     * [cmd-test-submit-type.md](cmd-test-submit-type.md)
     * [cmd-version.md](cmd-version.md)
     * [concept-patch-sets.md](concept-patch-sets.md)
-    * [config-login-register.md](config-login-register.md)
     * [Default-Android-Workflow.md](Default-Android-Workflow.md)
     * [dev-cla.md](dev-cla.md)
     * [dev-community.md](dev-community.md)
@@ -207,6 +209,7 @@
     * [rest-api-groups.md](rest-api-groups.md)
     * [rest-api-plugins.md](rest-api-plugins.md)
     * [rest-api-projects.md](rest-api-projects.md)
+    * [user-attention-set.md](user-attention-set.md)
     * [user-named-destinations.md](user-named-destinations.md)
     * [user-named-queries.md](user-named-queries.md)
     * [user-search-accounts.md](user-search-accounts.md)
@@ -226,6 +229,5 @@
     * [系统设计](dev-design.md)
     * [发布 Gerrit](dev-release.md)
     * [发布 Gerrit 子项目](dev-release-subproject.md)
-    * [发布 JGit](dev-release-jgit.md)
 
 
