@@ -257,7 +257,7 @@ access section 包含了 reference 的权限设置。配置权限时所涉及的
 
 ### MIME Types section
 
-+mimetype+ section 的设置可以强制代码评审页面通过文件路径返回某些 MIME types。MIME types 可以使语法高亮。
+`mimetype section` 的设置可以强制代码评审页面通过文件路径返回某些 MIME types。MIME types 可以使语法高亮。
 
 ```
 [mimetype "text/x-c"]

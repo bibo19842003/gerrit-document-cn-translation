@@ -22,7 +22,7 @@ $ curl -Lo .git/hooks/commit-msg http://review.example.com/tools/hooks/commit-ms
 用户可以从 Gerrit 下载 hook 到本地的 Git repository 里面。
 
 **[commit-msg](cmd-hook-commit-msg.md)**
-	用于在 commit-msg 中自动生成 `Change-Id:` 。
+	用于在 commit-msg 中自动生成 `Change-Id` 。
 
 ## Server
 
@@ -55,7 +55,7 @@ Gerrit 没有提供一个内部交互的 shell，可以通过客户端执行一�
 **[gerrit query](cmd-query.md)**
 	从 index 中搜索 change
 
-**`gerrit receive-pack`**
+**gerrit receive-pack**
 	已废弃，请参考 `git receive-pack`
 
 **[gerrit rename-group](cmd-rename-group.md)**
@@ -147,7 +147,7 @@ Gerrit 没有提供一个内部交互的 shell，可以通过客户端执行一�
 **[gerrit plugin reload](cmd-plugin-reload.md)**
 	重载 plugin
 
-**html[gerrit plugin remove](cmd-plugin-remove.md)**
+**[gerrit plugin remove](cmd-plugin-remove.md)**
 	禁用 plugin
 
 **[gerrit plugin rm](cmd-plugin-remove.md)**

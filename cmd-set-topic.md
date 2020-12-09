@@ -5,7 +5,7 @@ gerrit set-topic 为一个或多个 change 设置 topic
 
 ## SYNOPSIS
 ```
-_ssh_ -p <port> <host> _gerrit set-topic_
+ssh -p <port> <host> gerrit set-topic
   <CHANGE>
   [ --topic <TOPIC> | -t <TOPIC> ]
 ```

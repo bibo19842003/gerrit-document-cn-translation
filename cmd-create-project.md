@@ -5,7 +5,7 @@ gerrit create-project - 创建 project
 
 ## SYNOPSIS
 ```
-_ssh_ -p <port> <host> _gerrit create-project_
+ssh -p <port> <host> gerrit create-project
   [--owner <GROUP> ... | -o <GROUP> ...]
   [--parent <NAME> | -p <NAME> ]
   [--suggest-parents | -S ]

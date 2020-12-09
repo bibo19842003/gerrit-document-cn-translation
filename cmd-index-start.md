@@ -5,7 +5,7 @@ gerrit index start - 在线执行索引操作
 
 ## SYNOPSIS
 ```
-_ssh_ -p <port> <host> _gerrit index start_ <INDEX> [--force]
+ssh -p <port> <host> gerrit index start <INDEX> [--force]
 ```
 
 ## DESCRIPTION

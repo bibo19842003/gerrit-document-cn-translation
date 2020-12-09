@@ -5,7 +5,7 @@ plugin ls - 显示已安装的 plugin
 
 ## SYNOPSIS
 ```
-_ssh_ -p <port> <host> _gerrit plugin ls_
+ssh -p <port> <host> gerrit plugin ls
   [--all | -a]
   [--format {text | json | json_compact}]
 ```
@@ -29,8 +29,8 @@ _ssh_ -p <port> <host> _gerrit plugin ls_
 	输出格式
 
 ```
-**`text`** 文本格式
-**`json`** JSON 格式
-**`json_compact`** 最小 JSON 格式
+text : 文本格式
+json : JSON 格式
+json_compact : 最小 JSON 格式
 ```
 

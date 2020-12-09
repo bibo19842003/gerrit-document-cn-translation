@@ -5,7 +5,7 @@ kill - 取消或放弃指定的后台任务
 
 ## SYNOPSIS
 ```
-_ssh_ -p <port> <host> _kill_ <ID> ...
+ssh -p <port> <host> kill <ID> ...
 ```
 
 ## DESCRIPTION

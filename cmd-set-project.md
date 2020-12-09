@@ -5,7 +5,7 @@ gerrit set-project - 修改 project 的设置
 
 ## SYNOPSIS
 ```
-_ssh_ -p <port> <host> _gerrit set-project_
+ssh -p <port> <host> gerrit set-project
   [--description <DESC> | -d <DESC>]
   [--submit-type <TYPE> | -t <TYPE>]
   [--contributor-agreements <true|false|inherit>]

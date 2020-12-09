@@ -5,7 +5,7 @@ gerrit create-branch - 创建分支
 
 ## SYNOPSIS
 ```
-_ssh_ -p <port> <host> _gerrit create-branch_
+ssh -p <port> <host> gerrit create-branch
   <PROJECT>
   <NAME>
   <REVISION>

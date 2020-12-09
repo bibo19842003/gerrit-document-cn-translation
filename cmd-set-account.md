@@ -5,7 +5,7 @@ gerrit set-account - 更改用户的设置
 
 ## SYNOPSIS
 ```
-_ssh_ -p <port> <host> _gerrit set-account_
+ssh -p <port> <host> gerrit set-account
   [--full-name <FULLNAME>] [--active|--inactive]
   [--add-email <EMAIL>] [--delete-email <EMAIL> | ALL]
   [--preferred-email <EMAIL>]

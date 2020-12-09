@@ -5,7 +5,7 @@ gerrit index changes in project - 对 project 中的所有 change 执行索引�
 
 ## SYNOPSIS
 ```
-_ssh_ -p <port> <host> _gerrit index changes-in-project_ <PROJECT> [<PROJECT> ...]
+ssh -p <port> <host> gerrit index changes-in-project <PROJECT> [<PROJECT> ...]
 ```
 
 ## DESCRIPTION

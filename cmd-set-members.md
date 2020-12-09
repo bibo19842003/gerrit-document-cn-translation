@@ -5,7 +5,7 @@ gerrit set-members - 设置群组成员
 
 ## SYNOPSIS
 ```
-_ssh_ -p <port> <host> _gerrit set-members_
+ssh -p <port> <host> gerrit set-members
   [--add USER ...]
   [--remove USER ...]
   [--include GROUP ...]

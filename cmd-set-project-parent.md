@@ -5,7 +5,7 @@ gerrit set-project-parent - 修改 project 的继承关系
 
 ## SYNOPSIS
 ```
-_ssh_ -p <port> <host> _gerrit set-project-parent_
+ssh -p <port> <host> gerrit set-project-parent
   [--parent <NAME>]
   [--children-of <NAME>]
   [--exclude <NAME>]

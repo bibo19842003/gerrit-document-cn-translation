@@ -5,7 +5,7 @@ gerrit create-account - 创建用户
 
 ## SYNOPSIS
 ```
-_ssh_ -p <port> <host> _gerrit create-account_
+ssh -p <port> <host> gerrit create-account
   [--group <GROUP>]
   [--full-name <FULLNAME>]
   [--email <EMAIL>]

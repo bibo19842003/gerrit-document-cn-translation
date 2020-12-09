@@ -7,7 +7,7 @@ gerrit logging set - 设置 log 的级别
 
 ## SYNOPSIS
 ```
-_ssh_ -p <port> <host> _gerrit logging set-level_ | _set_
+ssh -p <port> <host> gerrit logging set-level | set
   <LEVEL>
   <NAME>
 ```

@@ -5,9 +5,9 @@ gerrit flush-caches - 刷新内存中的缓存
 
 ## SYNOPSIS
 ```
-_ssh_ -p <port> <host> _gerrit flush-caches_ --all
-_ssh_ -p <port> <host> _gerrit flush-caches_ --list
-_ssh_ -p <port> <host> _gerrit flush-caches_ --cache <NAME> ...
+ssh -p <port> <host> gerrit flush-caches --all
+ssh -p <port> <host> gerrit flush-caches --list
+ssh -p <port> <host> gerrit flush-caches --cache <NAME> ...
 ```
 
 ## DESCRIPTION

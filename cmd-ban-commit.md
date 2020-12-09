@@ -5,7 +5,7 @@ gerrit ban-commit - 禁止 commit 的合入
 
 ## SYNOPSIS
 ```
-_ssh_ -p <port> <host> _gerrit ban-commit_
+ssh -p <port> <host> gerrit ban-commit
   [--reason <REASON>]
   <PROJECT>
   <COMMIT> ...

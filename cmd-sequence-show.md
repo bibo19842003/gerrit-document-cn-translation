@@ -5,7 +5,7 @@ gerrit sequence 用于显示当前的 sequence 数值
 
 ## SYNOPSIS
 ```
-_ssh_ -p <port> <host> _gerrit sequence show_ <NAME>
+ssh -p <port> <host> gerrit sequence show <NAME>
 ```
 
 ## DESCRIPTION

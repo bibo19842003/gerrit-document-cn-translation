@@ -5,7 +5,7 @@ gerrit sequence 用户设置 sequence 值
 
 ## SYNOPSIS
 ```
-_ssh_ -p <port> <host> _gerrit sequence set_ <NAME> <VALUE>
+ssh -p <port> <host> gerrit sequence set <NAME> <VALUE>
 ```
 
 ## DESCRIPTION

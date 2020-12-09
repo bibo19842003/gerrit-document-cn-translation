@@ -76,7 +76,7 @@
     * [访问控制](access-control.md)
     * [Changes](concept-changes.md)
     * [refs/for 命名空间](concept-refs-for-namespace.md)
-    * [Patch 设置](concept-patch-set.md)
+    * [Patch 设置](concept-patch-sets.md)
 * 资源
     * [Licenses and Notices](licenses.md)
     * [Gerrit 主页](https://www.gerritcodereview.com)

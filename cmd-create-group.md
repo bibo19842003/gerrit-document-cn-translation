@@ -5,7 +5,7 @@ gerrit create-group - 创建群组
 
 ## SYNOPSIS
 ```
-_ssh_ -p <port> <host> _gerrit create-group_
+ssh -p <port> <host> gerrit create-group
   [--owner <GROUP> | -o <GROUP>]
   [--description <DESC> | -d <DESC>]
   [--member <USERNAME>]

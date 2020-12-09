@@ -5,8 +5,7 @@ reload-config - Reloads the gerrit.config.
 
 ## SYNOPSIS
 ```
-_ssh_ -p <port> <host> _gerrit reload-config_
-  <NAME> ...
+ssh -p <port> <host> gerrit reload-config <NAME> ...
 ```
 
 ## DESCRIPTION

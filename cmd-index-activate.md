@@ -5,7 +5,7 @@ gerrit index activate - 启用最新版本的索引
 
 ## SYNOPSIS
 ```
-_ssh_ -p <port> <host> _gerrit index activate <INDEX>_
+ssh -p <port> <host> gerrit index activate <INDEX>
 ```
 
 ## DESCRIPTION

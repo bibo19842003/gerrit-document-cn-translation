@@ -5,8 +5,7 @@ gerrit close-connection - 关闭具体的 SSH 链接
 
 ## SYNOPSIS
 ```
-_ssh_ -p <port> <host> _gerrit close-connection_ <SESSION_ID>
-   [--wait]
+ssh -p <port> <host> gerrit close-connection <SESSION_ID> [--wait]
 ```
 
 ## DESCRIPTION

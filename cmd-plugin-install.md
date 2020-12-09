@@ -7,7 +7,7 @@ plugin add - 安装 plugin.
 
 ## SYNOPSIS
 ```
-_ssh_ -p <port> <host> _gerrit plugin install_ | _add_
+ssh -p <port> <host> gerrit plugin install | add
   [--name <NAME> | -n <NAME>]
   - | <URL> | <PATH>
 ```
