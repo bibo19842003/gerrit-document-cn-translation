@@ -39,7 +39,7 @@ _java_ -jar gerrit.war _daemon_
  此参数自动启用 '--enable-sshd'。
 
 **--console-log**
-	向控制台发送信息，而不写入 `$site_path/logs/error_log`。
+	向控制台发送信息，如果 `log.textLogging` 或 `log.jsonLogging` 设置为 `true`， 那么 log 写入 `$site_path/logs/error_log`。
 
 **--headless**
 	不启用 gerrit 网页服务。

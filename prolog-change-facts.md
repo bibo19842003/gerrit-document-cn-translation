@@ -21,6 +21,7 @@ Prolog facts about the current change
 |`commit_message/1`   |`commit_message('Fix bug X').`    | Commit message | string
 |`commit_parent_count/1`   |`commit_parent_count(1).`    |Nparent commits 的数量，可以用来检测 `merge commits`
 |`commit_stats/3`   |`commit_stats(5,20,50).`    | 修改行数, 添加行数，删除行数 | --
+|`files/3` |`files(file('modules/jgit', 'A', 'SUBMODULE')).`, `files(file('a.txt', 'M', 'REGULAR')).` | file 的 3 个参数：第一个是文件名称；第二个参数是文件的修改方式（'A' 添加, 'M' 修改, 'D'删除, 'R' 重命名, 'C' 复制，'W' 'rewrite'）；第三个参数为文件的子模块类型（'SUBMODULE' 子模块文件，'REGULAR' 非子模块文件）| |
 |`pure_revert/1`     |`pure_revert(1).`    | change 是否 revert，1 为 revert，0 为非 revert | --
 |`uploader/1`     |`uploader(user(1000000)).`    | Uploader 的 `user(ID)`  | numeric
 |`unresolved_comments_count/1`     |`unresolved_comments_count(0).`    | 未解决的评论数量 | integer

@@ -11,7 +11,7 @@ in charge of:
 * ensuring timely design reviews
 * ensuring that new features are compatible with the project vision and
   are well aligned with other features (give feedback on new
-  [design docs](dev-design-docs.md) within 14 calendar days)
+  [design docs](dev-design-docs.md) within 30 calendar days)
 * approving/rejecting [design docs](dev-design-docs.md), vetoing new features
 * assigning [mentors](dev-roles.md) for approved features
 * accepting new plugins as core plugins

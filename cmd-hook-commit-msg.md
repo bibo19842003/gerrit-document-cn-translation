@@ -37,6 +37,20 @@ hook 在 commit message 中将 `Change-Id` 插入到 `Signed-off-by` 和 `Acked-
 
 如果 git config 将 `gerrit.createChangeId` 设置为 `false`，那么 `Change-Id` 不会添加到 commit message 中。
 
+如果配置了 `gerrit.reviewUrl` 参数，那么在上传 change 的时候，会生成类似 `Change-Id` 信息的链接，便于快速访问相关 change。如：
+
+```
+Improve foo widget by attaching a bar.
+
+We want a bar, because it improves the foo by providing more
+wizbangery to the dowhatimeanery.
+
+Link: https://gerrit-review.googlesource.com/id/Ic8aaa0728a43936cd4c6e1ed590e01ba8f0fbf5b
+Signed-off-by: A. U. Thor <author@example.com>
+```
+
+可以通过此链接来访问 change。方式与 `Change-Id` trailer 类似。
+
 ## OBTAINING
 
 可以使用 scp, curl 或 wget 命令下载脚本 `commit-msg` 。

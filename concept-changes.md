@@ -102,3 +102,19 @@ Gerrit 需要在 commit-msg 的底部（最后一段）有 Change-Id 的信息�
 
 添加 Change-Id 的方式有几种，标准的方式是使用 git 的 [commit-msg hook](cmd-hook-commit-msg.md) 自动在新的 commit 中生成 change-id。
 
+## The Link footer
+
+Gerrit 同样可以修改 message 的 footer 中 `link` 信息，如：
+
+```
+    Link: https://gerrit-review.googlesource.com/id/Ic8aaa0728a43936cd4c6e1ed590e01ba8f0fbf5b
+```
+
+这样做的好处是可以方便访问 change 的 review 页面。例如
+[Linux kernel](https://www.kernel.org/doc/html/latest/maintainer/configure-git.html#creating-commit-links-to-lore-kernel-org)
+ 在 `commit messages` 中添加了 `Link footer` 信息。
+
+如果多个 change 使用了相同的 change-id，比如 cherry-picked 到其他的分支上，此链接会显示出这些 change 的列表。
+
+如果将 `gerrit.reviewUrl` 与 `base URL` 设置成相同的信息，那么 [commit-msg hook](cmd-hook-commit-msg.md) 会使用 `Link footer` 代替 `Change-Id footers`。
+

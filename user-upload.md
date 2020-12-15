@@ -207,9 +207,9 @@ hashtag 在逻辑上把相关的 change 集合到了一起，push 命令中需�
 
 用户可以在 web 上配置此参数的默认值，点击 `用户名` -> `Settings` -> `Preferences`，然后可以配置新 change 的 `work-in-progress` 的默认值。
 
-#### Message
+#### Patch Set Description
 
-评论信息可以通过参数 `message` (`m`) 来添加，如：
+`patch set description` 可以通过参数 `message` (`m`) 来添加，如：
 
 ```shell
   git push ssh://john.doe@git.example.com:29418/kernel/common HEAD:refs/for/experimental%m=This_is_a_rebase_on_master%21

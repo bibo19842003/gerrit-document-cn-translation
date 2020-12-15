@@ -6,7 +6,7 @@
 
 需要安装 bazel，可以参考 [dev-bazel](dev-bazel.md) 中的相关章节。
 
-强烈建议先在命令行下，为 Java 8 使用 bazel 对 gerrit 构建进行验证，确保 `bazel build gerrit` 可以正确执行。
+强烈建议先在命令行下，为 Java 11 使用 bazel 对 gerrit 构建进行验证，确保 `bazel build gerrit` 可以正确执行。
 
 ### IntelliJ version and Bazel plugin
 
@@ -14,10 +14,10 @@
 
 需要注意的是，有的 bazel plugin 版本可能会与 bazel 不兼容。
 
-另外，Java 8 需要通过 `JAVA_HOME` 来明确路径，才可以使用 bazel plugin 进行构建。
+另外，Java 11 需要通过 `JAVA_HOME` 来明确路径，才可以使用 bazel plugin 进行构建。
 
 **TIP:**
-*如果项目与 `Bazel plugin` 使用的 BUILD 文件同步失败并且 IntelliJ 显示 **Could not get Bazel roots** 错误，那么表明 `Bazel plugin` 没有找到 Java 8 。*
+*如果项目与 `Bazel plugin` 使用的 BUILD 文件同步失败并且 IntelliJ 显示 **Could not get Bazel roots** 错误，那么表明 `Bazel plugin` 没有找到 Java 11 。*
 
 ### Installation of IntelliJ IDEA
 

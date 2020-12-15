@@ -61,7 +61,11 @@ design 文档尽可能在各个方面作出详细说明，便于相关人员评�
 
 其他相关文档的 change，可以随时合入。
 
-对于申请，在无变化的情况下，评审人员需要在 14 天内给出结论。
+对于申请，在无变化的情况下，评审人员需要在 30 天内给出结论。
+
+### Meeting discussions
+
+如果 Gerrit 的相关 review 不能有效进行，那么可以考虑会议的方式来进行。[Community managers](https://www.gerritcodereview.com/members.html#community-managers) 可以进行相关的必要协助。
 
 ## design 变更了，如何获取相关信息
 

@@ -4,6 +4,14 @@
 
 当 change 有更新的时候，Gerrit 会自动给相关用户发邮件。
 
+## Recipient Type
+
+收件人的类型如下:
+
+* `to`: 主送。地址所有人可见。
+* `cc`: 抄送。地址所有人可见。
+* `bcc`: 密送。隐藏地址。
+
 ## User Level Settings
 
 用户可以在 watched project 中配置邮件订阅，操作如下：Settings > Watched Projects 
@@ -78,10 +86,6 @@ Project-owner 和管理员可以配置 project 层级的通知邮件。通知邮
 **notify.<name>.header**
 
  邮件头部显示接收人的方式。`BCC` 方式为默认配置。每个 notify 中，只能配置一种方式，不能配置多种方式。
-
-* `to`: 主送。地址所有人可见。
-* `cc`: 抄送。地址所有人可见。
-* `bcc`: 密送。隐藏地址。
 
 **notify.<name>.filter**
 

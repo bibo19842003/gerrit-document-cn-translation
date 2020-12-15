@@ -22,12 +22,12 @@ With `q` parameter, search our documentation index for the terms.
 
 A list of `DocResult` entities is returned describing the results.
 
-.Request
+_Request_
 ```
   GET /Documentation/?q=test HTTP/1.0
 ```
 
-.Response
+_Response_
 ```
   HTTP/1.1 200 OK
   Content-Disposition: attachment
@@ -114,11 +114,10 @@ A list of `DocResult` entities is returned describing the results.
   ]
 ```
 
-.Query documentation
+_Query documentation_
 ```
 **get**/Documentation/?q=keyword
 ```
-
 
 ## JSON Entities
 

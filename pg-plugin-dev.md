@@ -12,34 +12,31 @@ link:pg-plugin-migration.html#migration[migration guide].
 
 ## Plugin loading and initialization
 
-link:js-api.html#_entry_point[Entry point] for the plugin and the loading method
-is based on link:http://w3c.github.io/webcomponents/spec/imports/[HTML Imports]
-spec.
+link:js-api.html#_entry_point[Entry point] for the plugin.
+ 
+* The plugin provides pluginname.js, and can be a standalone file or a static
+   asset in a jar as a link:dev-plugins.html#deployment[Web UI plugin].
 
-* The plugin provides pluginname.html, and can be a standalone file or a static
-  asset in a jar as a link:dev-plugins.html#deployment[Web UI plugin].
-* pluginname.html contains a `dom-module` tag with a script that uses
-  `Gerrit.install()`. There should only be single `Gerrit.install()` per file.
-* PolyGerrit imports pluginname.html along with all required resources defined in it
-  (fonts, styles, etc).
-* For standalone plugins, the entry point file is a `pluginname.html` file
-  located in `gerrit-site/plugins` folder, where `pluginname` is an alphanumeric
-  plugin name.
+* pluginname.js contains a call to `Gerrit.install()`. There should
+  only be single `Gerrit.install()` per file.
+* PolyGerrit imports pluginname.js.
+* For standalone plugins, the entry point file is a `pluginname.js` file
+   located in `gerrit-site/plugins` folder, where `pluginname` is an alphanumeric
+   plugin name.
+ 
+ Note: Code examples target modern browsers (Chrome, Firefox, Safari, Edge).
+ 
+Here's a recommended starter `myplugin.js`:
+ 
 
-Note: Code examples target modern browsers (Chrome, Firefox, Safari, Edge).
+``` js
+Gerrit.install(plugin => {
+  'use strict';
+ 
 
-Here's a recommended starter `myplugin.html`:
+  // Your code here.
+});
 
-``` html
-<dom-module id="my-plugin">
-  <script>
-    Gerrit.install(plugin => {
-      'use strict';
-
-      // Your code here.
-    });
-  </script>
-</dom-module>
 ```
 
 ## Low-level DOM API concepts
@@ -100,34 +97,34 @@ Gerrit.install(plugin => {
 ### Styling DOM Elements
 
 A plugin may provide Polymer's
-https://www.polymer-project.org/2.0/docs/devguide/style-shadow-dom#style-modules[style
-modules] to style individual endpoints using
+https://polymer-library.polymer-project.org/3.0/docs/devguide/style-shadow-dom[style
+modules,role=external,window=_blank] to style individual endpoints using
 `plugin.registerStyleModule(endpointName, moduleName)`. A style must be defined
-as a standalone `<dom-module>` defined in the same .html file.
+as a standalone `<dom-module>` defined in the same .js file.
 
+See `samples/theme-plugin.js` for examples.
+ 
 Note: TODO: Insert link to the full styling API.
+ 
 
-``` html
-<dom-module id="my-plugin">
-  <script>
-    Gerrit.install(plugin => {
-      plugin.registerStyleModule('change-metadata', 'some-style-module');
-    });
-  </script>
-</dom-module>
+``` js
+const styleElement = document.createElement('dom-module');
+styleElement.innerHTML =
+ `<template>
+    <style>
+     html {
 
-<dom-module id="some-style-module">
-  <style>
-    html {
-      --change-metadata-label-status: {
-        display: none;
-      }
-      --change-metadata-strategy: {
-        display: none;
-      }
-    }
-  </style>
-</dom-module>
+      --primary-text-color: red;
+     }
+
+   </style>
+ </template>`;
+
+styleElement.register('some-style-module');
+
+Gerrit.install(plugin => {
+  plugin.registerStyleModule('change-metadata', 'some-style-module');
+});
 ```
 
 ## High-level DOM API concepts
@@ -147,11 +144,11 @@ The low-level DOM API methods are the base of all UI customization.
 `plugin.attributeHelper(element)`
 
 Alternative for
-link:https://www.polymer-project.org/1.0/docs/devguide/data-binding[Polymer data
-binding] for plugins that don't use Polymer. Can be used to bind element
+link:https://polymer-library.polymer-project.org/3.0/docs/devguide/data-binding[Polymer data
+binding,role=external,window=_blank] for plugins that don't use Polymer. Can be used to bind element
 attribute changes to callbacks.
-
-See `samples/bind-parameters.html` for examples on both Polymer data bindings
+ 
+See `samples/bind-parameters.js` for examples on both Polymer data bindings
 and `attibuteHelper` usage.
 
 ### eventHelper
@@ -247,28 +244,31 @@ Gerrit.install(function(self) {
 
 Here's the recommended approach that uses Polymer for generating custom elements:
 
-``` html
-<dom-module id="some-plugin">
-  <script>
-    Gerrit.install(plugin => {
-      plugin.registerCustomComponent(
-        'change-view-integration', 'some-ci-module');
-    });
-  </script>
-</dom-module>
+``` js
+class SomeCiModule extends Polymer.Element {
+  static get is() {
+    return "some-ci-module";
+  }
+  static get template() {
+    return Polymer.html`
+      Sample link: <a href="http://some.com/foo">Foo</a>
+    `;
+  }
+}
 
-<dom-module id="some-ci-module">
-  <template>
-    Sample link: <a href="http://some.com/foo">Foo</a>
-  </template>
-  <script>
-    Polymer({is: 'some-ci-module'});
-  </script>
-</dom-module>
+// Register this element
+customElements.define(SomeCiModule.is, SomeCiModule);
+
+// Install the plugin
+Gerrit.install(plugin => {
+  plugin.registerCustomComponent('change-view-integration', 'some-ci-module');
+});
 ```
+ 
+See `samples/` for more examples.
 
 Here's a minimal example that uses low-level DOM Hooks API for the same purpose:
-
+ 
 ``` js
 Gerrit.install(plugin => {
   plugin.hook('change-view-integration', el => {
@@ -372,91 +372,3 @@ Note: TODO
 
 ### url
 `plugin.url(opt_path)`
-
-Note: TODO
-
-## Deprecated APIs
-
-Some of the deprecated APIs have limited implementation in PolyGerrit to serve
-as a "stepping stone" to allow gradual migration.
-
-### install
-`plugin.deprecated.install()`
-
-.Params:
-- none
-
-Replaces plugin APIs with a deprecated version. This allows use of deprecated
-APIs without changing JS code. For example, `onAction` is not available by
-default, and after `plugin.deprecated.install()` it's accessible via
-`self.onAction()`.
-
-### onAction
-`plugin.deprecated.onAction(type, view_name, callback)`
-
-.Params:
-- `*string* type` Action type.
-- `*string* view_name` REST API action.
-- `*function(actionContext)* callback` Callback invoked on action button click.
-
-Adds a button to the UI with a click callback. Exact button location depends on
-parameters. Callback is triggered with an instance of
-link:#deprecated-action-context[action context].
-
-Support is limited:
-
-- type is either `change` or `revision`.
-
-See link:js-api.html#self_onAction[self.onAction] for more info.
-
-### panel
-`plugin.deprecated.panel(extensionpoint, callback)`
-
-.Params:
-- `*string* extensionpoint`
-- `*function(screenContext)* callback`
-
-Adds a UI DOM element and triggers a callback with context to allow direct DOM
-access.
-
-Support is limited:
-
-- extensionpoint is one of the following:
- * CHANGE_SCREEN_BELOW_COMMIT_INFO_BLOCK
- * CHANGE_SCREEN_BELOW_CHANGE_INFO_BLOCK
-
-See link:js-api.html#self_panel[self.panel] for more info.
-
-### settingsScreen
-`plugin.deprecated.settingsScreent(path, menu, callback)`
-
-.Params:
-- `*string* path` URL path fragment of the screen for direct link.
-- `*string* menu` Menu item title.
-- `*function(settingsScreenContext)* callback`
-
-Adds a settings menu item and a section in the settings screen that is provided
-to plugin for setup.
-
-See link:js-api.html#self_settingsScreen[self.settingsScreen] for more info.
-
-### Action Context (deprecated)
-Instance of Action Context is passed to `onAction()` callback.
-
-Support is limited:
-
-- `popup()`
-- `hide()`
-- `refresh()`
-- `textfield()`
-- `br()`
-- `msg()`
-- `div()`
-- `button()`
-- `checkbox()`
-- `label()`
-- `prependLabel()`
-- `call()`
-
-See link:js-api.html#ActionContext[Action Context] for more info.
-

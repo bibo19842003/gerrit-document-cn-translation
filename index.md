@@ -1,4 +1,4 @@
-# Gerrit Code Review for Git (v3.2.3) 中文翻译
+# Gerrit Code Review for Git (v3.3.0) 中文翻译
 
 * 翻译说明
     * [翻译说明](README.md)
@@ -61,8 +61,8 @@
     * [安装指导](install.md)
     * [系统配置](config-gerrit.md)
     * [命令行](cmd-index.md)
-    * [Replication](aaaaaa.md)
     * [Plugins](config-plugins.md)
+    * [Log Files](log.md)
     * [Metrics](metrics.md)
     * [反向代理](config-reverseproxy.md)
     * [启动阶段的站点自动初始化](config-auto-site-initialization.md)

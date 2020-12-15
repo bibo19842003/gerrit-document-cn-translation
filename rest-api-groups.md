@@ -18,12 +18,12 @@ and accepts the same options as query parameters.
 As result a map is returned that maps the group names to
 `GroupInfo` entries. The entries in the map are sorted by group name.
 
-.Request
+_Request_
 ```
   GET /groups/ HTTP/1.0
 ```
 
-.Response
+_Response_
 ```
   HTTP/1.1 200 OK
   Content-Disposition: attachment
@@ -64,12 +64,12 @@ As result a map is returned that maps the group names to
       "owner_id": "834ec36dd5e0ed21a2ff5d7e2255da082d63bbd7",
       "created_on": "2013-02-01 09:59:32.126000000"
     },
-    "Non-Interactive Users": {
+    "Service Users": {
       "id": "5057f3cbd3519d6ab69364429a89ffdffba50f73",
       "url": "#/admin/groups/uuid-5057f3cbd3519d6ab69364429a89ffdffba50f73",
       "options": {
       },
-      "description": "Users who perform batch actions on Gerrit",
+      "description": "Service accounts that interact with Gerrit",
       "group_id": 4,
       "owner": "Administrators",
       "owner_id": "6a1e70e1a88782771a91808c8af9bbb7a9871389",
@@ -100,7 +100,7 @@ As result a map is returned that maps the group names to
   }
 ```
 
-.Get all groups
+_Get all groups_
 ```
 **get**/groups/
 ```
@@ -128,7 +128,7 @@ it is possible to find all the groups for which the owning group is the given gr
   GET /groups/?owned-By=7ca042f4d5847936fcb90ca91057673157fd06fc HTTP/1.0
 ```
 
-.Response
+_Response_
 ```
   HTTP/1.1 200 OK
   Content-Disposition: attachment
@@ -170,7 +170,7 @@ If the group is owned by the calling user, the returned map contains
 this group. If the calling user doesn't own this group an empty map is
 returned.
 
-.Response
+_Response_
 ```
   HTTP/1.1 200 OK
   Content-Disposition: attachment
@@ -228,7 +228,7 @@ error out.)
   GET /groups/?suggest=ad&p=All-Projects HTTP/1.0
 ```
 
-.Response
+_Response_
 ```
   HTTP/1.1 200 OK
   Content-Disposition: attachment
@@ -265,7 +265,7 @@ List all groups that match regex `test.*group`:
   GET /groups/?r=test.*group HTTP/1.0
 ```
 
-.Response
+_Response_
 ```
   HTTP/1.1 200 OK
   Content-Disposition: attachment
@@ -309,7 +309,7 @@ List all groups that match substring `test/`:
   GET /groups/?m=test%2F HTTP/1.0
 ```
 
-.Response
+_Response_
 ```
   HTTP/1.1 200 OK
   Content-Disposition: attachment
@@ -346,7 +346,7 @@ As result a list of `GroupInfo` entities is returned.
   GET /groups/?query=inname:test HTTP/1.0
 ```
 
-.Response
+_Response_
 ```
   HTTP/1.1 200 OK
   Content-Disposition: attachment
@@ -419,7 +419,7 @@ Retrieves a group.
 As response a `GroupInfo` entity is returned that
 describes the group.
 
-.Response
+_Response_
 ```
   HTTP/1.1 200 OK
   Content-Disposition: attachment
@@ -465,7 +465,7 @@ In the request body additional data for the group can be provided as `GroupInput
 As response the `GroupInfo` entity is returned that
 describes the created group.
 
-.Response
+_Response_
 ```
   HTTP/1.1 201 Created
   Content-Disposition: attachment
@@ -506,7 +506,7 @@ Retrieves a group with the direct members and the directly included groups.
 As response a `GroupInfo` entity is returned that
 describes the group.
 
-.Response
+_Response_
 ```
   HTTP/1.1 200 OK
   Content-Disposition: attachment
@@ -554,7 +554,7 @@ Retrieves the name of a group.
   GET /groups/9999c971bb4ab872aab759d8c49833ee6b9ff320/name HTTP/1.0
 ```
 
-.Response
+_Response_
 ```
   HTTP/1.1 200 OK
   Content-Disposition: attachment
@@ -588,7 +588,7 @@ non-internal group will return 405 Method Not Allowed.
 
 As response the new group name is returned.
 
-.Response
+_Response_
 ```
   HTTP/1.1 200 OK
   Content-Disposition: attachment
@@ -616,7 +616,7 @@ non-internal group will return 405 Method Not Allowed.
   GET /groups/9999c971bb4ab872aab759d8c49833ee6b9ff320/description HTTP/1.0
 ```
 
-.Response
+_Response_
 ```
   HTTP/1.1 200 OK
   Content-Disposition: attachment
@@ -652,7 +652,7 @@ non-internal group will return 405 Method Not Allowed.
 
 As response the new group description is returned.
 
-.Response
+_Response_
 ```
   HTTP/1.1 200 OK
   Content-Disposition: attachment
@@ -676,7 +676,7 @@ Deletes the description of a Gerrit internal group.
   DELETE /groups/9999c971bb4ab872aab759d8c49833ee6b9ff320/description HTTP/1.0
 ```
 
-.Response
+_Response_
 ```
   HTTP/1.1 204 No Content
 ```
@@ -696,7 +696,7 @@ Retrieves the options of a group.
 As response a GroupOptionsInfo entity is
 returned that describes the options of the group.
 
-.Response
+_Response_
 ```
   HTTP/1.1 200 OK
   Content-Disposition: attachment
@@ -733,7 +733,7 @@ non-internal group will return 405 Method Not Allowed.
 
 As response the new group options are returned as a GroupOptionsInfo entity.
 
-.Response
+_Response_
 ```
   HTTP/1.1 200 OK
   Content-Disposition: attachment
@@ -763,7 +763,7 @@ non-internal group will return 405 Method Not Allowed.
 As response a `GroupInfo` entity is returned that
 describes the owner group.
 
-.Response
+_Response_
 ```
   HTTP/1.1 200 OK
   Content-Disposition: attachment
@@ -812,7 +812,7 @@ non-internal group will return 405 Method Not Allowed.
 As response a `GroupInfo` entity is returned that
 describes the new owner group.
 
-.Response
+_Response_
 ```
   HTTP/1.1 200 OK
   Content-Disposition: attachment
@@ -853,7 +853,7 @@ entities is returned that describes the audit events of the group. The
 returned audit events are sorted by date in reverse order so that the
 newest audit event comes first.
 
-.Response
+_Response_
 ```
   HTTP/1.1 200 OK
   Content-Disposition: attachment
@@ -932,7 +932,7 @@ Adds or updates the internal group in the secondary index.
   POST /groups/fdda826a0815859ab48d22a05a43472f0f55f89a/index HTTP/1.0
 ```
 
-.Response
+_Response_
 ```
   HTTP/1.1 204 No Content
 ```
@@ -957,7 +957,7 @@ non-internal group will return 405 Method Not Allowed.
   GET /groups/834ec36dd5e0ed21a2ff5d7e2255da082d63bbd7/members/ HTTP/1.0
 ```
 
-.Response
+_Response_
 ```
   HTTP/1.1 200 OK
   Content-Disposition: attachment
@@ -996,7 +996,7 @@ are not visible to the calling user are ignored.
   GET /groups/834ec36dd5e0ed21a2ff5d7e2255da082d63bbd7/members/?recursive HTTP/1.0
 ```
 
-.Response
+_Response_
 ```
   HTTP/1.1 200 OK
   Content-Disposition: attachment
@@ -1040,7 +1040,7 @@ Retrieves a group member.
 As response a detailed link:rest-api-accounts.html#account-info[
 AccountInfo] entity is returned that describes the group member.
 
-.Response
+_Response_
 ```
   HTTP/1.1 200 OK
   Content-Disposition: attachment
@@ -1073,7 +1073,7 @@ non-internal group will return 405 Method Not Allowed.
 As response a detailed link:rest-api-accounts.html#account-info[
 AccountInfo] entity is returned that describes the group member.
 
-.Response
+_Response_
 ```
   HTTP/1.1 201 Created
   Content-Disposition: attachment
@@ -1127,7 +1127,7 @@ is returned for each user specified in the input, independently of
 whether the user was newly added to the group or whether the user was
 already a member of the group.
 
-.Response
+_Response_
 ```
   HTTP/1.1 200 OK
   Content-Disposition: attachment
@@ -1165,7 +1165,7 @@ non-internal group will return 405 Method Not Allowed.
   DELETE /groups/MyProject-Committers/members/John%20Doe HTTP/1.0
 ```
 
-.Response
+_Response_
 ```
   HTTP/1.1 204 No Content
 ```
@@ -1193,7 +1193,7 @@ body as a MembersInput entity.
   }
 ```
 
-.Response
+_Response_
 ```
   HTTP/1.1 204 No Content
 ```
@@ -1218,7 +1218,7 @@ non-internal group will return 405 Method Not Allowed.
   GET /groups/834ec36dd5e0ed21a2ff5d7e2255da082d63bbd7/groups/ HTTP/1.0
 ```
 
-.Response
+_Response_
 ```
   HTTP/1.1 200 OK
   Content-Disposition: attachment
@@ -1255,7 +1255,7 @@ Retrieves a subgroup.
 As response a `GroupInfo` entity is returned that
 describes the subgroup.
 
-.Response
+_Response_
 ```
   HTTP/1.1 200 OK
   Content-Disposition: attachment
@@ -1294,7 +1294,7 @@ non-internal group will return 405 Method Not Allowed.
 As response a `GroupInfo` entity is returned that
 describes the subgroup.
 
-.Response
+_Response_
 ```
   HTTP/1.1 201 Created
   Content-Disposition: attachment
@@ -1353,7 +1353,7 @@ is returned for each group specified in the input, independently of
 whether the group was newly added as subgroup or whether the
 group was already a subgroup of the group.
 
-.Response
+_Response_
 ```
   HTTP/1.1 200 OK
   Content-Disposition: attachment
@@ -1401,7 +1401,7 @@ non-internal group will return 405 Method Not Allowed.
   DELETE /groups/MyProject-Committers/groups/MyGroup HTTP/1.0
 ```
 
-.Response
+_Response_
 ```
   HTTP/1.1 204 No Content
 ```
@@ -1429,7 +1429,7 @@ GroupsInput entity.
   }
 ```
 
-.Response
+_Response_
 ```
   HTTP/1.1 204 No Content
 ```
@@ -1449,13 +1449,11 @@ This can be:
 ### \{group-name\}
 Group name that uniquely identifies one group.
 
-
 ## JSON Entities
 
 ### GroupAuditEventInfo
 The `GroupAuditEventInfo` entity contains information about an audit
 event of a group.
-
 
 |Field Name|Description
 | :------| :------|
@@ -1463,7 +1461,6 @@ event of a group.
 |`type`    |The event type, can be: `ADD_USER`, `REMOVE_USER`, `ADD_GROUP` or `REMOVE_GROUP`.`ADD_USER`: A user was added as member to the group.`REMOVE_USER`: A user member was removed from the group.`ADD_GROUP`: A group was included as member in the group.`REMOVE_GROUP`: An included group was removed from the group.
 |`user`    |The user that did the add/remove as detailed AccountInfo entity.
 |`date`    |The timestamp of the event.
-
 
 ### GroupInfo
 The `GroupInfo` entity contains information about a group. This can be
@@ -1484,15 +1481,14 @@ a Gerrit internal group, or an external group that is known to Gerrit.
 |`members`     |optional, only for internal groups|A list of AccountInfo entities describing the direct members. Only set if members are requested.
 |`includes`    |optional, only for internal groups|A list of `GroupInfo` entities describing the direct subgroups. Only set if subgroups are requested.
 
-
 The type of a group can be deduced from the group's UUID:
+
 |Description|group
 | :------|:------|
 |UUID matches "^[0-9a-f]\{40\}$"|Gerrit internal group
 |UUID starts with "global:"|Gerrit system group
 |UUID starts with "ldap:"|LDAP group
 |UUID starts with "<prefix>:"|other external group
-
 
 ### GroupInput
 The 'GroupInput' entity contains information for the creation of
@@ -1514,7 +1510,6 @@ Options of the group.
 | :------| :------| :------|
 |`visible_to_all`|not set if `false`|Whether the group is visible to all registered users.
 
-
 ### GroupOptionsInput
 New options for a group.
 
@@ -1534,7 +1529,6 @@ be included into a group or that should be deleted from a group.
 ### MembersInput
 The `MembersInput` entity contains information about accounts that should
 be added as members to a group or that should be deleted from the group.
-
 
 |Field Name   ||Description
 | :------| :------| :------|

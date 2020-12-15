@@ -1,4 +1,4 @@
-# Gerrit Code Review for Git (v3.2.3) 中文翻译
+# Gerrit Code Review for Git (v3.3.0) 中文翻译
 
 * 翻译说明
     * [翻译说明](README.md)
@@ -61,8 +61,8 @@
     * [安装指导](install.md)
     * [系统配置](config-gerrit.md)
     * [命令行](cmd-index.md)
-    * [Replication](aaaaaa.md)
     * [Plugins](config-plugins.md)
+    * [Log Files](log.md)
     * [Metrics](metrics.md)
     * [反向代理](config-reverseproxy.md)
     * [启动阶段的站点自动初始化](config-auto-site-initialization.md)
@@ -136,7 +136,6 @@
     * [cmd-test-submit-type.md](cmd-test-submit-type.md)
     * [cmd-version.md](cmd-version.md)
     * [concept-patch-sets.md](concept-patch-sets.md)
-    * [config-login-register.md](config-login-register.md)
     * [Default-Android-Workflow.md](Default-Android-Workflow.md)
     * [dev-cla.md](dev-cla.md)
     * [dev-community.md](dev-community.md)
@@ -215,6 +214,7 @@
     * [rest-api-groups.md](rest-api-groups.md)
     * [rest-api-plugins.md](rest-api-plugins.md)
     * [rest-api-projects.md](rest-api-projects.md)
+    * [user-attention-set.md](user-attention-set.md)
     * [user-named-destinations.md](user-named-destinations.md)
     * [user-named-queries.md](user-named-queries.md)
     * [user-search-accounts.md](user-search-accounts.md)

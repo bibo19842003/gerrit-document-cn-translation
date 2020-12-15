@@ -91,3 +91,36 @@ ESC 评审过程中发现的问题需要添加到 issue 中。
    ** [plugins.bzl](https://gerrit.googlesource.com/gerrit/+/refs/heads/master/tools/bzl/plugins.bzl) 中注 register 此 plugin。
    ** 发布此 plugin 的[project 信息](https://www.gerritcodereview.com/news.html) 。
 
+### Removing Core Plugins
+
+下列情况 core plugin 会被移除：
+
+1. 不尊重 license:
+
+plugin 代码或者所使用的 libraries 不再遵循 `Apache License Version 2.0`
+
+2. 功能越界:
+
+plugin 功能超出了 Gerrit 的相关范围，或者与现有的 core plugin 功能相冲突，或与 Gerrit 的核心功能相冲突。
+
+**NOTE:**
+*plugin 会一直保留，直到执行可取代的方案。*
+
+3. 功能不相关:
+
+plugin 的功能与 Gerrit 的功能不相关:
+
+   ** Gerrit 有了 plugin 提供的功能。
+   ** plugin 不被广泛使用。
+   ** 多个组织废弃使用某个 plugin，并同意从 core plugin 中移除。
+   ** 功能与其他 plugin 冲突，并且没有特殊的推荐使用理由。
+   ** plugin 的功能偏离了 Gerrit 的发展方向。
+
+4. 代码质量降低:
+
+plugin 的代码维护不及时，并且测试力度不够。
+
+5. 文档不及时维护:
+
+plugin 的文档不能正确描述其功能。
+

@@ -15,10 +15,10 @@
 构建 gerrit 源码，需要工具如下：
 
 * Linux 或 macOS 操作系统 (目前不支持 Windows 操作系统)
-* Java 版本：8|9|10|11|...
+* Java 版本：8|11|...
 * Python 2 or 3
 * [Node.js (including npm)](https://github.com/nodesource/distributions/blob/master/README.md)
-* Bower (`sudo npm install -g bower`)
+* Bower (`npm install -g bower`)
 * [Bazel](https://docs.bazel.build/versions/master/install.html) 和 [Bazelisk](https://github.com/bazelbuild/bazelisk)
 * Maven
 * zip, unzip
@@ -27,7 +27,7 @@
 
 ### Bazel
 
-[Bazelisk](https://github.com/bazelbuild/bazelisk) 包括了 [Bazel](https://bazel.build/) 的版本检查和下载的功能。对 Gerrit 来说，`bazel` 使用 Bazelisk 进行启动。安装 Bazelisk 后，会自动创建 `bazel` 的链接文件，因此当执行 `bazel` 命令时，会调用 Bazelisk。
+[Bazelisk](https://github.com/bazelbuild/bazelisk) 是 [Bazel](https://bazel.build/) 的一个版本管理工具, 类似于 `nvm` 管理着 `npm` 的版本。Bazelisk 负责 Bazel 的下载和安装，因此不用担心 Bazel 版本的问题。Bazelisk 有着多种的 [安装](https://docs.bazel.build/install-bazelisk.html) 方法。
 
 ### Java
 
@@ -38,6 +38,22 @@
 Java 可以在下面的路径中找到 "/System/Library/Frameworks/JavaVM.framework/Versions"。
 
 可以打开一个命令行窗口执行 `java -version` 命令来查看 Java 版本。
+
+#### Java 8 support (deprecated)
+
+gerrit 在未来会放弃对 Java 8 的支持。当前使用 Java 8 构建 Gerrit 的命令如下：
+
+```
+  $ bazel build --java_toolchain //tools:error_prone_warnings_toolchain :release
+```
+
+#### Java 11 support
+
+当前默认使用 Java 11 进行 Gerrit 的构建，构建命令如下：
+
+```
+  $ bazel build :release
+```
 
 #### Java 13 support
 
@@ -70,29 +86,16 @@ Java 可以在下面的路径中找到 "/System/Library/Frameworks/JavaVM.framew
 
 ```
 $ cat << EOF > ~/.bazelrc
-> build --define=ABSOLUTE_JAVABASE=<path-to-java-13>
-> build --javabase=@bazel_tools//tools/jdk:absolute_javabase
-> build --host_javabase=@bazel_tools//tools/jdk:absolute_javabase
-> build --host_java_toolchain=@bazel_tools//tools/jdk:toolchain_vanilla
-> build --java_toolchain=@bazel_tools//tools/jdk:toolchain_vanilla
-> EOF
+build --define=ABSOLUTE_JAVABASE=<path-to-java-13>
+build --javabase=@bazel_tools//tools/jdk:absolute_javabase
+build --host_javabase=@bazel_tools//tools/jdk:absolute_javabase
+build --host_java_toolchain=@bazel_tools//tools/jdk:toolchain_vanilla
+build --java_toolchain=@bazel_tools//tools/jdk:toolchain_vanilla
+EOF
 ```
 
 现在，执行 `bazel build :release` 命令时，会调用上面的参数。
 
-#### Java 11 support
- 
-通过变更 `java toolchain` 的 [Bazel 参数](https://docs.bazel.build/versions/master/toolchains.html)，可以支持 Java 11 的使用。为了在构建的时候使用 Java 11,需要明确 JDK 11 java toolchain：
- 
- ```
-   $ bazel build \
-      --host_javabase=@bazel_tools//tools/jdk:remote_jdk11 \
-      --javabase=@bazel_tools//tools/jdk:remote_jdk11 \
-      --host_java_toolchain=@bazel_tools//tools/jdk:toolchain_java11 \
-      --java_toolchain=@bazel_tools//tools/jdk:toolchain_java11 \
-       :release
- ```
- 
 ### Node.js and npm packages
 参考 [Installing Node.js and npm packages](https://gerrit.googlesource.com/gerrit/+/master/polygerrit-ui/README.md#installing-node_js-and-npm-packages).
  

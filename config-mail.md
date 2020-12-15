@@ -67,9 +67,9 @@ Merged 模板，change 合入代码库的信息。属于 `ChangeEmail`，参考 
 
 NewChange 模板，新 change 的信息。属于 `ChangeEmail`，参考 `ChangeSubject.soy`, ChangeFooter。
 
-### RegisterNewEmail.soy
+### RegisterNewEmail.soy and RegisterNewEmailHtml.soy
 
-`RegisterNewEmail.soy` 模板，注册新邮箱的信息。
+这两个模板决定了注册新邮箱帐号时邮件的内容。
 
 ### ReplacePatchSet.soy and ReplacePatchSetHtml.soy
 
