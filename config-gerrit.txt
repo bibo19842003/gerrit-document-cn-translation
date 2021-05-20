@@ -504,10 +504,10 @@ the "Switch Account" link is displayed next to "Sign Out".
 +
 When `auth.type` does not normally enable this URL administrators may
 set this to `login/`, allowing users to begin a new web session. This value
-is used as an href in PolyGerrit, so absolute URLs like
+is used as an href in the Gerrit web app, so absolute URLs like
 `https://someotherhost/login` work as well.
 +
-If a ${path} parameter is included, then PolyGerrit will substitute the
+If a ${path} parameter is included, then the Gerrit web app will substitute the
 currently viewed path in the link. Be aware that this path will include
 a leading slash, so a value like this might be appropriate: `/login${path}`.
 
@@ -604,7 +604,14 @@ it does not match, it is then validated against the `LDAP` password.
 By default this is set to `LDAP` when link:#auth.type[`auth.type`] is `LDAP`
 and `OAUTH` when link:#auth.type[`auth.type`] is `OAUTH`.
 Otherwise, the default value is `HTTP`.
-
++
+When gitBasicAuthPolicy is set to `LDAP` or `HTTP_LDAP` and the user
+is authenticating with the LDAP username/password, the Git client config
+needs to have `http.cookieFile` set to a local file, otherwise every
+single call would trigger a full LDAP authentication and groups resolution
+which could introduce a noticeable latency on the overall execution
+and produce unwanted load to the LDAP server.
++
 [[auth.gitOAuthProvider]]auth.gitOAuthProvider::
 +
 Selects the OAuth 2 provider to authenticate git over HTTP traffic with.
@@ -634,7 +641,9 @@ set to `${sAMAccountName.toLowerCase}`). It is important that for all
 existing accounts this username is already in lower case. It is not
 possible to convert the usernames of the existing accounts to lower
 case because this would break the access to existing per-user
-branches and Gerrit provides no tool to do such a conversion.
+branches and Gerrit provides no tool to do such a conversion. Accounts
+created using the REST API or the `create-account` SSH command will
+be created with all lowercase characters, when this option is set.
 +
 Setting this parameter to `true` will prevent all users from login that
 have a non-lower-case username.
@@ -815,6 +824,7 @@ Default is 1024 for most caches, except:
 * `"groups"`: default is unlimited
 * `"groups_byname"`: default is unlimited
 * `"groups_byuuid"`: default is unlimited
+* `"groups_byuuid_persisted"`: default is `1g` (1 GiB of disk space)
 * `"plugin_resources"`: default is 2m (2 MiB of memory)
 
 +
@@ -994,6 +1004,11 @@ The cache is persisted to disk across server restarts as it can
 be expensive to compute (60 or more seconds for a large history
 like the Linux kernel repository).
 
+cache `"comment_context"`::
++
+Caches the context lines of comments, which are the lines of the source file
+highlighted by the user when the comment was written.
+
 cache `"groups"`::
 +
 Caches the basic group information of internal groups by group ID,
@@ -1029,6 +1044,17 @@ For this cache it is important to configure a size that is larger than
 the number of internal Gerrit groups, otherwise general Gerrit
 performance may be poor. This is why by default this cache is
 unlimited.
++
+External group membership obtained from LDAP is cached under
+`"ldap_groups"`.
+
+cache `"groups_byuuid_persisted"`::
++
+Caches the basic group information of internal groups by group UUID,
+including the group owner, name, and description.
++
+This is the persisted version of `groups_byuuid` cache. The intention of this
+cache is to have an in-memory size of 0.
 +
 External group membership obtained from LDAP is cached under
 `"ldap_groups"`.
@@ -1314,23 +1340,26 @@ assignee are enabled.
 +
 The default is false.
 
-[[change.largeChange]]change.largeChange::
-+
-Number of changed lines from which on a change is considered as a large
-change. The number of changed lines of a change is the sum of the lines
-that were inserted and deleted in the change.
-+
-The specified value is used to visualize the change sizes in the Web UI
-in change tables and user dashboards.
-+
-By default 500.
-
 [[change.maxComments]]change.maxComments::
 +
 Maximum number of comments (regular plus robot) allowed per change. Additional
 comments are rejected.
 +
 By default 5,000.
+
+[[change.maxFiles]]change.maxFiles::
++
+Maximum number of files allowed per change. Larger changes are rejected and must
+be split up.
++
+By default 100,000.
+
+[[change.maxPatchSets]]change.maxPatchSets::
++
+Maximum number of patch sets allowed per change. If this is insufficient,
+recreate the change with a new Change-Id, then abandon the old change.
++
+By default 1,500.
 
 [[change.maxUpdates]]change.maxUpdates::
 +
@@ -1378,7 +1407,7 @@ This config can have the following states:
   query operator. Gerrit does not serve `mergeable` in
   link:rest-api-changes.html#change-info[ChangeInfo].
 
-Default is `REF_UPDATED_AND_CHANGE_REINDEX`.
+Default is `NEVER`.
 
 [[change.move]]change.move::
 +
@@ -1721,6 +1750,12 @@ configuration:
 ----
   javaOptions = -Dlog4j.configuration=file:///home/gerrit/site/etc/log4j.properties
 ----
++
+Gerrit built-in loggers are then ignored: error logger (`error_log` file),
+link:#httpd.requestLog[httpd.requestLog] and
+link:#sshd.requestLog[sshd.requestLog]. The
+link:#log.jsonLogging[log.jsonLogging] and
+link:#log.textLogging[log.textLogging] options are also ignored.
 
 [[container.daemonOpt]]container.daemonOpt::
 +
@@ -2108,6 +2143,13 @@ relative to `gerrit.basePath`.
 +
 Defaults to `All-Projects` if not set.
 
+[[gerrit.defaultBranch]]gerrit.defaultBranch::
++
+Name of the link:project-configuration.html#default-branch[default branch]
+to use on the project creation, if no other branches were specified in the input.
++
+Defaults to `refs/heads/master` if not set.
+
 [[gerrit.allUsers]]gerrit.allUsers::
 +
 Name of the project in which meta data of all users is stored.
@@ -2183,11 +2225,21 @@ to have Gerrit display URLs from this server, rather than itself.
 By default unset, as the HTTP daemon must be configured externally
 by the system administrator, and might not even be running on the
 same host as Gerrit.
-
++
+[[gerrit.installBatchModule]]gerrit.installBatchModule::
++
+Repeatable list of class name of additional Guice modules to load as
+override to the batchInjector's modules during the init phases.
+Classes are resolved using the primary Gerrit class loader, hence the
+class needs to be either declared in Gerrit or an additional JAR
+located under the `/lib` directory.
++
+By default unset.
++
 [[gerrit.installDbModule]]gerrit.installDbModule::
 +
 Repeatable list of class name of additional Guice modules to load at
-Gerrit startup as part of the dbInjector and during the init phases.
+Gerrit startup as part of the dbInjector.
 Classes are resolved using the primary Gerrit class loader, hence the
 class needs to be either declared in Gerrit or an additional JAR
 located under the `/lib` directory.
@@ -2197,7 +2249,7 @@ By default unset.
 [[gerrit.installModule]]gerrit.installModule::
 +
 Repeatable list of class name of additional Guice modules to load at
-Gerrit startup as part of the sysInjector and during the init phases.
+Gerrit startup as part of the sysInjector.
 Classes are resolved using the primary Gerrit class loader, hence the
 class needs to be either declared in Gerrit or an additional JAR
 located under the `/lib` directory.
@@ -2210,6 +2262,7 @@ Example:
   installModule = com.googlesource.gerrit.libmodule.MyModule
   installModule = com.example.abc.OurSpecialSauceModule
   installDbModule = com.example.def.OurCustomProvider
+  installBatchModule = com.example.ghi.CustomBatchInitModule
 ----
 
 [[gerrit.listProjectsFromIndex]]gerrit.listProjectsFromIndex::
@@ -2252,16 +2305,11 @@ URL to direct users to when they need to report a bug.
 By default unset, meaning no bug report URL will be displayed. Administrators
 should set this to the URL of their issue tracker, if necessary.
 
-[[gerrit.enableReverseDnsLookup]]gerrit.enableReverseDnsLookup::
-+
-Enable reverse DNS lookup during computing ref log entry for identified user,
-to record the actual hostname of the user's host in the ref log.
-+
-Enabling reverse DNS lookup can cause performance issues on git push when
-the reverse DNS lookup is slow.
-+
-Defaults to false, reverse DNS lookup is disabled. The user's IP address
-will be recorded in the ref log rather than their hostname.
+[[gerrit.enablePeerIPInReflogRecord]]gerrit.enablePeerIPInReflogRecord::
+
+Record actual peer IP address in ref log entry for identified user.
+
+Defaults to false.
 
 [[gerrit.secureStoreClass]]gerrit.secureStoreClass::
 +
@@ -2301,11 +2349,11 @@ By default SAMEORIGIN.
 
 [[gerrit.cdnPath]]gerrit.cdnPath::
 +
-Path prefix for PolyGerrit's static resources if using a CDN.
+Path prefix for Gerrit's static resources if using a CDN.
 
 [[gerrit.faviconPath]]gerrit.faviconPath::
 +
-Path for PolyGerrit's favicon after link:#gerrit.canonicalWebUrl[default URL],
+Path for Gerrit's favicon after link:#gerrit.canonicalWebUrl[default URL],
 including icon name and extension (.ico should be used).
 
 [[gerrit.instanceId]]gerrit.instanceId::
@@ -2407,7 +2455,7 @@ Optional pattern to use for constructing the gitweb URL when pointing
 at a specific commit when `gitweb.type` is set to `custom`.
 +
 Valid replacements are `${project}` for the project name in Gerrit
-and `${commit}` for the SHA1 hash for the commit.
+and `${commit}` for the SHA-1 hash for the commit.
 
 [[gitweb.project]]gitweb.project::
 +
@@ -2439,7 +2487,7 @@ at the contents of the root tree in a specific commit when `gitweb.type`
 is set to `custom`.
 +
 Valid replacements are `${project}` for the project name in Gerrit
-and `${commit}` for the SHA1 hash for the commit.
+and `${commit}` for the SHA-1 hash for the commit.
 
 [[gitweb.file]]gitweb.file::
 +
@@ -2448,7 +2496,7 @@ at the contents of a file in a specific commit when `gitweb.type` is
 set to `custom`.
 +
 Valid replacements are `${project}` for the project name in Gerrit,
-`${file}` for the file name and `${commit}` for the SHA1 hash for
+`${file}` for the file name and `${commit}` for the SHA-1 hash for
 the commit.
 
 [[gitweb.filehistory]]gitweb.filehistory::
@@ -2500,6 +2548,18 @@ Valid values are `true` and `false`. The default is `true`.
 
 [[groups]]
 === Section groups
+
+[[groups.includeExternalUsersInRegisteredUsersGroup]]groups.includeExternalUsersInRegisteredUsersGroup::
++
+Controls whether external users (these are users we have sufficient
+knowledge about but who don't yet have a Gerrit account) are considered
+to be members of the `REGISTERED_USERS` group.
++
+This setting only makes sense if you run custom code (e.g. from a plugin
+or a custom authentication backend). By default, Gerrit core always requires
+users to register and doesn't use external users.
++
+By default, true.
 
 [[groups.newGroupsVisibleToAll]]groups.newGroupsVisibleToAll::
 +
@@ -3265,10 +3325,6 @@ WARNING: Support for Elasticsearch is still experimental and is not recommended
 for production use. For compatibility information, please refer to the
 link:https://www.gerritcodereview.com/elasticsearch.html[project homepage,role=external,window=_blank].
 
-In Elasticsearch version 6.2 or later, the open and closed changes are merged
-into the default `_doc` type. The latter is also used for the accounts and groups
-indices starting with Elasticsearch 6.2.
-
 Note that when Gerrit is configured to use Elasticsearch, the Elasticsearch
 server(s) must be reachable during the site initialization.
 
@@ -3298,7 +3354,7 @@ Sets the number of shards to use per index. Refer to the
 link:https://www.elastic.co/guide/en/elasticsearch/reference/current/index-modules.html#_static_index_settings[
 Elasticsearch documentation,role=external,window=_blank] for details.
 +
-Defaults to 5 for Elasticsearch versions 5 and 6, and to 1 starting with Elasticsearch 7.
+Defaults to 1.
 
 [[elasticsearch.numberOfReplicas]]elasticsearch.numberOfReplicas::
 +
@@ -3315,6 +3371,19 @@ link:https://www.elastic.co/guide/en/elasticsearch/reference/current/index-modul
 Elasticsearch documentation,role=external,window=_blank] for details.
 +
 Defaults to 10000.
+
+[[elasticsearch.connectTimeout]]elasticsearch.connectTimeout::
++
+Sets the timeout for connecting to elasticsearch.
++
+Defaults to `1 second`.
+
+[[elasticsearch.socketTimeout]]elasticsearch.socketTimeout::
++
+Sets the timeout for the underlying connection. For more information, refer to
+link:#httpd.idleTimeout[`httpd.idleTimeout`].
++
+Defaults to `30 seconds`.
 
 ==== Elasticsearch Security
 
@@ -3362,6 +3431,49 @@ Defaults to all available options minus `CHANGE_ACTIONS`,
 config is backwards compatible with what the default was before the config
 was added.
 
+[[event.comment-added.publishPatchSetLevelComment]]event.comment-added.publishPatchSetLevelComment::
++
+Add patch set level comment as event comment. Without this option, patch set
+level comment will not be included in the event comment attribute. Given that
+currently patch set level, file and robot comments are not exposed in the
+`comment-added` event type, those comments will be lost. One particular use
+case is to re-trigger CI build from the change screen by adding a comment with
+specific content, e.g.: `recheck`. Jenkins Gerrit Trigger plugin and Zuul CI
+depend on this feature to trigger change verification.
++
+By default, true.
+
+[[experiments]]
+=== Section experiments
+
+This section covers experimental new features. Gerrit uses experiments
+to research new behavior in frontend and core backend. Once the research is done, the experimental
+feature either stays and the experimentation flag gets removed, or the feature as a whole
+gets removed
+
+[[experiments.enabled]]experiments.enabled::
++
+List of experiments that are currently enabled. The release notes contain currently
+available experiments.
++
+We will not remove experiments in stable patch releases. They are likely to be
+removed in the next stable version.
+
+----
+[experiments]
+  enabled = ExperimentKey
+----
+
+[[experiments.disabled]]experiments.disabled::
++
+List of experiments that are currently disabled. The release notes contain currently
+available experiments. This list disables experiments with the given key that are
+either enabled by default or explicitly in the config.
+
+----
+[experiments]
+  disabled = ExperimentKey
+----
 
 [[ldap]]
 === Section ldap
@@ -3784,8 +3896,13 @@ By default unset.
 
 [[log.jsonLogging]]log.jsonLogging::
 +
-If set to true, enables error, ssh and http logging in JSON format (file name:
-"logs/{error|sshd|httpd}_log.json").
+If set to true, enables error, ssh and http logging in JSON format (file names:
+`logs/error_log.json`, `logs/sshd_log.json` and `logs/httpd_log.json`).
++
+The option only applies to Gerrit built-in loggers. It is ignored when a log4j
+configuration is specified via
+link:#container.javaOptions[container.javaOptions], for example
+`-Dlog4j.configuration=file://etc/log4j.properties`.
 +
 Defaults to false.
 
@@ -3793,6 +3910,11 @@ Defaults to false.
 +
 If set to true, enables error logging in regular plain text format. Can only be disabled
 if `jsonLogging` is enabled.
++
+The option only applies to Gerrit built-in loggers. It is ignored when a log4j
+configuration is specified via
+link:#container.javaOptions[container.javaOptions], for example
+`-Dlog4j.configuration=file://etc/log4j.properties`.
 +
 Defaults to true.
 
@@ -4078,7 +4200,7 @@ Carrying out this check on gits with many refs and commits can be a
 very CPU-heavy operation. For non public Gerrit-servers this check may
 be overkill.
 +
-Only disable this check if you trust the clients not to forge SHA1
+Only disable this check if you trust the clients not to forge SHA-1
 references to access commits intended to be hidden from the user.
 +
 Default is true.
@@ -4719,6 +4841,16 @@ namespace. To alias `replication start` to `gerrit replicate`:
   replicate = replication start
 ----
 
+[[ssh]]
+=== Section ssh
+
+[[ssh.clientImplementation]]ssh.clientImplementation::
++
+JCraft JSch client is supported in addition to Apache MINA SSH client.
+To use JSch client set the value to `JSCH`.
++
+By default, `APACHE`.
+
 [[sshd]]
 === Section sshd
 
@@ -5100,6 +5232,13 @@ A high number would be accurate but slow, and a low number would be
 fast but inaccurate.
 +
 By default 50.
+
+[[suggest.skipServiceUsers]]suggest.skipServiceUsers::
++
+If link:access-control.html#service_users[service users] should be skipped when
+suggesting reviewers.
++
+By default true.
 
 [[tracing]]
 === Section tracing
@@ -5588,10 +5727,10 @@ and "never" suppresses expiration altogether.
 [[protocol.version]]protocol.version::
 +
 If set, the server will accept requests from a client attempting to communicate
-using the specified protocol version. Otherwise communication falls back to version 0.
-If set in file `etc/jgit.config` this option will be used for all repositories of
-the site. It can be overridden for a given repository by configuring a different
-value in the repository's `config` file.
+using the specified protocol version. Default is `2`. If set in file
+`etc/jgit.config` this option will be used for all repositories of the site.
+It can be overridden for a given repository by configuring a different value in
+the repository's `config` file.
 +
 Supported versions:
 0:: the original wire protocol.

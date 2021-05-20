@@ -14,8 +14,11 @@ link:rest-api.html[REST API].
 'POST /changes/'
 --
 
-The change input link:#change-input[ChangeInput] entity must be provided in the
-request body.
+The change input link:#change-input[ChangeInput] entity must be
+provided in the request body. It is not allowed to create changes
+under `refs/tags/` or Gerrit internal ref namespaces such as
+`refs/changes/`, `refs/meta/external-ids/`, and `refs/users/`. The
+request would fail with `400 Bad Request` in this case.
 
 To create a change the calling user must be allowed to
 link:access-control.html#category_push_review[upload to code review].
@@ -150,6 +153,12 @@ limit or a supplied `n` query parameter, the last change object has a
 The `S` or `start` query parameter can be supplied to skip a number
 of changes from the list.
 
+Administrators can use the `skip-visibility` query parameter to skip visibility filtering.
+This can be used to ensure that no changes are missed e.g. when querying for changes which
+need to be reindexed. Without this parameter query results the user has no permission to read
+are filtered out. REST requests with the skip-visibility option are rejected when the current
+user doesn't have the ADMINISTRATE_SERVER capability.
+
 Clients are allowed to specify more than one query by setting the `q`
 parameter multiple times. In this case the result is an array of
 arrays, one per query in the same order the queries were given in.
@@ -216,15 +225,18 @@ default. Optional fields are:
 [[labels]]
 --
 * `LABELS`: a summary of each label required for submit, and
-  approvers that have granted (or rejected) with that label.
+  approvers that have granted (or rejected) with that label
+  as well as all reviewers by state, and reviewers that may
+  be removed by the current user.
 --
 
 [[detailed-labels]]
 --
 * `DETAILED_LABELS`: detailed label information, including numeric
   values of all existing approvals, recognized label values, values
-  permitted to be set by the current user, all reviewers by state, and
-  reviewers that may be removed by the current user.
+  permitted to be set by any reviewer and the change owner, all
+  reviewers by state, and reviewers that may be removed by the
+  current user.
 --
 
 [[current-revision]]
@@ -551,6 +563,72 @@ describes the change.
     }
   }
 ----
+
+Historical state of the change can be retrieved by specifying the
+`meta=SHA-1` parameter. This will use a historical NoteDb snapshot to
+populate ChangeInfo. If the SHA-1 is not reachable as a NoteDb state,
+status code 412 is returned.
+
+[[get-meta-diff]]
+=== Get Meta Diff
+--
+'GET /changes/link:#change-id[\{change-id\}]/meta_diff?old=SHA-1&meta=SHA-1'
+--
+
+Retrieves the difference between two historical states of a change
+by specifying the `old=SHA-1` and the `meta=SHA-1` parameters.
+
+If the `old` parameter is not provided, the parent of the `meta`
+SHA-1 is used. If the `meta` parameter is not provided, the current
+state of the change is used. If neither are provided, the
+difference between the current state of the change and its previous
+state is returned.
+
+Additional fields can be obtained by adding `o` parameters, analogous
+to link:#get-change[Get Change], and the same concerns for Get Change hold for
+this endpoint too. Fields are described in link:#list-changes[Query Changes].
+
+.Request
+----
+  GET /changes/myProject~master~I8473b95934b5732ac55d26311a706c9c2bde9940/meta_diff?old=b083abc34eb6dbdb9e154ba092fc198000e997b4&meta=63b81f2bde703ae07787a940e8fdf9a1828605b1 HTTP/1.0
+----
+
+As a response, two link:#change-info[ChangeInfo] entities are returned
+that describe information added and removed from the `old` change state.
+Only fields that differ between the change's two states are returned.
+
+.Response
+----
+  HTTP/1.1 200 OK
+  Content-Disposition: attachment
+  Content-Type: application/json; charset=UTF-8
+
+  )]}'
+  {
+    "added": {
+      "attention_set": [
+        {
+          "account": {
+            "name": "John Doe"
+          },
+         "last_update": "2013-02-21 11:16:36.775000000",
+         "reason": "reviewer or cc replied"
+        }
+      ]
+      "updated": "2013-02-21 11:16:36.775000000",
+      "topic": "new-topic"
+    },
+    "removed": {
+      "updated": "2013-02-20 12:05:34.111000000",
+      "topic": "old-topic"
+    }
+  }
+----
+
+If the provided SHA-1 for `meta` is not reachable as a NoteDb
+state, the status code 412 is returned. If the SHA-1 for `old`
+is not reachable, the difference between the change at state
+`meta` and an empty change is returned.
 
 [[get-change-detail]]
 === Get Change Detail
@@ -1122,7 +1200,7 @@ If the change had no assignee the response is "`204 No Content`".
 --
 
 Check if the given change is a pure revert of the change it references in `revertOf`.
-Optionally, the query parameter `o` can be passed in to specify a commit (SHA1 in
+Optionally, the query parameter `o` can be passed in to specify a commit (SHA-1 in
 40 digit hex representation) to check against. It takes precedence over `revertOf`.
 If the change has no reference in `revertOf`, the parameter is mandatory.
 
@@ -1385,6 +1463,8 @@ Move a change.
 
 The destination branch must be provided in the request body inside a
 link:#move-input[MoveInput] entity.
+Only veto votes that are blocking the change from submission are moved to
+the destination branch by default.
 
 .Request
 ----
@@ -2039,9 +2119,13 @@ entries. The entries in the map are sorted by file path, and the
 comments for each path are sorted by patch set number. Each comment has
 the `patch_set` and `author` fields set.
 
-If the `enable_context` request parameter is set to true, the comment entries
+If the `enable-context` request parameter is set to true, the comment entries
 will contain a list of link:#context-line[ContextLine] containing the lines of
 the source file where the comment was written.
+
+The `context-padding` request parameter can be used to specify an extra number
+of context lines to be added before and after the comment range. This parameter
+only works if `enable-context` is set to true.
 
 .Request
 ----
@@ -2155,6 +2239,10 @@ Returns a map of file paths to lists of link:#comment-info[CommentInfo]
 entries. The entries in the map are sorted by file path, and the
 comments for each path are sorted by patch set number. Each comment has
 the `patch_set` field set, and no `author`.
+
+The `enable-context` and `context-padding` request parameters can be used to
+request comment context. See link:#list-change-comments[List Change Comments]
+for more details.
 
 .Request
 ----
@@ -5134,6 +5222,8 @@ able to handle this situation. The same holds for drafts which are a reply to a 
 Different than the link:#get-ported-comments[Get Ported Comments] endpoint, the `author` of the
 returned comments is not filled for this endpoint as only comments of the calling user are returned.
 
+This endpoint requires authentication.
+
 .Request
 ----
   GET /changes/myProject~master~I8473b95934b5732ac55d26311a706c9c2bde9940/revisions/674ac754f91e64a0efb8087e59a176484bd534d1/ported_drafts/ HTTP/1.0
@@ -5935,6 +6025,8 @@ A user can only be added if they are not in the attention set.
 If a user is added while already in the attention set, the
 request is silently ignored.
 
+The user must be a reviewer, cc, uploader, or owner on the change.
+
 .Request
 ----
   POST /changes/myProject~master~I8473b95934b5732ac55d26311a706c9c2bde9940/attention HTTP/1.0
@@ -6408,7 +6500,8 @@ Only set if link:#detailed-labels[detailed labels] are requested.
 |`removable_reviewers`|optional|
 The reviewers that can be removed by the calling user as a list of
 link:rest-api-accounts.html#account-info[AccountInfo] entities. +
-Only set if link:#detailed-labels[detailed labels] are requested.
+Only set if link:#labels[labels] or
+link:#detailed-labels[detailed labels] are requested.
 |`reviewers`          |optional|
 The reviewers as a map that maps a reviewer state to a list of
 link:rest-api-accounts.html#account-info[AccountInfo] entities.
@@ -6417,13 +6510,15 @@ Possible reviewer states are `REVIEWER`, `CC` and `REMOVED`. +
 `CC`: Users that were added to the change, but have not voted. +
 `REMOVED`: Users that were previously reviewers on the change, but have
 been removed. +
-Only set if link:#detailed-labels[detailed labels] are requested.
+Only set if link:#labels[labels] or
+link:#detailed-labels[detailed labels] are requested.
 |`pending_reviewers`  |optional|
 Updates to `reviewers` that have been made while the change was in the
 WIP state. Only present on WIP changes and only if there are pending
 reviewer updates to report. These are reviewers who have not yet been
 notified about being added to or removed from the change. +
-Only set if link:#detailed-labels[detailed labels] are requested.
+Only set if link:#labels[labels] or
+link:#detailed-labels[detailed labels] are requested.
 |`reviewer_updates`|optional|
 Updates to reviewers set for the change as
 link:#review-update-info[ReviewerUpdateInfo] entities.
@@ -6442,6 +6537,8 @@ patch set to a link:#revision-info[RevisionInfo] entity. +
 Only set if link:#current-revision[the current revision] is requested
 (in which case it will only contain a key for the current revision) or
 if link:#all-revisions[all revisions] are requested.
+|`meta_rev_id`           |optional|
+The SHA-1 of the NoteDb meta ref.
 |`tracking_ids`       |optional|
 A list of link:#tracking-id-info[TrackingIdInfo] entities describing
 references to external tracking systems. Only set if
@@ -6468,8 +6565,12 @@ If the change that triggered the submission also has a topic, it will be
 The callers must not rely on the format of the submission ID.
 |`cherry_pick_of_change`   |optional|
 The numeric Change-Id of the change that this change was cherry-picked from.
+Only set if the cherry-pick has been done through the Gerrit REST API (and
+not if a cherry-picked commit was pushed).
 |`cherry_pick_of_patch_set`|optional|
 The patchset number of the change that this change was cherry-picked from.
+Only set if the cherry-pick has been done through the Gerrit REST API (and
+not if a cherry-picked commit was pushed).
 |`contains_git_conflicts`  |optional, not set if `false`|
 Whether the change contains conflicts. +
 If `true`, some of the file contents of the change contain git conflict
@@ -6675,12 +6776,16 @@ Available with the link:#list-change-comments[list change comments] endpoint.
 Contains the link:rest-api-changes.html#change-message-info[id] of the change
 message that this comment is linked to.
 |`commit_id` |optional|
-Hex commit SHA1 (40 characters string) of the commit of the patchset to which
+Hex commit SHA-1 (40 characters string) of the commit of the patchset to which
 this comment applies.
 |`context_lines` |optional|
 A list of link:#context-line[ContextLine] containing the lines of the source
-file where the comment was written. Available only if the "enable_context"
+file where the comment was written. Available only if the "enable-context"
 parameter (see link:#list-change-comments[List Change Comments]) is set.
+|`source_content_type` |optional|
+Mime type of the file where the comment is written. Available only if the
+"enable-context" parameter (see link:#list-change-comments[List Change Comments])
+is set.
 
 |===========================
 
@@ -7167,7 +7272,7 @@ and/or remove from, a change.
 |=======================
 |Field Name||Description
 |`add`     |optional|The list of hashtags to be added to the change.
-|`remove   |optional|The list of hashtags to be removed from the change.
+|`remove`  |optional|The list of hashtags to be removed from the change.
 |=======================
 
 [[included-in-info]]
@@ -7344,6 +7449,11 @@ The `MoveInput` entity contains information for moving a change to a new branch.
 |`destination_branch`||Destination branch
 |`message`           |optional|
 A message to be posted in this change's comments
+|`keep_all_votes`    |optional, defaults to false|
+By default, only veto votes that are blocking the change from submission are moved to
+the destination branch. Using this option is only allowed for administrators,
+because it can affect the submission behaviour of the change (depending on the label access
+configuration and submissions rules).
 |===========================
 
 [[notify-info]]
@@ -7458,11 +7568,18 @@ The `RebaseInput` entity contains information for changing parent when rebasing.
 |===========================
 |Field Name    ||Description
 |`base`        |optional|
-The new parent revision. This can be a ref or a SHA1 to a concrete patchset. +
+The new parent revision. This can be a ref or a SHA-1 to a concrete patchset. +
 Alternatively, a change number can be specified, in which case the current
 patch set is inferred. +
 Empty string is used for rebasing directly on top of the target branch,
 which effectively breaks dependency towards a parent change.
+|`allow_conflicts`|optional, defaults to false|
+If `true`, the rebase also succeeds if there are conflicts. +
+If there are conflicts the file contents of the rebased patch set contain
+git conflict markers to indicate the conflicts. +
+Callers can find out whether there were conflicts by checking the
+`contains_git_conflicts` field in the returned link:#change-info[ChangeInfo]. +
+If there are conflicts the change is marked as work-in-progress.
 |===========================
 
 [[related-change-and-commit-info]]
@@ -7615,9 +7732,12 @@ revision.
 The message to be added as review comment.
 |`tag`                                  |optional|
 Apply this tag to the review comment message, votes, and inline
-comments. Tags may be used by CI or other automated systems to
-distinguish them from human reviews. Votes/comments that contain `tag` with
-'autogenerated:' prefix can be filtered out in the web UI.
+comments. Tags with an 'autogenerated:' prefix may be used by CI or other
+automated systems to distinguish them from human reviews. If another
+message was posted on a newer patchset, but with the same tag, then the older
+message will be hidden in the UI. Suffixes starting with `~` are not considered,
+so `autogenerated:my-ci-system~trigger` and `autogenerated:my-ci-system~result`
+will be considered being the same tag with regards to the hiding rule.
 |`labels`                               |optional|
 The votes that should be added to the revision as a map that maps the
 label names to the voting values.
@@ -7662,7 +7782,8 @@ If true, mark the change as work in progress. It is an error for both
 `ready` and `work_in_progress` to be true.
 |`add_to_attention_set`                |optional|
 list of link:#attention-set-input[AttentionSetInput] entities to add
-to the link:#attention-set[attention set].
+to the link:#attention-set[attention set]. Users that are not reviewers,
+ccs, owner, or uploader are silently ignored.
 |`remove_from_attention_set`           |optional|
 list of link:#attention-set-input[AttentionSetInput] entities to remove
 from the link:#attention-set[attention set].
@@ -8049,13 +8170,14 @@ to max values.
 === WebLinkInfo
 The `WebLinkInfo` entity describes a link to an external site.
 
-[options="header",cols="1,6"]
-|======================
-|Field Name|Description
-|`name`    |The link name.
-|`url`     |The link URL.
-|`image_url`|URL to the icon of the link.
-|======================
+[options="header",cols="1,^1,5"]
+|========================
+|Field Name ||Description
+|`name`     ||The link name.
+|`url`      ||The link URL.
+|`image_url`|optional|URL to the icon of the link.
+|`target`   |optional|The target window in which the web link should be opened.
+|========================
 
 [[work-in-progress-input]]
 === WorkInProgressInput

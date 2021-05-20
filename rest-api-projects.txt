@@ -1702,7 +1702,9 @@ List all branches that match regex `t.*1`:
 'GET /projects/link:#project-name[\{project-name\}]/branches/link:#branch-id[\{branch-id\}]'
 --
 
-Retrieves a branch of a project.
+Retrieves a branch of a project. For the "All-Users" repository, the magic
+branch "refs/users/self" is automatically resolved to the user branch of the
+calling user.
 
 .Request
 ----
@@ -1734,7 +1736,9 @@ describes the branch.
 Creates a new branch.
 
 In the request body additional data for the branch can be provided as
-link:#branch-input[BranchInput].
+link:#branch-input[BranchInput]. The link:#branch-id[\{branch-id\}] in the URL
+should exactly match with the `ref` field of link:#branch-input[BranchInput], or
+otherwise the request would fail with `400 Bad Request`.
 
 .Request
 ----
@@ -1846,8 +1850,9 @@ The content is returned as base64 encoded string.
 
 Gets whether the source is mergeable with the target branch.
 
-The `source` query parameter is required, which can be anything that could be
-resolved to a commit, see examples of the `source` attribute in
+The `source` query parameter is required, which can be anything that
+could be resolved to a commit, and is visible to the caller. See
+examples of the `source` attribute in
 link:rest-api-changes.html#merge-input[MergeInput].
 
 Also takes an optional parameter `strategy`, which can be `recursive`, `resolve`,
@@ -2699,7 +2704,10 @@ sorted by file path.
 The integer-valued request parameter `parent` changes the response to return a
 list of the files which are different in this commit compared to the given
 parent commit. This is useful for supporting review of merge commits. The value
-is the 1-based index of the parent's position in the commit object.
+is the 1-based index of the parent's position in the commit object. If the
+value 0 is used for `parent`, the default base commit will be used, which is
+the only parent for commits having one parent or the auto-merge commit
+otherwise.
 
 [[dashboard-endpoints]]
 == Dashboard Endpoints
@@ -3393,6 +3401,8 @@ The `AccessCheckInfo` entity is the result of an access check.
 |`status`                    ||The HTTP status code for the access.
 200 means success and 403 means denied.
 |`message`                   |optional|A clarifying message if `status` is not 200.
+|`debug_logs`                |optional|
+Debug logs that may help to understand why a permission is denied or allowed.
 |=========================================
 
 [[auto_closeable_changes_check_input]]
@@ -3964,6 +3974,9 @@ copyAllScoresIfNoCodeChange] is set on the label.
 |`copy_all_scores_on_trivial_rebase`|`false` if not set|
 Whether link:config-labels.html#label_copyAllScoresOnTrivialRebase[
 copyAllScoresOnTrivialRebase] is set on the label.
+|`copy_all_scores_if_list_of_files_did_not_change`|`false` if not set|
+Whether link:config-labels.html#label_copyAllScoresIfListOfFilesDidNotChange[
+copyAllScoresIfListOfFilesDidNotChange] is set on the label.
 |`copy_all_scores_on_merge_first_parent_update`|`false` if not set|
 Whether link:config-labels.html#label_copyAllScoresOnMergeFirstParentUpdate[
 copyAllScoresOnMergeFirstParentUpdate] is set on the label.
@@ -4031,6 +4044,9 @@ copyAllScoresIfNoCodeChange] is set on the label.
 |`copy_all_scores_on_trivial_rebase`|optional|
 Whether link:config-labels.html#label_copyAllScoresOnTrivialRebase[
 copyAllScoresOnTrivialRebase] is set on the label.
+|`copy_all_scores_if_list_of_files_did_not_change`|optional|
+Whether link:config-labels.html#label_copyAllScoresIfListOfFilesDidNotChange[
+copyAllScoresIfListOfFilesDidNotChange] is set on the label.
 |`copy_all_scores_on_merge_first_parent_update`|optional|
 Whether link:config-labels.html#label_copyAllScoresOnMergeFirstParentUpdate[
 copyAllScoresOnMergeFirstParentUpdate] is set on the label.
@@ -4194,7 +4210,13 @@ link:config-gerrit.html#repository.name.defaultSubmitType[
 repository.<name>.defaultSubmitType] is set to a different value.
 |`branches`                  |optional|
 A list of branches that should be initially created. +
-For the branch names the `refs/heads/` prefix can be omitted.
+For the branch names the `refs/heads/` prefix can be omitted. +
+The first entry of the list will be the
+link:project-configuration.html#default-branch[default branch]. +
+If the list is empty, link:config-gerrit.html#gerrit.defaultBranch[host-level default]
+is used. +
+Branches in the Gerrit internal ref space are not allowed, such as
+refs/groups/, refs/changes/, etc...
 |`owners`                    |optional|
 A list of groups that should be assigned as project owner. +
 Each group in the list must be specified as

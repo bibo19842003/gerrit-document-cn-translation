@@ -48,6 +48,7 @@ changing the attention set:
 * For merged and abandoned changes the owner is added only when a human creates
   an unresolved comment.
 * Only owner, uploader, reviewers and ccs can be in the attention set.
+* The rules for service accounts are different, see link:#bots[Bots].
 
 *!IMPORTANT!* These rules are not meant to be super smart and to always do the
 right thing, e.g. if the change owner sends a reply, then they are often
@@ -85,7 +86,7 @@ take action.
 
 image::images/user-attention-set-reply-select.png["reply dialog section for selecting users", align="center"]
 
-=== Bots
+=== Bots [[bots]]
 
 The attention set is meant for human reviews only. Triggering bots and reacting
 to their results is a different workflow and not in scope of the attenion set.
@@ -145,7 +146,7 @@ If you don't expect action from reviewers, then consider adding them to CC
 instead.
 
 The "Assignee" feature can be turned on/off with the
-link:config-gerrit.html#change.enableAttentionSet[enableAssignee] config option.
+link:config-gerrit.html#change.enableAssignee[enableAssignee] config option.
 
 === Bold Changes / Mark Reviewed
 
@@ -156,14 +157,18 @@ been replaced by the attention set.
 
 === For Gerrit Admins
 
-The Attention Set will be part of the upcoming 3.3 release (due late 2020). It
+The Attention Set has been available since the 3.3 release (late 2020). It
 is enabled by default, but you can disable it by setting
 link:config-gerrit.html#change.enableAttentionSet[enableAttentionSet] to false.
+
+As part of Gerrit 3.3 upgrade, the user group "Non-Interactive Users" is
+renamed "Service Users". For a new installation, the group is automatically
+created upon initialization.
 
 === Important note for all host owners, project owners, and bot owners
 
 If you are a host/project owner, please make sure all bots that run against your
-host/project are part of the "Service Users" group.
+host/project are part of the link:access-control.html#service_users[Service Users] group.
 
 If you are a bot owner, please make sure your bot is part of the "Service Users"
 group on all hosts it runs on.

@@ -35,7 +35,7 @@ text and let Gerrit figure out the meaning:
 |=============================================================
 
 For change searches (i.e. those using a numerical id, Change-Id, or commit
-SHA1), if the search results in a single change that change will be
+SHA-1), if the search results in a single change that change will be
 presented instead of a list.
 
 For more predictable results, use explicit search operators as described
@@ -92,6 +92,18 @@ Changes modified after the given 'TIME', inclusive. Must be in the
 format `2006-01-02[ 15:04:05[.890][ -0700]]`; omitting the time defaults
 to 00:00:00 and omitting the timezone defaults to UTC.
 
+[[mergedbefore]]
+mergedbefore:'TIME'::
++
+Changes merged before the given 'TIME'. The matching behaviour is consistent
+with `before:'TIME'`.
+
+[[mergedafter]]
+mergedafter:'TIME'::
++
+Changes merged after the given 'TIME'. The matching behaviour is consistent
+with `after:'TIME'`.
+
 [[change]]
 change:'ID'::
 +
@@ -106,9 +118,11 @@ as a legacy numerical 'ID' such as 15183, or a newer style Change-Id
 that was scraped out of the commit message.
 
 [[destination]]
-destination:'NAME'::
+destination:'[name=]NAME[,user=USER]'::
 +
-Changes which match the current user's destination named 'NAME'.
+Changes which match the specified USER's destination named 'NAME'. If 'USER'
+is unspecified, the current user is used. The named destinations can be
+publicly accessible by other users.
 (see link:user-named-destinations.html[Named Destinations]).
 
 [[owner]]
@@ -123,9 +137,11 @@ ownerin:'GROUP'::
 Changes originally submitted by a user in 'GROUP'.
 
 [[query]]
-query:'NAME'::
+query:'[name=]NAME[,user=USER]'::
 +
-Changes which match the current user's query named 'NAME'
+Changes which match the specified USER's query named 'NAME'. If 'USER'
+is unspecified, the current user is used. The named queries can be
+publicly accessible by other users.
 (see link:user-named-queries.html[Named Queries]).
 
 [[reviewer]]
@@ -157,9 +173,9 @@ reviewerin:'GROUP'::
 Changes that have been, or need to be, reviewed by a user in 'GROUP'.
 
 [[commit]]
-commit:'SHA1'::
+commit:'SHA-1'::
 +
-Changes where 'SHA1' is one of the patch sets of the change.
+Changes where 'SHA-1' is one of the patch sets of the change.
 
 [[project]]
 project:'PROJECT', p:'PROJECT'::
@@ -173,6 +189,13 @@ library,role=external,window=_blank] is used for evaluation of such patterns.
 projects:'PREFIX'::
 +
 Changes occurring in projects starting with 'PREFIX'.
+
+[[parentof]]
+parentof:'ID'::
+Changes which are parent to the change specified by 'ID'. Change 'ID' can be
+specified as a legacy numerical 'ID' such as 15183, or a Change-Id that can be
+picked from the commit message. This operator will return immediate parents
+and will not return grand parents or higher level ancestors of the given change.
 
 [[parentproject]]
 parentproject:'PROJECT'::

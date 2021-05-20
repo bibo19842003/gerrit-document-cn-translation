@@ -1552,9 +1552,6 @@ section.
 |`allow_blame`        |not set if `false`|
 link:config-gerrit.html#change.allowBlame[Whether blame on side by side diff is
 allowed].
-|`large_change`       ||
-link:config-gerrit.html#change.largeChange[Number of changed lines from
-which on a change is considered as a large change].
 |`reply_label`        ||
 link:config-gerrit.html#change.replyTooltip[Label name for the reply
 button].
@@ -1842,6 +1839,8 @@ Gerrit base path even if this value is unset.)
 Whether to enable the web UI for editing GPG keys.
 |`report_bug_url`    |optional|
 link:config-gerrit.html#gerrit.reportBugUrl[URL to report bugs].
+|`instance_id`       |optional|
+link:config-gerrit.html#gerrit.instanceId[Short identifier for this Gerrit installation].
 |=================================
 
 [[index-config-info]]
@@ -1942,6 +1941,9 @@ extensions by plugins.
 |Field Name    ||Description
 |`has_avatars` |not set if `false`|
 Whether an avatar provider is registered.
+|`js_resource_paths`||
+A list of relative paths (strings). Each path points to a frontend plugin that
+should be loaded, e.g. `plugins/codemirror_editor/static/codemirror_editor.js`.
 |===========================
 
 [[receive-info]]
@@ -2010,7 +2012,7 @@ Information about the configuration from the
 link:config-gerrit.html#user[user] section as link:#user-config-info[
 UserConfigInfo] entity.
 |`default_theme`           |optional|
-URL to a default PolyGerrit UI theme plugin, if available.
+URL to a default Gerrit UI theme plugin, if available.
 Located in `/static/gerrit-theme.js` by default.
 |=======================================
 

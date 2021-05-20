@@ -50,6 +50,9 @@ etc.
 objects needing finalization.
 * `proc/jvm/gc/count`: Number of GCs.
 * `proc/jvm/gc/time`: Approximate accumulated GC elapsed time.
+* `proc/jvm/memory/pool/committed/<pool name>`: Committed amount of memory for pool.
+* `proc/jvm/memory/pool/max/<pool name>`: Maximum amount of memory for pool.
+* `proc/jvm/memory/pool/used/<pool name>`: Used amount of memory for pool.
 * `proc/jvm/thread/num_live`: Current live thread count.
 * `proc/jvm/thread/num_daemon_live`: Current live daemon threads count.
 * `proc/jvm/thread/num_peak_live`: Peak live thread count since the Java virtual machine started or peak was reset.
@@ -76,6 +79,12 @@ setting.
 * `change/submit_rule_evaluation`: Latency for evaluating submit rules on a change.
 * `change/submit_type_evaluation`: Latency for evaluating the submit type on a change.
 
+=== Comments
+
+* `ported_comments/as_patchset_level`: Total number of comments ported as patchset-level comments.
+* `ported_comments/as_file_level`: Total number of comments ported as file-level comments.
+* `ported_comments/as_range_comments`: Total number of comments having line/range values in the ported patchset.
+
 === HTTP
 
 ==== Jetty
@@ -96,6 +105,13 @@ setting.
 * `http/server/jetty/threadpool/min_pool_size`: Minimum thread pool size
 * `http/server/jetty/threadpool/pool_size`: Current thread pool size
 * `http/server/jetty/threadpool/queue_size`: Queued requests waiting for a thread
+
+==== LDAP
+
+* `ldap/login_latency`: Latency of logins.
+* `ldap/user_search_latency`: Latency for searching the user account.
+* `ldap/group_search_latency`: Latency for querying the group memberships of an account.
+* `ldap/group_expansion_latency`: Latency for expanding nested groups.
 
 ==== REST API
 
@@ -180,6 +196,8 @@ having most data in the cache. The number N of reported repositories is limited 
 * `git/upload-pack/phase_compressing`: Time spent in the 'Compressing...' phase.
 * `git/upload-pack/phase_writing`: Time spent transferring bytes to client.
 * `git/upload-pack/pack_bytes`: Distribution of sizes of packs sent to clients.
+* `git/auto-merge/num_operations`: Number of auto merge operations and context.
+* `git/auto-merge/latency`: Latency of auto merge operations and context.
 
 === BatchUpdate
 
