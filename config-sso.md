@@ -27,9 +27,9 @@ Gerrit 可以配置两种格式来匹配网络上的任一一家 OpenID 提供�
 * `http://` -- 使用 HTTP 协议配置所有的 OpenID 提供商
 * `https://` -- 使用 HTTPS 协议配置所有的 OpenID 提供商
 
-例如，仅支持 Yahoo!:
+例如，仅支持 Launchpad:
 ```
-  git config --file $site_path/etc/gerrit.config auth.trustedOpenID https://me.yahoo.com
+  git config --file $site_path/etc/gerrit.config auth.trustedOpenID https://login.launchpad.net/+openid
 ```
 
 ### Database Schema

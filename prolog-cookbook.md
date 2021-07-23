@@ -10,7 +10,7 @@ _Submit Rule_ 通过逻辑来定义 change 是否可以合入。默认情况下�
 *如果要使用 Prolog ，那么需要在 `gerrit.config` 文件中取消或删除 `rules.enable=false` 配置。*
 
 [关于线程的讨论](https://groups.google.com/d/topic/repo-discuss/wJxTGhlHZMM/discussion) 解释了为什么选用 Prolog 来书写 submit 的规则。
-[Gerrit 2.2.2 ReleaseNotes](http://gerrit-documentation.googlecode.com/svn/ReleaseNotes/ReleaseNotes-2.2.2.html) 介绍了 Gerrit 中 prolog 的使用情况。
+[Gerrit 2.2.2 ReleaseNotes](https://gerrit-documentation.storage.googleapis.com/ReleaseNotes/ReleaseNotes-2.2.2.html) 介绍了 Gerrit 中 prolog 的使用情况。
 
 ## Submit Type
 

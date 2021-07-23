@@ -1,4 +1,4 @@
-# Gerrit Code Review for Git (v3.3.0) 中文翻译
+# Gerrit Code Review for Git (v3.4.0) 中文翻译
 
 * 翻译说明
     * [翻译说明](README.md)
@@ -35,6 +35,7 @@
             * [change-id](user-changeid.md)
             * [用户签名](user-signedoffby.md)
             * [清除 change](user-change-cleanup.md)
+            * [Cross Repository Changes using Topics](cross-repository-changes.md)
 * Project 管理
     * [Project 配置](project-configuration.md)
         * [Labels 配置](config-labels.md)
@@ -49,7 +50,6 @@
     * [删除 Project](intro-project-owner.md)
 * Customization and Integration
     * [Dashboards](user-dashboards.md)
-    * [REST API](rest-api.md)
     * [集成 gitweb](config-gitweb.md)
     * [主题配置](config-themes.md)
     * [单点登录系统](config-sso.md)
@@ -67,18 +67,20 @@
     * [反向代理](config-reverseproxy.md)
     * [启动阶段的站点自动初始化](config-auto-site-initialization.md)
     * [服务器端管理员工具](pgm-index.md)
+    * [Repository Maintenance](repository-maintenance.md)
     * [请求跟踪](user-request-tracing.md)
     * [NoteDb](note-db.md)
     * [NoteDb 中的账户](config-accounts.md)
     * [NoteDb 中的群组](config-groups.md)
+    * [User data and privacy](user-privacy.md)
 * 概念
     * [Review Labels](config-labels.md)
     * [访问控制](access-control.md)
     * [Changes](concept-changes.md)
     * [refs/for 命名空间](concept-refs-for-namespace.md)
     * [Patch 设置](concept-patch-sets.md)
+    * [User data and privacy](user-privacy.md)
 * 资源
-    * [Licenses and Notices](licenses.md)
     * [Gerrit 主页](https://www.gerritcodereview.com)
     * [下载](https://gerrit-releases.storage.googleapis.com/index.html)
     * [Issue 跟踪](https://bugs.chromium.org/p/gerrit/issues/list)

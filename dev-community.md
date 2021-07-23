@@ -40,7 +40,7 @@ Gerrit 是一个 [自托管的开源项目](https://gerrit-review.googlesource.c
     * [Mentorship](dev-contributing.md)
 * [Design Docs](dev-design-docs.md)
 * [Developer Setup](dev-readme.md)
-* [Polymer Frontend Developer Setup](https://gerrit.googlesource.com/gerrit/+/master/polygerrit-ui)
+* [TypeScript Frontend Developer Setup](https://gerrit.googlesource.com/gerrit/+/master/polygerrit-ui)
 * [Crafting Changes](dev-crafting-changes.md)
 * [Starter Projects](dev-starter-projects.md)
 
@@ -48,7 +48,7 @@ Gerrit 是一个 [自托管的开源项目](https://gerrit-review.googlesource.c
 * [Plugin Lifecycle](dev-plugins-lifecycle.md)
 * [Developing Plugins](dev-plugins.md)
 * [Building Gerrit plugins](dev-build-plugins.md)
-* [JavaScript Plugin API](js-api.md)
+* [JavaScript Plugin Development and API](pg-plugin-dev.md)
 * [Validation Interfaces](config-validation.md)
 * [Starring Changes](dev-stars.md)
 * [Quota Enforcement](quota.md)

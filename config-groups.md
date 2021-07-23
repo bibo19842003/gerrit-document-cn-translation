@@ -54,7 +54,7 @@ Gerrit 基于 REST API 来更新群组的 ref，使用 commit 的方式来记录
 
 此 map 的格式如下：
 
-* keys : SHA1 样式的组名
+* keys : SHA-1 样式的组名
 * values : 类似 blob
 
 ```

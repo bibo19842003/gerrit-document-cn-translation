@@ -42,7 +42,7 @@ Registered users 如果有 `Read` 权限，那么可以对相应的 change 发�
 
 ## Predefined Groups
 
-Predefined groups 与 system groups 不同，predefined groups 在 gerrit 初始化的时候系统创建的，并且有唯一的 UUIDs；不同的初始化目录，UUIDs 也是不一样的。
+Predefined groups 与 system groups 不同，predefined groups 在 gerrit 初始化的时候系统创建的，在 `refs/meta/group-names` 命名空间中，并且有唯一的 UUIDs；不同的初始化目录，UUIDs 也是不一样的。
 
 Gerrit 有两个 predefined groups:
 
@@ -67,6 +67,8 @@ gerrit 初始化的时候，系统默认给 `Service Users` 添加了 'Priority 
 一般来说，CI 帐号需要添加到 `Service Users` 群组，如果 CI 帐号使用的线程较多的话，不会影响 `interactive users` 的正常使用。
 
 如果帐号同时在 `Service Users` 和 `interactive users` 群组中，那么把此帐号视为 `interactive users` 。
+
+在 Gerrit 3.3 版本之前， 'Service Users' 群组的名称为 'Non-Interactive Users'。
 
 ## Account Groups
 

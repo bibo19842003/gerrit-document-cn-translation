@@ -24,7 +24,7 @@ Plugins 可以通过 [REST API](rest-api-plugins.md) 和 [SSH](cmd-plugin-instal
 
 ### codemirror-editor
 
-polygerrit 的 CodeMirror plugin
+Gerrit 使用的 CodeMirror JavaScript plugin。
 
 [Project](https://gerrit-review.googlesource.com/admin/repos/plugins/codemirror-editor) |
 

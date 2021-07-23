@@ -31,11 +31,7 @@
 
 ### Java
 
-#### MacOS
-
-在 MacOS 系统中，确保 "Java for MacOS X 10.5 Update 4" (或更高版本) 被安装并且 `JAVA_HOME` 已按照 [Java version 描述](install.md)进行设置。
-
-Java 可以在下面的路径中找到 "/System/Library/Frameworks/JavaVM.framework/Versions"。
+确保安装了 Java 的正确版本，并配置了 `JAVA_HOME`。
 
 可以打开一个命令行窗口执行 `java -version` 命令来查看 Java 版本。
 
@@ -117,7 +113,7 @@ EOF
 
 ### Gerrit Release WAR File
 
-为了构建 gerrit 的所有应用，包括 PolyGerrit UI, core plugins 和 documentation ，可以使用如下命令：
+为了构建 gerrit 的所有应用，包括 Gerrit UI, core plugins 和 documentation ，可以使用如下命令：
 
 ```
   bazel build release
@@ -223,7 +219,7 @@ JAR 文件会被打包在:
 
 如果 classpath 需要更新，Eclipse 项目会通过执行 `project.py` 来刷新并下载依赖的 JARs 文件。对于 IntelliJ，需要点击 [IntelliJ plugin](https://ij.bazel.build) 的 `Sync Project with BUILD Files` 按钮。
 
-### Documentation
+## Documentation
 
 为测试或者静态服务器构建文档：
 
@@ -249,6 +245,18 @@ WAR 文件存放的位置如下：
   bazel-bin/withdocs.war
 ```
 
+另外，可以通过下面命令生成 documentation:
+
+```
+  bazel build Documentation:Documentation
+```
+
+html, css, js 文件存放的位置如下：
+
+```
+ `bazel-bin/Documentation/`
+```
+
 ## Running Unit Tests
 
 ```
@@ -271,6 +279,18 @@ WAR 文件存放的位置如下：
 
 ```
   bazel test //javatests/com/google/gerrit/acceptance/rest/account:rest_account
+```
+
+通过 ssh 客户端使用 JSch 进行 SSH 测试:
+
+```
+  bazel test --test_env=SSH_CLIENT_IMPLEMENTATION=JSCH //...
+```
+
+通过 ssh 客户端使用 Apache MINA 进行 SSH 测试
+
+```
+  bazel test --test_env=SSH_CLIENT_IMPLEMENTATION=APACHE //...
 ```
 
 执行测试但不使用 SSH:
@@ -324,6 +344,22 @@ WAR 文件存放的位置如下：
 * rest
 * server
 * ssh
+
+Bazel 支持同时使用多种参数对[指定目标](https://docs.bazel.build/versions/master/guide.html#specifying-targets-to-build)进行测试。
+
+## Debugging Unit Tests
+某些情况下，bazel 执行时可以进行 debug。例如，可以在 Eclipse 和 bazel 获取不同的测试结果。debug 模式，启用 JVM 时添加 `--java_debug` 参数。
+
+例如：
+
+```
+  bazel test --java_debug --test_tag_filters=delete-project //...
+  ...
+  Listening for transport dt_socket at address: 5005
+  ...
+```
+
+此处使用的端口是 `5005`，对于 "Remote Java Application" 启动时的端口需指定为 `5005`。
 
 ### Elasticsearch
 
@@ -436,11 +472,13 @@ Maven 和 ‘Gerrit storage bucket’ 可以根据 `local.properties` 从镜像�
 * ~/.gerritcodereview/bazel-cache/repository
 * ~/.gerritcodereview/bazel-cache/cas
 
+`downloaded-artifacts` 缓存可以重新加载 `GERRIT_CACHE_HOME` 环境变量。其他两个参数可以通过 `bazel build` 参数 `--repository_cache` 和 `--disk_cache` 进行指定。
+
 目前，这些缓存的存储没有上限，具体可以参考 [tbazel issue](https://github.com/bazelbuild/bazel/issues/5139)。用户可以手动清除缓存。
 
 ## NPM Binaries
 
-PolyGerrit 的构建需要执行基于 NPM 的 JavaScript 的二进制文件。构建时不会尝试解析和下载 NPM 的依赖，而是使用 NPM 二进制及其依赖项的预编译 bundle。[registry.npmjs.org](https://docs.npmjs.com/misc/registry) 上面的一些包文件自带依赖的 bundle 文件，这不是规定而是例外的情况。如果要想列表中添加二进制文件，需要用户自己将其打包。
+Gerrit 的构建需要执行基于 NPM 的 JavaScript 的二进制文件。构建时不会尝试解析和下载 NPM 的依赖，而是使用 NPM 二进制及其依赖项的预编译 bundle。[registry.npmjs.org](https://docs.npmjs.com/misc/registry) 上面的一些包文件自带依赖的 bundle 文件，这不是规定而是例外的情况。如果要想列表中添加二进制文件，需要用户自己将其打包。
 
 **NOTE:**
 *我们只能使用某些符合许可要求的二进制文件，并且不包含任何代码。*

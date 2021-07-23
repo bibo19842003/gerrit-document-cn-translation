@@ -2,229 +2,520 @@
 
 ## Objective
 
-Gerrit 是一个基于 web 的代码评审系统，可以进行在线代码评审，并用 git 来存储相关代码和文件。
+Gerrit is a web based code review system, facilitating online code
+reviews for projects using the Git version control system.
 
-Gerrit 通过 side-by-side 的方式查看代码的修改，并允许在线编辑文件等等的一些功能，让评审变得更方便。
+Gerrit makes reviews easier by showing changes in a side-by-side
+display, and allowing inline/file comments to be added by any reviewer.
 
-Gerrit 简化了 git 仓的维护，如：通过权限管控来向 git 仓提交修改，而不是维护者手动的将需要的修改合入到 git 仓。此功能可以更集中地使用Git。 
+Gerrit simplifies Git based project maintainership by permitting
+any authorized user to submit changes to the master Git repository,
+rather than requiring all approved changes to be merged in by
+hand by the project maintainer.  This functionality enables a more
+centralized usage of Git.
+
 
 ## Background
 
-Google 基于 perforce 开发了 Mondrian，用于代码评审。Mondrian 并不是开源软件，仅在 google 内部使用。
+Git is a distributed version control system, wherein each repository
+is assumed to be owned/maintained by a single user.  There are no
+inherent security controls built into Git, so the ability to read
+from or write to a repository is controlled entirely by the host's
+filesystem or network access controls.
 
-Guido 开发了 Rietveld 工具，此工具为开源软件，包含了部分 Mondrian 的功能，仅支持 svn，不支持 perforce。并不像 Mondrian 那样需要强制评审才可以将代码合入。
+The objective of Gerrit is to facilitate Git development by larger
+teams: it provides a means to enforce organizational policies around
+code submissions, eg. "all code must be reviewed by another
+developer", "all code shall pass tests". It achieves this by
 
-Git 是一个分布式的版本控制工具。本身没有权限控制的机制，如果多人维护一个 git 仓的话，会有很多协作的问题。
+* providing fine-grained (per-branch, per-repository, inheriting)
+  access controls, which allow a Gerrit admin to delegate permissions
+  to different team(-lead)s.
 
-Gitosis 可以将 git 仓集中进行管理，通过网络安全协议来限制访问，与 perforce 仅允许通过网络端口进行访问有些类似。Gitosis 允许多个维护人员同时管理同一个 project。
-
-`Android Open Source Project` (AOSP) 由 google 创建，并开源，定期发布 Android 操作系统。AOSP 使用 git 作为版本控制工具。google 内部使用过 Mondrian 的工程师，强烈建议 AOSP 要使用更好的代码评审工具。
-
-Gerrit Code Review 起始于 Rietveld ，并应用于 AOSP。很快，基于 Rietveld 创建了一个新的分支，并添加了权限控制的功能，但 Guido 并不想让 Rietveld 代码库变得更复杂。由于添加了许多功能，代码也有了很大的变化，因此需要一个新的名字来给项目命名。这时想到了荷兰建筑师 `Gerrit Rietveld`，新的项目名称就诞生了：gerrit 。
-
-Gerrit 2.x 对 Gerrit 进行了重写，开发语言从 python 改为了 Java。
-
-自从 Gerrit 3.x 使用 [NoteDb](note-db.md) 取代了 SQL 数据库，因此所有的元数据目前存储在 git 仓中。
-
-* [Mondrian Code Review On The Web](http://video.google.com/videoplay?docid=-8502904076440714866)
-* [Rietveld - Code Review for Subversion](https://github.com/rietveld-codereview/rietveld)
-* [Gitosis README](http://eagain.net/gitweb/?p=gitosis.git;a=blob;f=README.rst;hb=HEAD)
-* [Android Open Source Project](http://source.android.com/)
+* facilitate code review: Gerrit offers a web view of pending code
+  changes, that allows for easy reading and commenting by humans. The
+  web view can offer data coming out of automated QA processes (eg.
+  CI). The permission system also includes fine grained control of who
+  can approve pending changes for submission to further facilitate
+  delegation of code ownership.
 
 ## Overview
 
-开发人员在本地做了一个或多个的修改，然后通过命令行 `git push` 或内置 `git push` 命令的 GUI 来将修改推送到 gerrit 上。用户的认证和数据传递可以通过 SSH 和 HTTP 协议来完成。
+Developers create one or more changes on their local desktop system,
+then upload them for review to Gerrit using the standard `git push`
+command line program, or any GUI which can invoke `git push` on behalf
+of the user. Authentication and data transfer are handled through SSH
+and HTTPS. Uploads are protected by the authentication,
+confidentiality and integrity offered by the transport (SSH, HTTPS).
 
-每个 Git commit 在客户端的电脑上创建，推送到 gerrit 后生成 change，每个 change 的评审记录都存放在 NoteDb 中。
+Each Git commit created on the client desktop system is converted into
+a unique change record which can be reviewed independently.
 
-change 生成后，系统会给相关的评审人员发送通知邮件。邮件中有评审的链接。评审人员可以在 `git push` 的时候添加，也可以在 change 的页面进行添加。
+A summary of each newly uploaded change is automatically emailed
+to reviewers, so they receive a direct hyperlink to review the
+change on the web.  Reviewer email addresses can be specified on the
+`git push` command line, but typically reviewers are added in the web
+interface.
 
-评审人员可以在网页上做 side-by-side 的查看，也可以发布相关的评论。评论发布后，系统会给相关人员发送通知邮件。
+Reviewers use the web interface to read the side-by-side or unified
+diff of a change, and insert draft inline/file comments where
+appropriate. A draft comment is visible only to the reviewer, until
+they publish those comments.  Published comments are automatically
+emailed to the change author by Gerrit, and are CC'd to all other
+reviewers who have already commented on the change.
 
-评审人员会对 change 进行打分，表明 change 是否应该合入或者需要上传新的补丁。
+Reviewers can score the change ("vote"), indicating whether they feel the
+change is ready for inclusion in the project, needs more work, or
+should be rejected outright. These scores provide direct feedback to
+Gerrit's change submit function.
 
-对 change 的打分都通过后，可以点击 submit 按钮进行合入。
+After a change has been scored positively by reviewers, Gerrit enables
+a submit button on the web interface. Authorized users can push the
+submit button to have the change enter the project repository. The
+user pressing the submit button does not need to be the author of the
+change.
+
 
 ## Infrastructure
 
-用户可以通过浏览器向 gerrit 服务器发送请求。请求会通过 JSON 格式进行传递。大多数的响应小于 1 KB。
+End-user web browsers make HTTP requests directly to Gerrit's
+HTTP server. As nearly all of the Gerrit user interface is implemented
+in a JavaScript based web app, the majority of these requests are
+transmitting compressed JSON payloads, with all HTML being generated
+within the browser.
 
-Gerrit 的 HTTP 服务器端组件由标准的 Java servlet 实现，因此可以在任何 J2EE servlet 容器中运行。Tomcat 或 Jetty 是不错的选择，因为他们是是高质量的开源的 servlet 容器，并且方便下载。
+Gerrit's HTTP server side component is implemented as a standard Java
+servlet, and thus runs within any link:install-j2ee.html[J2EE servlet
+container]. The standard install will run inside Jetty, which is
+included in the binary.
 
-用户可以通过 SSH 协议进行上传相关操作，因此 Gerrit 的 servlet 启动了后台线程，通过独立的 SSH 端口接收用户的 SSH 连接。SSH 客户端直接与此端口通信。
+End-user uploads are performed over SSH or HTTP, so Gerrit's servlets
+also start up a background thread to receive SSH connections through
+an independent SSH port. SSH clients communicate directly with this
+port, bypassing the HTTP server used by browsers.
 
-服务器端的数据存储到不同的目录中：
+User authentication is handled by identity realms. Gerrit supports the
+following types of authentication:
+
+* OpenId (see [OpenID Specifications](http://openid.net/developers/specs/))
+* OAuth2
+* LDAP
+* Google accounts (on googlesource.com)
+* SAML
+* Kerberos
+* 3rd party SSO
+
+### NoteDb
+
+Server side data storage for Gerrit is broken down into two different
+categories:
 
 * Git repository data
 * Gerrit metadata
 
-Git 仓的数据主要存储的是提交的数据和相关记录。gerrit 通过 JGit 的 lib 文件来对 git 仓进行相关操作。git 仓可以存储在本地，也可以存储在 NFS 或 SMB。本地存储的效率要比远程存储的效率高一些。
+The Git repository data is the Git object database used to store
+already submitted revisions, as well as all uploaded (proposed)
+changes.  Gerrit uses the standard Git repository format, and
+therefore requires direct filesystem access to the repositories.
+All repository data is stored in the filesystem and accessed through
+the JGit library.  Repository data can be stored on remote servers
+accessible through NFS or SMB, but the remote directory must
+be mounted on the Gerrit server as part of the local filesystem
+namespace.  Remote filesystems are likely to perform worse than
+local ones, due to Git disk IO behavior not being optimized for
+remote access.
 
-Gerrit metadata 包含了 change 的相关评审记录，目前存储在 git 仓中。
+The Gerrit metadata contains a summary of the available changes, all
+comments (published and drafts), and individual user account
+information.
 
-如果使用 OpenID 作为用户认证的方式，需要选择一个稳定可靠的 OpenID 提供商来提供服务。
+Gerrit metadata is also stored in Git, with the commits marking the
+historical state of metadata. Data is stored in the trees associated
+with the commits, typically using Git config file or JSON as the base
+format. For metadata, there are 3 types of data: changes, accounts and
+groups.
 
-* [Git Repository Format](http://www.kernel.org/pub/software/scm/git/docs/gitrepository-layout.html)
-* [OpenID Specifications](http://openid.net/developers/specs/)
+Accounts are stored in a special Git repository `All-Users`.
 
+Accounts can be grouped in groups. Gerrit has a built-in group system,
+but can also interface to external group system (eg. Google groups,
+LDAP). The built-in groups are stored in `All-Users`.
+
+Draft comments are stored in `All-Users` too.
+
+Permissions are stored in Git, in a branch `refs/meta/config` for the
+repository. Repository configuration (including permissions) supports
+single inheritance, with the `All-Projects` repository containing
+site-wide defaults.
+
+Code review metadata is stored in Git, alongside the code under
+review. Metadata includes change status, votes, comments. This review
+metadata is stored in NoteDb along with the submitted code and code
+under review. Hence, the review history can be exported with `git
+clone --mirror` by anyone with sufficient permissions.
+
+## Permissions
+
+Permissions are specified on branch names, and given to groups. For
+example,
+
+```
+[access "refs/heads/stable/*"]
+        push = group Release-Engineers
+```
+
+this provides a rule, granting Release-Engineers push permission for
+stable branches.
+
+There are fundamentally two types of permissions:
+
+* Write permissions (who can vote, push, submit etc.)
+
+* Read permissions (who can see data)
+
+Read permissions need special treatment across Gerrit, because Gerrit
+should only surface data (including repository existence) if a user
+has read permission. This means that
+
+* The git wire protocol support must omit references from
+  advertisement if the user lacks read permissions
+
+* Uploads through the git wire protocol must refuse commits that are
+  based on SHA-1s for data that the user can't see.
+
+* Tags are only visible if their commits are visible to user through a
+  non-tag reference.
+
+Metadata (eg. OAuth credentials) is also stored in Git. Existing
+endpoints must refuse creating branches or changes that expose these
+metadata or allow changes to them.
+
+
+### Indexing
+
+Almost all data is stored as Git, but Git only supports fast lookup by
+SHA-1 or by ref (branch) name. Therefore Gerrit also has an indexing
+system (powered by Lucene by default) for other types of queries.
+There are 4 indices:
+
+* Project index - find repositories by name, parent project, etc.
+* Account index - find accounts by name, email, etc.
+* Group index - find groups by name, owner, description etc.
+* Change index - find changes by file, status, modification date etc.
+
+The base entities are characterized by SHA-1s. Storing the
+characterizing SHA-1s allows detection of stale index entries.
+
+## Plug-in architecture
+
+Gerrit has a plug-in architecture. Plugins can be installed by
+dropping them into $site_directory/plugins, or at runtime through
+plugin SSH commands, or the plugin REST API.
+
+### Backend plugins
+
+At runtime, code can be loaded from a `.jar` file. This code can hook
+into predefined extension points. A common use of plugins is to have
+Gerrit interoperate with site-specific tools, such as CI-systems or
+issue trackers.
+
+list some notable extension points, and notable plugins 
+link to plugin development
+
+Some backend plugins expose the JVM for scripting use (eg. Groovy,
+Scala), so plugins can be written without having to setup a Java
+development environment.
+
+* Luca to expand: how do script plugins load their scripts?
+
+### Frontend plugins
+
+The UI can be extended using Frontend plugins. This is useful for
+changing the look & feel of Gerrit, but it can also be used to surface
+data from systems that aren't integrated with the Gerrit backend, eg.
+CI systems or code coverage providers.
+
+FE team to write a bit more:
+* how to load ?
+* XSRF, CORS ?
 
 ## Internationalization and Localization
 
-作为一个开源项目的代码评审系统，语言选择了世界通用的英语，gerrit 不会把国际化和本地化的工作放在首位。
+As a source code review system for open source projects, where the
+commonly preferred language for communication is typically English,
+Gerrit does not make internationalization or localization a priority.
 
-大多数用户使用英语书写 change 描述和评论，因此用户界面也是英文的。
-
-gerrit 目前不支持 Right-to-left (RTL) 。
+The majority of Gerrit's users will be writing change descriptions
+and comments in English, and therefore an English user interface
+is usable by the target user base.
 
 
 ## Accessibility Considerations
 
-Gerrit 尽可能使用文本显示而不用图标显示，因为这样比较易读，容易理解。
+UI team to rewrite this.
 
-使用标准的 HTML 超链接，不使用 HTML div 或 span tag 的点击监听。主要有两个好处。第一个是超链接可以体现导航操作；第二个是用户可以在浏览器中使用‘在新的标签页打开/新的窗口打开’的功能。
+Whenever possible Gerrit displays raw text rather than image icons,
+so screen readers should still be able to provide useful information
+to blind persons accessing Gerrit sites.
 
-如果可能，Gerrit 使用 DOM 的 ARIA 属性为屏幕阅读器提供提示。
+Standard HTML hyperlinks are used rather than HTML div or span tags
+with click listeners.  This provides two benefits to the end-user.
+The first benefit is that screen readers are optimized to locating
+standard hyperlink anchors and presenting them to the end-user as
+a navigation action.  The second benefit is that users can use
+the 'open in new tab/window' feature of their browser whenever
+they choose.
+
+When possible, Gerrit uses the ARIA properties on DOM widgets to
+provide hints to screen readers.
+
 
 ## Browser Compatibility
 
-gerrit 建议使用可以支持 JavaScript 的浏览器。
+Gerrit requires a JavaScript enabled browser.
 
-在客户端上，gerrit 是一个纯 JavaScript 的应用，所以浏览器需要支持 JavaScript ，才能与 gerrit web 应用进行链接。例如 `lynx`, `wget`, `curl` 以及部分搜索引擎的爬虫是不能访问到 gerrit 内容的。
+UI team to add section on minimum browser requirements.
 
-支持 JavaScript 的浏览器有很多，但不同的操作系统支持的标准还不一样。
+As Gerrit is a pure JavaScript application on the client side, with
+no server side rendering fallbacks, the browser must support modern
+JavaScript semantics in order to access the Gerrit web application.
+Dumb clients such as `lynx`, `wget`, `curl`, or even many search engine
+spiders are not able to access Gerrit content.
 
-有一些开源的浏览器可以使用，如 Firefox 和 Chromium。
+All of the content stored within Gerrit is also available through
+other means, such as gitweb or the `git://` protocol. Any existing
+search engine crawlers can index the server-side HTML served by a code
+browser, and thus can index the majority of the changes which might
+appear in Gerrit. Therefore the lack of support for most search engine
+crawlers is a non-issue for most Gerrit deployments.
 
-gerrit 存储的大部分内容也可以通过其他方式获取，如 gitweb 或者 `git://` 协议。现有的大部分爬虫可以爬取 gitweb 的 HTML 上面的内容。有的爬虫甚至可以爬取数据库，如 `ohloh.net`。因此，爬虫对 gerrit 的部署没有什么影响。
 
 ## Product Integration
 
-Gerrit 可以通过超链接的方式与 gitweb 集成。
+Gerrit optionally surfaces links to HTML pages in a code browser. The
+links are configurable, and Gerrit comes with a built-in code browser,
+called Gitiles.
 
-Gerrit 可以与 `git-daemon` 集成，然后用户可以使用 `git://` 协议下载 git 仓。 
+Gerrit integrates with some types of corporate single-sign-on (SSO)
+solutions, typically by having the SSO authentication be performed
+in a reverse proxy web server and then blindly trusting that all
+incoming connections have been authenticated by that reverse proxy.
+When configured to use this form of authentication, Gerrit does
+not integrate with OpenID providers.
 
-Gerrit 可以与 OpenID 提供商集成，便于用户的认证，如：`Google Accounts` 等。
+When installing Gerrit, administrators may optionally include an
+HTML header or footer snippet which may include user tracking code,
+such as that used by Google Analytics.  This is a per-instance
+configuration that must be done by hand, and is not supported
+out of the box.  Other site trackers instead of Google Analytics
+can be used, as the administrator can supply any HTML/JavaScript
+they choose.
 
-管理员可以通过设置 "reliable OpenID providers" 来限制 OpenID 帐号的相关访问。
+Gerrit does not integrate with any Google service, or any other
+services other than those listed above.
 
-Gerrit 可以与 SSO 系统集成，但不能同时与 OpenID 集成。
+Plugins (see above) can be used to drive product integrations from the
+Gerrit side. Products that support Gerrit explicitly can use the REST
+API or the SSH API to contact Gerrit.
 
-安装 gerrit 的时候，管理员可以在 HTML 的 header 或 footer 添加追踪用户行为的代码片段，如：`Google Analytics`。每个实例的配置都需要手动完成。
 
 ## Privacy Considerations
 
-Gerrit 存储的用户信息如下：
+Gerrit stores the following information per user account:
 
 * Full Name
 * Preferred Email Address
-* Mailing Address '(Optional, Encrypted)'
-* Country '(Optional, Encrypted)'
-* Phone Number '(Optional, Encrypted)'
-* Fax Number '(Optional, Encrypted)'
 
-`full name` 和 `preferred email address` 字段信息可以被任何一个用户在 change 页面看到。
+The full name and preferred email address fields are shown to any
+site visitor viewing a page containing a change uploaded by the
+account owner, or containing a published comment written by the
+account owner.
 
-用户的名称和邮箱地址以未加密的形式存储在 [All-Users](config-accounts.md) 。
+Showing the full name and preferred email is approximately the same
+risk as the `From` header of an email posted to a public mailing
+list that maintains archives, and Gerrit treats these fields in
+much the same way that a mailing list archive might handle them.
+Users who don't want to expose this information should either not
+participate in a Gerrit based online community, or open a new email
+address dedicated for this use.
 
-收集的 mail, country, phone ，fax numbers 这些信息主要用于 project 的负责人在特殊情况下方便联系上传 change 的用户，如遇到了法律问题。
+As the Gerrit UI data is only available through XSRF protected
+JSON-RPC calls, "screen-scraping" for email addresses is difficult,
+but not impossible.  It is unlikely a spammer will go through the
+effort required to code a custom scraping application necessary
+to cull email addresses from published Gerrit comments.  In most
+cases these same addresses would be more easily obtained from the
+project's mailing list archives.
 
-一些敏感字段会被 `GnuPG public key` 加密，并存储在另一个系统中，和 gerrit 数据隔离。Gerrit 无法访问与之匹配的 `private key`，因此不能将信息解密。这些敏感字段会一次性写入，即使是帐号的所有者也不能恢复先前的数据。
+The user's name and email address is stored unencrypted in the
+`All-Users` repository.
 
 ## Spam and Abuse Considerations
 
-Gerrit 不对 change 或评论中的垃圾邮箱做检查。因为对于垃圾邮件的发送者来说，难度较大，并且回报较少。
+There is no spam protection for the Git protocol upload path.
+Uploading a change successfully requires a pre-existing account, and a
+lot of up-front effort.
 
-## Latency
+Gerrit makes no attempt to detect spam changes or comments in the web
+UI. To post and publish a comment a client must sign in and then use
+the XSRF protected JSON-RPC interface to publish the draft on an
+existing change record.
 
-Gerrit 的目标是在服务器和客户端之间，通过 JSON 方式来传递数据，来实现每页的请求低于 250 ms。但是，由于大多数服务（网络，硬件，元数据数据库）都不受 gerrit 开发人员的控制，因此无法对延迟做出保证。
+Absence of SPAM handling is based upon the idea that Gerrit caters to
+a niche audience, and will therefore be unattractive to spammers. In
+addition, it is not a factor for corporate, on-premise deployments.
+
 
 ## Scalability
 
-Gerrit 设计初衷是支持大规模的部署，相关参数如下：
+Gerrit supports the Git wire protocol, and an API (one API for HTTP,
+and one for SSH).
 
-_Design Parameters_
+The git wire protocol does a client/server negotiation to avoid
+sending too much data. This negotation occupies a CPU, so the number
+of concurrent push/fetch operations should be capped by the number of
+CPUs.
 
-|Parameter        | Default Maximum | Estimated Maximum
+Clients on slow network connections may be network bound rather than
+server side CPU bound, in which case a core may be effectively shared
+with another user. Possible core sharing due to network bottlenecks
+generally holds true for network connections running below 10 MiB/sec.
+
+Deployments for large, distributed companies can replicate Git data to
+read-only replicas to offload fetch traffic. The read-only replicas
+should also serve this data using Gerrit to ensure that permissions
+are obeyed.
+
+The API serves requests of varying costs. Requests that originate in
+the UI can block productivity, so care has been taken to optimize
+these for latency, using the following techniques:
+
+* Async calls: the UI becomes responsive before some UI elements
+  finished loading
+
+* Caching: metadata is stored in Git, which is relatively expensive to
+  access. This is sped up by multiple caches. Metadata entities are
+  stored in Git, and can therefore be seen as immutable values keyed
+  by SHA-1, which is very amenable to caching. All SHA-1 keyed caches
+  can be persisted on local disk.
+
+  The size (memory, disk) of these caches should be adapted to the
+  instance size (number of users, size and quantity of repositories)
+  for optimal performance.
+
+Git does not impose fundamental limits (eg. number of files per
+change) on data. To ensure stability, Gerrit configures a number of
+default limits for these.
+
+add a link to the default settings.
+
+### Scaling team size
+
+A team of size N has N^2 possible interactions. As a result, features
+that expose interactions with activities of other team members has a
+quadratic cost in aggregate. The following features scale poorly with
+large team sizes:
+
+* the change screen shows conflicting changes by default. This data is
+  cached, but updates to pending changes cause cache misses. For a
+  single change, the amount of work is proportional to the number of
+  pending changes, so in aggregate, the cost of this feature is
+  quadratic in the team size.
+
+* the change screen shows if a change is mergeable to the target
+  branch. If the target branch moves quickly (large developer team),
+  this causes cache misses. In aggregate, the cost of this feature is
+  also quadratic.
+
+Both features should be turned off for repositories that involve 1000s
+of developers.
+
+### Browser performance
+
+say something about browser performance tuning.
+
+### Real life numbers
+
+
+Gerrit is designed for very large projects, both open source and
+proprietary commercial projects. For a single Gerrit process, the
+following limits are known to work:
+
+Observed maximums
+|Parameter        |         Maximum | Deployment
 | :------| :------| :------|
-|Projects         |         1,000   | 10,000
-|Contributors     |         1,000   | 50,000
-|Changes/Day      |           100   |  2,000
-|Revisions/Change |            20   |     20
-|Files/Change     |            50   | 16,000
-|Comments/File    |           100   |    100
-|Reviewers/Change |             8   |      8
+|Projects         |         50,000  | gerrithub.io
+|Contributors     |        150,000  | eclipse.org
+|Bytes/repo       |        100G     | Qualcomm internal
+|Changes/repo     |        300k     | Qualcomm internal
+|Revisions/Change |        300      | Qualcomm internal
+|Reviewers/Change |        87       | Qualcomm internal
 
+Google runs a horizontally scaled deployment. We have seen the
+following per-JVM maximums:
 
-默认配置的状态下，gerrit 按照 "Default Maximum" 性能来运行。在有足够大的内存情况下，管理员可以修改 gerrit.config 文件，如：JVM 和 `cache.*.memoryLimit` 及相关参数来让 gerrit 发挥更大的性能，直到接近 "Estimated Maximum"。
-
-### Discussion
-
-很少有单一的开源项目使用了多个 git 仓库，gerrit 把每一个 git 仓库视为一个 project，所以这是 10,000 上限的原因。如果一个站点超过了 1,000 个 project，那么需要上调  [`cache.projects.memoryLimit`](config-gerrit.md) 参数。
-
-几乎没有 1000 个开发者的开源项目。通过使用 android 系统的手机开发公司的 PR 声明，暂将其定为 1,000。
-
-gerrit 服务器预估可以支持 50,000 个开发者，如果有超过 1,000 的活动账户，在有足够多的 RAM 情况下，可以上调 [`cache.accounts.memoryLimit`](config-gerrit.md) 参数。
-
-100 个 change 是根据 android 历史开发数据计算出来的。代码的修改和评审需要一定的时间。平均每个工程师花费在 change 上的书写代码及单元测试的时长为 4-6 小时。一天当中的其他时间花费在会议，面试，培训，午餐等事情上。每个工程师差不多 1 到 2 天会合入一个修改。以 linux 内核为例，平均每天会合入 79 个修改。如果每天的合入超过了 100 个，需要上调 [`cache.diff.memoryLimit`](config-gerrit.md) 和 `cache.diff_intraline.memoryLimit` 参数。
-
-### CPU Usage - Web UI
-
-一个 change 的评审及合入平均需要 `4+F+F*C` 次的 HTTP 请求。`F` 为修改的文件数量；`C` 为对每个文件的评论的数量；4 表示为：加载评审人的 dashboar，加载 change 的详细信息，发布评论及评论后的 change 信息的重载的环节数。
-
-此 WAG 预估每天的 HTTP 请求在 216,000 以下(QPD)。按每天 8 小时工作计算，每秒大概 7.5 次搜索 (QPS)。
-
-```
-  QPD = Changes_Day * Revisions_Change * Reviewers_Change * (4 +  F +  F * C)
-      = 2,000       * 2                * 1                * (4 + 10 + 10 * 4)
-      = 216,000
-  QPS = QPD / 8_Hours / 60_Minutes / 60_Seconds
-      = 7.5
-```
-
-一个处理器在使用 loopback 接口的时候，gerrit 可以在 60 ms 内处理大多数的请求。在单核的 CPU 系统中，处理能力是 16 QPS。上面描述的 `Estimated Maximum` 的负载，双核 CPU 系统就可以搞定。
-
-以 linux 内核为例，每天 79 个 change，8,532 次搜索，按一天 8小时工作计算，低于 0.29 QPS 。
-
-### CPU Usage - Git over SSH/HTTP
-
-一个 24 core 的服务器每秒可以同时处理 25 个 `git fetch` 的操作。问题是每个操作需要 1 个完整的 core，因为计算的时候需要与服务器端的 CPU 绑定。25 个并发可以支持数百个开发人员和 50 个自动构建服务器对 change 的构建使用(此数据来自实际的使用)。
-
-由于 git 本身是一个分布式的工具，用户不需要频繁地链接 `gerrit 中心服务器`，使用 `git fetch` 的时候可以从 [replica mode](pgm-daemon.md) 的服务器进行下载，这样可以减少中心服务器的负载。如果需要大规模部署的时候，建议使用横向扩展。
-
-用户在非常慢的网络链接下 (例如：通过家庭的 DSL 链接 VPN)，此时瓶颈在网络上，而不是服务器端的 CPU，这种情况下，CPU 的 core 会与其他用户共享。在服务器端网络链接低于 `10 MiB/sec` 的情况下，适用于 core 共享的配置方式。
-
-如果服务器的网络接口的速率是 `1 Gib/sec` (Gigabit 端口)，不论服务器有多少 core，系统只能以 `10 MiB/sec` 的速度为 10 个用户同时提供服务。
-
-### Disk Usage
-
-linux 内核平均每次的提交在压缩后大约是 `2 KiB`。应用 `estimated maximum` 配置，一年的时间，10,000 个 project 大概增加了 1.4 GiB 的空间。这个空间只包括源代码的修改量，不包括二进制文件，如：镜像或媒体文件。
-
-gerrit 可以处理数千兆字节大小的 git 仓；如果存储二进制文件的话，可以存储 800MB 大小的文件。可以把大的二进制仓拆分为多个小的二进制仓，这样可以避免下载不需要的文件。
+Observed maximums (googlesource.com)
+|Parameter        |         Maximum | Deployment
+| :------| :------| :------|
+|Files/repo       |        500,000  | chromium-review
+|Bytes/repo       |         12G     | chromium-review
+|Changes/repo     |          500k   | chromium-review
+|Revisions/Change |          1900   | chromium-review
+|Files/Change     |           10,000| android-review
+|Comments/Change  |           1,200 | chromium-review
 
 ## Redundancy & Reliability
 
-Gerrit 认为本地存储的数据始终可用。如果本地数据损坏，gerrit 会将错误返回给客户端。
+Gerrit is structured as a single JVM process, reading and writing to a
+single file system. If there are hardware failures in the machine
+running the JVM, or the storage holding the repositories, there is no
+recourse; on failure, errors will be returned to the client.
 
-Gerrit 认为 metadata 数据库始终在线并且可用。如果查询失败会立即停止操作并将错误返回给客户端，失败后不做重试。
-
-本地的存储系统和 metadata 数据库，有一个出现问题的话，会影响 gerrit 的正常使用。如果有预算，可以部署负载均衡系统，便于提供稳定的服务。
-
-大多数的可靠性部署采用热备的方式，当出问题的时候，可以手动切换到备用系统。
-
-如果遇到大的灾难，gerrit 会停机一些时间。由于 git 是一个分布式的工具，开发者可以在本地继续修改代码，待 gerrit 恢复后，再将 commit 进行上传。
+Deployments needing more stringent uptime guarantees can use
+replication/multi-master setup, which ensures availability and
+geographical distribution, at the cost of slower write actions.
 
 ### Backups
 
-可以使用 replication plugin 来备份 git 仓中的数据。plugin 安装后，可以修改 `'$site_path'/etc/replication.conf` 配置文件来完成备份。
+Using the standard replication plugin, Gerrit can be configured
+to replicate changes made to the local Git repositories over any
+standard Git transports. After the plugin is installed, remote
+destinations can be configured in `'$site_path'/etc/replication.conf`
+to send copies of all changes over SSH to other servers, or to the
+Amazon S3 blob storage service.
+
 
 ## Logging Plan
 
-Gerrit 自身不支持 log 的维护。
+Gerrit stores Apache style HTTPD logs, as well as ERROR/INFO messages
+from the Java logger, under `$site_dir/logs/`.
 
-发布的评论，包含发布的时间，因此用户可以自己判断评论是什么时候发布的，评论是否是最新。只存储时间戳，用户的 IP 地址不存储。
+Published comments contain a publication date, so users can judge
+when the comment was posted and decide if it was "recent" or not.
+Only the timestamp is stored in the database, the IP address of
+the comment author is not stored.
 
-使用 `git push` 命令更新 change 的时候，gerrit 会识别更新 change 的账户。当 change 合入的时候，git 的 reflog 会更新，但这些 log 并不会进行 replication 的操作，用户也不会看到这些 log，只有管理员在回溯问题的时候有可能会查看这些数据。这样的 log 有的时候会浪费空间，JGit 在未来的版本中，有可能会取消这些 log，gerrit 到时候会使用这个特性。
+Changes uploaded over the SSH daemon from `git push` have the
+standard Git reflog updated with the date and time that the upload
+occurred, and the Gerrit account identity of who did the upload.
+Changes submitted and merged into a branch also update the
+Git reflog.  These logs are available only to the Gerrit site
+administrator, and they are not replicated through the automatic
+replication noted earlier.  These logs are primarily recorded for an
+"oh s**t" moment where the administrator has to rewind data.  In most
+installations they are a waste of disk space.  Future versions of
+JGit may allow disabling these logs, and Gerrit may take advantage
+of that feature to stop writing these logs.
 
-部署在 gerrit 前面的服务器 (如：反向代理服务器) 或者 servlet 容器会记录访问日志，日志可以用于相关的数据分析。但这些不是 gerrit 的使用范围了。
+A web server positioned in front of Gerrit (such as a reverse proxy)
+or the hosting servlet container may record access logs, and these
+logs may be mined for usage information.  This is outside of the
+scope of Gerrit.
 
 
+GERRIT
+------
+Part of link:index.html[Gerrit Code Review]
+
+SEARCHBOX
+---------

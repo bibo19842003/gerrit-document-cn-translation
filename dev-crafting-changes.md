@@ -137,7 +137,7 @@ To format Java source code, Gerrit uses the
 [`google-java-format`](https://github.com/google/google-java-format)
 tool (version 1.7), and to format Bazel BUILD, WORKSPACE and .bzl files the
 [`buildifier`](https://github.com/bazelbuild/buildtools/tree/master/buildifier)
-tool (version 3.5.0).
+tool (version 4.0.0).
 [`unused_deps`](https://github.com/bazelbuild/buildtools/tree/master/unused_deps)
 build tool, a sibling of `buildifier`.
 These tools automatically apply format according to the style guides; this
@@ -148,6 +148,9 @@ You may download and run `google-java-format` on your own, or you may
 run `./tools/setup_gjf.sh` to download a local copy and set up a
 wrapper script. If you run your own copy, please use the same version,
 as there may be slight differences between versions.
+
+## Code Rules
+### Final
 
 When to use `final` modifier and when not (in new code):
 
@@ -169,6 +172,12 @@ Never:
   readable. When copying old code to new location, finals should
   be removed
   * method parameters: similar to local variables
+
+### Optional / Nullable
+Recommended:
+
+  * Optionals in arguments are discouraged (use @Nullable instead)
+  * Return types should be objects or Optionals of objects, but not null/nullable
 
 ## Code Organization
 
@@ -280,4 +289,27 @@ especially if changing one without the other will break something!
     or fixing a typo.  This helps keep `git blame` more useful in the future
     and it also makes `git revert` more useful.
   * Use topics to link your separate changes together.
+
+## Opportunistic Refactoring
+
+Opportunistic Refactoring is a terminology
+[used by Martin Fowler](https://martinfowler.com/bliki/OpportunisticRefactoring.html)
+also known as the "boy scout rule" of the software developer:
+"always leave the code behind in a better state than you found it."
+
+In practice, this rule means you should not add technical debt in the code while
+implementing a new feature or fixing a bug. If you or a reviewer find an
+opportunity to clean up the code during implementation or review of your change,
+take the time to do a little cleanup to improve the overall code base.
+
+When approaching refactoring, keep in mind that changes should do one thing
+(<<change-size,see change size section above>>). If a change you're making
+requires cleanup/refactoring, it is best to do that cleanup in a preparatory and
+separate change. Likewise, if during review for a functional change, an
+opportunity for cleanup/refactoring is discovered, then it is preferable to do
+the cleanup first in a separate change so as to improve the reviewability of the
+functional change.
+
+Reviewers should keep in mind the scope of the change under review and ensure
+suggested refactoring is aligned with that scope.
 

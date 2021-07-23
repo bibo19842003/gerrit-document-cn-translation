@@ -41,7 +41,7 @@ ssh -p <port> <host> gerrit create-project
 
 **--branch**
 **-b**
-	可以创建分支，新分支的名称。
+	创建新分支的名称。
 
 **--owner**
 **-o**

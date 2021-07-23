@@ -82,7 +82,11 @@
 
 ### 默认 Branch
 
-远端 project 默认分支一般定义为 `HEAD`。从便利的角度说，当远端的 project 被 clone 到本地后，本地默认检出的分支就是 `HEAD` 对应的分支。
+远端 project 默认分支一般定义为 `HEAD`。
+
+新 project 被创建的时候，初始化的 branch 可以设置为默认 branch。或者通过 `gerrit.defaultBranch` 参数进行设置默认 branch。
+
+当远端的 project 被 clone 到本地后，本地默认检出的分支就是 `HEAD` 对应的分支。
 
 Project 的 owner 可以设置 `HEAD`
 

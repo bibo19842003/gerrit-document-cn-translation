@@ -30,6 +30,9 @@ httpd log 记录了 HTTP requests 处理的相关信息，路径为：`$site_pat
 * `latency`: response 时间，用 millisecond 表上。
 * `referer`: HTTP 请求 header 中的 `Referer` 部分。表明发出请求的地址。
 * `client agent`: 客户端发出请求所用的 agent 信息。
+* `total_cpu`: 执行命令所使用的总 CPU 时长, 单位 milliseconds。
+* `user_cpu`: 执行命令所使用的 user CPU 时长, 单位 milliseconds。（`kernel cpu` =`total_cpu - user_cpu`）
+* `memory`: 执行命令时，内存分配的大小，单位 bytes。-1 表示为 JVM 不支持度量。
 
 例如:
 ```
@@ -57,6 +60,9 @@ Log format:
 * `wait`: 命令执行前，所等待的时长
 * `exec`: 执行命令所用的时长
 * `status`: 命令执行状态码。0 表上成功，其他数值表示失败。
+* `total_cpu`: 执行命令所使用的总 CPU 时长, 单位 milliseconds。
+* `user_cpu`: 执行命令所使用的 user CPU 时长, 单位 milliseconds。（`kernel cpu` =`total_cpu - user_cpu`）
+* `memory`: 执行命令时，内存分配的大小，单位 bytes。-1 表示为 JVM 不支持度量。
 
 `git-upload-pack` 字段命令提供了下面额外的信息，这些信息在 `exec` 和 `status` 之间。若 upload-pack 请求返回空结果，则字段信息为 `-1`.
 

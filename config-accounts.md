@@ -163,9 +163,9 @@ REST API 通过使用每个账户的序列号来识别 SSH keys。这是因为 `
 
 `External IDs` 作为 `Git Notes` 存储在 `All-Users` 的 `refs/meta/external-ids` 分支中。
 
-`external ID` 的 SHA1 作为 note key 来使用，例如：`external ID` `username:jdoe` 对应的 note key 是 `e0b751ae90ef039f320e097d7d212f490e933706`。确保 `external ID` 只能使用一次，因为 `external ID` 不能同一时间分配给多个账户使用。
+`external ID` 的 SHA-1 作为 note key 来使用，例如：`external ID` `username:jdoe` 对应的 note key 是 `e0b751ae90ef039f320e097d7d212f490e933706`。确保 `external ID` 只能使用一次，因为 `external ID` 不能同一时间分配给多个账户使用。
 
-如下命令显示了如何查找 `external ID` 的 SHA1:
+如下命令显示了如何查找 `external ID` 的 SHA-1:
 ```
 $ echo -n 'gerrit:jdoe' | shasum
 7c2a55657d911109dbc930836e7a770fb946e8ef  -
@@ -175,7 +175,7 @@ e0b751ae90ef039f320e097d7d212f490e933706  -
 ```
 
 **IMPORTANT:**
-*如果手动更改了 `external ID`，那么需要手动用新的 SHA1 适配 note key，否则 `external ID` 会与 note key 不一致，进而会被 gerrit 忽略。*
+*如果手动更改了 `external ID`，那么需要手动用新的 SHA-1 适配 note key，否则 `external ID` 会与 note key 不一致，进而会被 gerrit 忽略。*
 
 note 是 git 风格的文件，格式如下：
 
@@ -186,7 +186,7 @@ note 是 git 风格的文件，格式如下：
   password = bcrypt:4:LCbmSBDivK/hhGVQMfkDpA==:XcWn0pKYSVU/UJgOvhidkEtmqCp6oKB7
 ```
 
-如果知道了 `external ID` 的 SHA1，下面的命令可以显示其相关的内容:
+如果知道了 `external ID` 的 SHA-1，下面的命令可以显示其相关的内容:
 
 ```
 $ echo -n 'gerrit:jdoe' | shasum
@@ -203,9 +203,11 @@ $ git show refs/meta/external-ids:7c/2a55657d911109dbc930836e7a770fb946e8ef
 
 `accountId` 字段是必填项；`email` 和 `password` 字段是选填项。
 
+git 会在不同的目录层级进行查找，比如：如果 `refs/meta/external-ids:7c/2a55657d911109dbc930836e7a770fb946e8ef` 没有找到，那么将查找 `refs/meta/external-ids:7c/2a/55657d911109dbc930836e7a770fb946e8ef` 。
+
 `external IDs` 由 gerrit 系统自动维护，意味着不能手动编辑 `external IDs`。如果用户有 `Access Database` 权限，那么可以更新 `refs/meta/external-ids` 分支。然而，下面情况 gerrit 是拒绝接受推送的：
 * `external ID` 的配置文件不能被解析
-* `note key` 与 `external ID` 的 SHA1 不匹配
+* `note key` 与 `external ID` 的 SHA-1 不匹配
 * `external IDs` 包含在了不存在的账户中
 * 包含无效的邮件地址
 * 邮件信息不是唯一的 (同一个 email 分配给了多个账户)

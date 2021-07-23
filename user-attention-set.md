@@ -44,6 +44,7 @@ changing the attention set:
 * For merged and abandoned changes the owner is added only when a human creates
   an unresolved comment.
 * Only owner, uploader, reviewers and ccs can be in the attention set.
+* The rules for service accounts are different.
 
 **!IMPORTANT!** 
 *These rules are not meant to be super smart and to always do the right thing, e.g. if the change owner sends a reply, then they are often expected to individually select whose turn it is.*
@@ -150,9 +151,13 @@ been replaced by the attention set.
 
 ### For Gerrit Admins
 
-The Attention Set will be part of the upcoming 3.3 release (due late 2020). It
+The Attention Set will be part of the upcoming 3.3 release (late 2020). It
 is enabled by default, but you can disable it by setting
 `change.enableAttentionSet` to false.
+
+As part of Gerrit 3.3 upgrade, the user group "Non-Interactive Users" is
+renamed "Service Users". For a new installation, the group is automatically
+created upon initialization.
 
 ### Important note for all host owners, project owners, and bot owners
 

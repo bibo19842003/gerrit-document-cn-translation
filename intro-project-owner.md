@@ -274,9 +274,8 @@ Gerrit 可以与一些工具集成:
 
 　Gerrit 可以通过 plugin 实现一些扩展功能：
 
-　** 添加子菜单，参考 [Plugins 开发](dev-plugins.md) 的 `menu extensions` 章节
-　** 扩展屏幕，参考 [Plugins 开发](dev-plugins.md) 的 `ui extensions` 章节
-　** 添加屏幕，参考 [Plugins 开发](dev-plugins.md) 的 `screen` 章节
+　** 添加菜单，参考 [Plugins 开发](pg-plugin-admin-api.md) 的相关章节
+　** 添加页面，参考 [Plugins 开发](pg-plugin-dev.md) 的相关章节
 　** [检验](config-validation.md), 如：新的 commits
 　** 添加新的 REST API 和 SSH　命令
 

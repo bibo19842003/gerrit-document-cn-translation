@@ -1,18 +1,20 @@
-# Gerrit Code Review - PolyGerrit Plugin Styling
+# Gerrit Code Review - JavaScript Plugin Endpoints
 
-plugin 应该以 html 为基础并按照下面的[指导](pg-plugin-dev.md)进行导入。
+此文章描述了 UI 中如何使用 `Gerrit JavaScript plugin endpoints`。需要有 [基础开发指导](pg-plugin-dev.md) 的基础.
+ 
+通过调用 `plugin.hook(endpoint)` 与返回的 `HookApi` 进行交互。`HookApi` 包含 `onAttached(callback)` 和 `onDetached(callback)` 方法。
 
-测试的 endpoint 代码示例：
+或者可以定义[Web Component](https://developer.mozilla.org/en-US/docs/Web/Web_Components/Using_custom_elements)并使用`plugin.registerCustomComponent(endpoint, elementName)`进行注册。
 
-``` js
-Gerrit.install(plugin => {
-  // Change endpoint below
-  const endpoint = 'change-metadata-item';
-  plugin.hook(endpoint).onAttached(element => {
-    console.log(endpoint, element);
-    const el = element.appendChild(document.createElement('div'));
-    el.textContent = 'Ah, there it is. Lovely.';
-    el.style = 'background: pink; line-height: 4em; text-align: center;';
+示例如下:
+ 
+ ``` js
+ Gerrit.install(plugin => {
+   const endpoint = 'change-metadata-item';
+   plugin.hook(endpoint).onAttached(element => {
+     const el = element.appendChild(document.createElement('div'));
+     el.textContent = 'Ah, there it is. Lovely.';
+     el.style = 'background: pink; line-height: 4em; text-align: center;';
   });
 });
 ```
@@ -39,7 +41,7 @@ DOM 元素，用于现有组件的注册。
 
 ### change-view-integration
 
-`change-view-integration` 扩展点在 change 页面的 `Files` 和 `Messages` 之间。用来显示 CI 相关的信息。
+`change-view-integration` 扩展点在 change 页面的 `Files` 和 `Change Log` 之间。用来显示 CI 相关的信息。
 
 * `change`
 
@@ -153,7 +155,7 @@ DOM 元素，用于现有组件的注册。
 
 ## Dynamic Plugin endpoints
 
-下面的 endpoint 可以被 plugin 使用。
+plugin 可以调用 `plugin.registerDynamicCustomComponent(endpoint, elementName)` 。
 
 ### change-list-header
 `change-list-header` 扩展点用于向 change 列表中添加头部信息。

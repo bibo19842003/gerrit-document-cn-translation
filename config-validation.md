@@ -12,6 +12,12 @@ Plugins 使用 `CommitValidationListener` 接口可以对新的 commit 执行一
 
 另外，gerrit 有一个 plugin，可以校验 commit-msg 的长度。
 
+### Plugin push options
+
+plugin 可以通过 `PluginPushOption` 接口来注册 push 参数。
+
+如果指定 plugin 的 push 参数，那么 `CommitReceivedEvent` 会传递到 `CommitValidationListener`，此方法可以通过 push 的参数来对 commit 进行验证。
+
 ## User ref operations validation
 
 Plugin 使用 `RefOperationValidationListener` 接口可以对用户的分支执行一些额外的校验操作。包括 ref 的创建，删除，更新。

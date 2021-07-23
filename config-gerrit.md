@@ -334,9 +334,9 @@ HTTP 头部信任的用户名；如果取消，可以使用 HTTP 基础认证。
 
 用于切换用户的 URL。只有 `auth.type` 设置为 `OPENID`, `DEVELOPMENT_BECOME_ANY_ACCOUNT` 才可以使用此参数。如果配置了此参数，那么 "Switch Account" 会在 "Sign Out" 的附近显示。
 
-如果 `auth.type` 没有启用这个 URL，管理员可以将其设置为 `login/`，这样允许用户开始一个新的 web session。此参数值在 PolyGerrit 可以作为 href，因此绝对路径 `https://someotherhost/login` 同样可以正常工作。
+如果 `auth.type` 没有启用这个 URL，管理员可以将其设置为 `login/`，这样允许用户开始一个新的 web session。此参数值在 Gerrit 可以作为 href，因此绝对路径 `https://someotherhost/login` 同样可以正常工作。
 
-如果包含 ${path} 参数，PolyGerrit 会将当前的链接替换为参数中的路径。需要注意的是，新路径中添加了前缀 `/`，例如：`/login${path}`。
+如果包含 ${path} 参数，Gerrit 会将当前的链接替换为参数中的路径。需要注意的是，新路径中添加了前缀 `/`，例如：`/login${path}`。
 
 **auth.cookiePath**
 
@@ -403,6 +403,8 @@ HTTP 头部信任的用户名；如果取消，可以使用 HTTP 基础认证。
 `REST API` 的请求和 git 仓的 HTTP 下载，先使用 HTTP 密码认证，如果不通过，再使用 LDAP 密码认证。
 
 `auth.type` 设置为 `LDAP` 时，默认值是 `LDAP`；`auth.type` 设置为 `OAUTH` 时，默认值是 `OAUTH`；其余场景默认值是 `HTTP` 。
+
+当 gitBasicAuthPolicy 设置为 `LDAP` 或 `HTTP_LDAP` 并且用户使用 LDAP 认证时，Git 客户端本地需要配置 `http.cookieFile` 文件，否则每次连接都需要做完整的 LDAP 认证。
 
 **auth.gitOAuthProvider**
 
@@ -538,6 +540,7 @@ Persistent caches 存储在文件系统中，因此涉及到了文件描述符�
 * `"groups"`: 默认值 unlimited
 * `"groups_byname"`: 默认无限制
 * `"groups_byuuid"`: 默认无限制
+* `"groups_byuuid_persisted"`: 默认值 `1g` (1 GiB 为磁盘空间大小)
 * `"plugin_resources"`: 默认值 2m (2 MiB 内存)
 
 如果设置为 0,将取消缓存，并且信息会从缓存中移除，可以用于相关测试。
@@ -653,6 +656,10 @@ Cache 包含了用户的一些重要信息，如：`display name`, `preferences`
 
 缓存会一直保存在磁盘上，即使重启也不会删除，因为缓存需要大量的时间 (比如 linux 的 kernel 仓，计算所需的时间至少为 60s)。
 
+**cache `"comment_context"`**
+
+缓存 comments
+
 **cache `"groups"`**
 
 通过群组 ID 缓存 gerrit 群组信息，包括群组的 owner，名称，描述，ID。
@@ -682,6 +689,14 @@ LDAP 群组使用的缓存为：`"ldap_groups"`
 默认设置无上限。
 
 LDAP 群组使用的缓存为：`"ldap_groups"`
+
+**cache `"groups_byuuid_persisted"`**
+
+通过 `group UUID` 缓存 gerrit 内部 group 的信息，包括 owner，name，description。
+
+此 cache 的 in-memory 大小为 0。
+
+LDAP GROUP 的缓存参考 `"ldap_groups"`。
 
 **cache `"groups_bymember"`**
 
@@ -869,19 +884,23 @@ change 每次发布评论大小的最大值。支持的单位：'k', 'm', 'g'。
 
 默认值：false
 
-**change.largeChange**
-
-假设 change 修改行数的上限。修改行数等于添加的行数与删除的行数的和。
-
-具体的值用来参考在 gerrit 页面上可视化显示修改量的大小。
-
-默认值：500
-
 **change.maxComments**
 
 每个 change 允许评论条目的最大数值。
 
 默认值：5000
+
+**change.maxFiles**
+
+每个 change 允许修改的文件数量。
+
+默认值：100000
+
+**change.maxPatchSets**
+
+change 的 `patch sets` 的最大值。若不配置此参数，那么对于 abondan change 来说，重新上传的话，将会生成新的 change-id。
+
+默认值：1500
 
 **change.maxUpdates**
 
@@ -908,7 +927,7 @@ change 最大的更新次数。只对 NoteDb 的 meta ref 的更新进行统计�
 * `REF_UPDATED_AND_CHANGE_REINDEX`: Gerrit 对 `mergeability` 进行 index，查询中可以使用 `is:mergeable` 参数。不会为 ChangeInfo 对象提供 `mergeable` 服务。当目标 ref 有更新的时候，gerrit 会对所有的未合入的 change 重新做索引操作。
 * `NEVER`: Gerrit 不对 `mergeable` 进行 index 操作，因此 `is:mergeable` 在查询中不能使用。
 
-默认值：`REF_UPDATED_AND_CHANGE_REINDEX`
+默认值：`NEVER`
 
 **change.move**
 
@@ -1146,6 +1165,8 @@ Java 运行的时候，添加额外的参数。如果配置多个参数，需要
   javaOptions = -Dlog4j.configuration=file:///home/gerrit/site/etc/log4j.properties
 ```
 
+Gerrit 内置 logger 会被忽略，如：httpd.requestLog，sshd.requestLog。log.jsonLogging 和 log.textLogging 相关配置会被忽略。
+
 **container.daemonOpt**
 
 可以向 daemon 添加额外的参数，如：'--enable-httpd'。如果要配置多个参数，需要用空格分开。
@@ -1340,7 +1361,7 @@ change 的下载命令。系统同时支持多个下载命令：
 
 当 change 的 ref 隐藏的时候，是否自动调整下载命令。
 
-git 有一个配置参数(`uploadpack.hideRefs`)，可以初始化的时候隐藏 ref。此参数可以隐藏客户端的 change 的 ref。因此，下载 change 的 ref 也就不起作用了。然而，可以将 `uploadpack.allowTipSha1InWant` 设置为 `true`，这样可以通过 commit-id 来下载 change 了。如果 `download.checkForHiddenChangeRefs` 设置为 `true`，那么 git 的下载命令需要使用 commit-id 进行下载，而不是使用 change 的 ref 进行下载。
+git 有一个配置参数(`uploadpack.hideRefs`)，可以初始化的时候隐藏 ref。此参数可以隐藏客户端的 change 的 ref。因此，下载 change 的 ref 也就不起作用了。然而，可以将 `uploadpack.allowTipSHA-1InWant` 设置为 `true`，这样可以通过 commit-id 来下载 change 了。如果 `download.checkForHiddenChangeRefs` 设置为 `true`，那么 git 的下载命令需要使用 commit-id 进行下载，而不是使用 change 的 ref 进行下载。
 
 .gitconfig 文件参考配置如下：
 
@@ -1348,7 +1369,7 @@ git 有一个配置参数(`uploadpack.hideRefs`)，可以初始化的时候隐�
 [uploadpack]
   hideRefs = refs/changes/
   hideRefs = refs/cache-automerge/
-  allowTipSha1InWant = true
+  allowTipSHA-1InWant = true
 ```
 
 默认值：`false`.
@@ -1412,6 +1433,12 @@ gc 开始的时间，可以参考本文 `schedule configuration` 的 `startTime`
 
 默认值：`All-Projects`
 
+**gerrit.defaultBranch**
+
+project 被创建时的默认 branch。
+
+默认值：`refs/heads/master`
+
 **gerrit.allUsers**
 
 用于存储用户信息的 project 名称。
@@ -1458,9 +1485,15 @@ fetch-cmd some://url/to/commit-msg .git/hooks/commit-msg ; chmod +x .git/hooks/c
 
 默认不设置，因为需要额外配置 `HTTP daemon`。
 
+**gerrit.installBatchModule**
+
+在 gerrit 启动的时候，部分 batchInjector 会加载其他 Guice 模块类的重复列表。类会被 gerrit 的加载器进行处理，因此类需要在 gerrit 或者 `/lib` 目录下的 JAR 文件中事先声明。
+
+默认不设置
+
 **gerrit.installDbModule**
 
-在 gerrit 启动的时候，部分的 dbInjector 会加载其他 Guice 模块类的重复列表。类会被 gerrit 的加载器进行处理，因此类需要在 gerrit 或者 `/lib` 目录下的 JAR 文件中事先声明。
+在 gerrit 启动的时候，部分 dbInjector 会加载其他 Guice 模块类的重复列表。类会被 gerrit 的加载器进行处理，因此类需要在 gerrit 或者 `/lib` 目录下的 JAR 文件中事先声明。
 
 默认不设置
 
@@ -1478,6 +1511,7 @@ Example:
   installModule = com.googlesource.gerrit.libmodule.MyModule
   installModule = com.example.abc.OurSpecialSauceModule
   installDbModule = com.example.def.OurCustomProvider
+  installBatchModule = com.example.ghi.CustomBatchInitModule
 ```
 
 **gerrit.listProjectsFromIndex**
@@ -1507,13 +1541,11 @@ gerrit 页面上 `Weblink` 的名称。
 
 默认不设置，意味着不显示 bug 的反馈信息。
 
-**gerrit.enableReverseDnsLookup**
+**gerrit.enablePeerIPInReflogRecord**
 
-启用 `reverse DNS lookup`，在 ref log 中记录用户的机器名称。
+在 ref log 中记录用户的 IP 地址。
 
-在 `reverse DNS lookup` 缓慢的情况下，如果启用了 `reverse DNS lookup`，那么在 `git push` 的时候，会引起性能的问题。
-
-默认值： false, 禁用 `reverse DNS lookup`。ref log 中会记录用户的 IP 地址，而不是机器名称。
+默认值：false
 
 **gerrit.secureStoreClass**
 
@@ -1544,11 +1576,11 @@ gerrit 页面上 `Weblink` 的名称。
 
 **gerrit.cdnPath**
 
-如果使用了 CDN，此参数值为 PolyGerrit 静态资源的前缀。
+如果使用了 CDN，此参数值为 Gerrit 静态资源的前缀。
 
 **gerrit.faviconPath**
 
-PolyGerrit 的 favicon 的路径，包括 icon 名称和扩展名。
+Gerrit 的 favicon 的路径，包括 icon 名称和扩展名。
 
 **gerrit.instanceId**
 
@@ -1618,7 +1650,7 @@ gitweb 服务使用的类型。
 
 当 `gitweb.type` 设置为 `custom` 时，构造 gitweb 的 URL 用于访问指定的 commit。
 
-可以使用 `${project}` 代替 project 的名称；`${commit}` 代替 SHA1 hash。
+可以使用 `${project}` 代替 project 的名称；`${commit}` 代替 SHA-1 hash。
 
 **gitweb.project**
 
@@ -1643,7 +1675,7 @@ gitweb 服务使用的类型。
 当 `gitweb.type` 设置为 `custom` 时，构造 gitweb 的 URL 用于访问指定 revision 的根目录。
 
 
-可以使用 `${project}` 代替 project 的名称；`${commit}` 代替 SHA1 hash。
+可以使用 `${project}` 代替 project 的名称；`${commit}` 代替 SHA-1 hash。
 
 **gitweb.file**
 
@@ -1655,7 +1687,7 @@ gitweb 服务使用的类型。
 
 当 `gitweb.type` 设置为 `custom` 时，构造 gitweb 的 URL 用于访问指定的 文件在某个 branch 上修改的历史记录。
 
-可以使用 `${project}` 代替 project 的名称；`${file}` 代替 file 的名称；`${commit}` 代替 SHA1 hash。
+可以使用 `${project}` 代替 project 的名称；`${file}` 代替 file 的名称；`${commit}` 代替 SHA-1 hash。
 
 **gitweb.linkname**
 
@@ -1680,6 +1712,15 @@ Gerrit web-UI 所显示的 gitweb 链接名称。
 默认值：`true`
 
 ### Section groups
+
+**groups.includeExternalUsersInRegisteredUsersGroup**
+
+用来控制 `external users` 是否为 `REGISTERED_USERS` group 成员。
+
+默认情况下，Gerrit 不使用 `external users`，需要用户在 gerrit 进行注册。
+
+默认值：true
+
 
 **groups.newGroupsVisibleToAll**
 
@@ -2205,8 +2246,6 @@ Lucene index 配置示例如下:
 
 WARNING: Elasticsearch 的支持还在实验阶段，不推荐在生产环境中使用。更多信息，可以参考 [project homepage](https://www.gerritcodereview.com/elasticsearch.html)。
 
-当使用 6.2 及以后的版本时，open 和 closed 状态的 changes 存储的类型为 `_doc`。账户和群组的 index 开始于 6.2 版本。
-
 gerrit 配置 Elasticsearch 时，需要确保 Elasticsearch 可用。
 
 **elasticsearch.prefix**
@@ -2227,7 +2266,7 @@ Elasticsearch 服务器的 URI，格式为：`http[s]://hostname:port`。`port` 
 
 每个 index 使用的 shard 的数量。可以参考 [Elasticsearch 文档](https://www.elastic.co/guide/en/elasticsearch/reference/current/index-modules.html#_static_index_settings)。
 
-Elasticsearch versions 5 或 6 的时候，默认值为 5；从 Elasticsearch 7 开始，默认值为 1 。
+默认值为 1 。
 
 **elasticsearch.numberOfReplicas**
 
@@ -2240,6 +2279,18 @@ Elasticsearch versions 5 或 6 的时候，默认值为 5；从 Elasticsearch 7 
 对于搜索来说，为 `from + size` 设置最大值，可以参考 [Elasticsearch 文档](https://www.elastic.co/guide/en/elasticsearch/reference/current/index-modules.html#_static_index_settings)。
 
 默认值：10000
+
+**elasticsearch.connectTimeout**
+
+设置连接 elasticsearch 的 timeout 值。
+
+默认值：`1s`
+
+**elasticsearch.socketTimeout**
+
+设置 `underlying connection` 的 timeout 值。可以参考 `httpd.idleTimeout`。
+
+默认值：`30s`
 
 #### Elasticsearch Security
 
@@ -2274,6 +2325,42 @@ Gerrit 内部事件的参数列表。类似于 change 的 query 参数。
 此处添加的参数会有性能方面的影响。因此参数建议配置所需要的最小集合。
 
 默认为所有可见参数排除 `CHANGE_ACTIONS`, `CURRENT_ACTIONS`, `CHECK` 参数。这样可以在添加配置后保持兼容。
+
+**event.comment-added.publishPatchSetLevelComment**
+
+将 patch-set 的 comment 作为 event comment。如果设置为 false，那么 file 和 robot 的相关 comment 将会丢失。
+
+Jenkins Gerrit Trigger plugin 和 Zuul CI 依赖此特性。
+
+默认值：true
+
+### Section experiments
+
+此部分为实验相关特性的描述。实验用于前端和后端对于新特性的研究。一旦研究完成，那么实验相关的特征将会作为整体被移除。
+
+**experiments.enabled**
+
+experiments 设置为 enabled，那么 release notes 会包含相关的 experiments。
+
+在 `stable patch releases` 阶段，不会移除 experiments，但在下一个 stable version 中，experiments 有可能会被移除。
+
+相关标识可以在配置文件中设置。
+
+```
+[experiments]
+  enabled = ExperimentKey
+```
+
+**experiments.disabled**
+
+experiments 设置为 disabled，那么 release notes 不会包含相关的 experiments。
+
+相关标识可以在配置文件中设置。
+
+```
+[experiments]
+  disabled = ExperimentKey
+```
 
 ### Section ldap
 
@@ -2402,7 +2489,7 @@ LDAP 进行读操作时候的超时时间，值的格式为："1 s", "100 ms" �
 
 用户账户的一个属性值，为 SSH 用户名称信息。通常，此值为 LDAP 的 `uid` 属性，或是 `cn` 属性。另外，此值可以使用用户工作站的名称，因为 SSH 客户端会默认使用这个名称。
 
-属性值可以强制的转换为小写或者大写，如，`${sAMAccountName.toLowerCase}` 会强制将 sAMAccountName 转换为小写。`.toUpperCase` 用来转换为大写。`.localPart` 可以分离属性值，例如 `${userPrincipalName.localPart}` 可以将 'user@example.com' 的 'user' 信息分离出来。
+属性值可以强制的转换为小写或者大写，如，`${sAMAccountName.toLowerCase}` 会强制将 sAMAccountName 转换为小写。`.toUpperCase` 用来转换为大写。`.localPart` 可以分离属性值，例如 `${userPrincipalName.localPart}` 可以将 'user@example.com' 的 'user' 信息分离出来。如果设置此参数，那么通过 REST API 或 SSH 命令创建用户的话，用户名为小写。
 
 如果设置此参数，用户不能修改 `SSH username` 字段信息，因为数据来源于 LDAP 服务器。另外，此参数值不建议用户修改，如果修改的有差错，会影响用户登录。
 
@@ -2542,13 +2629,15 @@ plugin 的名称，此 plugin 用于为 `<project-name>/info/lfs/objects/batch` 
 
 **log.jsonLogging**
 
-如果设置为 true，使用 JSON 格式存储的 ssh/http log (文件名称: "logs/{error|sshd|httpd}_log.json")。
+此参数用于 Gerrit 内置 loggers。当配置了 log4j 时，此参数失效。如：`-Dlog4j.configuration=file://etc/log4j.properties`。
 
 默认值：false.
 
 **log.textLogging**
 
 如果设置为 true，将使用文本格式存储 log。只有 `jsonLogging` 启用的时候，此参数才能设置为 false。
+
+此参数用于 Gerrit 内置 loggers。当配置了 log4j 时，此参数失效。如：`-Dlog4j.configuration=file://etc/log4j.properties`。
 
 默认值：true.
 
@@ -2740,11 +2829,11 @@ since the lag also includes the time to count objects on the client.
 
 **receive.checkReferencedObjectsAreReachable**
 
-如果设置为 true，gerrit 会检查用户上传的所有 ref 是否可以访问，也就是验证是否有伪造的 SHA1。
+如果设置为 true，gerrit 会检查用户上传的所有 ref 是否可以访问，也就是验证是否有伪造的 SHA-1。
 
 在多个 git 仓的 多个 ref 上做此检查，有可能会大量耗费 CPU。对应非公开的 gerrit 服务器，可以禁用此功能。
 
-如果信任用户不会伪造 SHA1，那么可以禁用此功能。
+如果信任用户不会伪造 SHA-1，那么可以禁用此功能。
 
 默认值：true.
 
@@ -3204,6 +3293,14 @@ Gerrit 不能接收邮件的邮箱列表。
   replicate = replication start
 ```
 
+### Section ssh
+
+**ssh.clientImplementation**
+
+默认为 Apache MINA SSH client，如果需要使用 JSch client，此参数值需要设置为 `JSCH`。
+
+默认值：`APACHE`
+
 ### Section sshd
 
 **sshd.enableCompression**
@@ -3383,8 +3480,8 @@ SSH 认证等待的最大时长，超过时长的链接，会被服务器终止�
 
 * `hmac-md5`
 * `hmac-md5-96`
-* `hmac-sha1`
-* `hmac-sha1-96`
+* `hmac-SHA-1`
+* `hmac-SHA-1-96`
 * `hmac-sha2-256`
 * `hmac-sha2-512`
 
@@ -3394,11 +3491,11 @@ SSH 认证等待的最大时长，超过时长的链接，会被服务器终止�
 
 可用的 `key exchange algorithms`（密钥交换算法）。配置文件中可以配置多个 `sshd.kex`，每行配置一个。kex 名字的开头如果以 `+` 开始，表示启用此 kex，如果以 `-` 开头，表示从默认值中移除此 kex。
 
-下面的例子中，移除 1024-bit 的 `diffie-hellman-group1-sha1`，那么可以正常使用其他的 kex。
+下面的例子中，移除 1024-bit 的 `diffie-hellman-group1-SHA-1`，那么可以正常使用其他的 kex。
 
 ```
 [sshd]
-  kex = -diffie-hellman-group1-sha1
+  kex = -diffie-hellman-group1-SHA-1
 ```
 
 支持的 `key exchange algorithms` 如下:
@@ -3407,13 +3504,13 @@ SSH 认证等待的最大时长，超过时长的链接，会被服务器终止�
 * `ecdh-sha2-nistp384`
 * `ecdh-sha2-nistp256`
 * `diffie-hellman-group-exchange-sha256`
-* `diffie-hellman-group-exchange-sha1`
-* `diffie-hellman-group14-sha1`
-* `diffie-hellman-group1-sha1`
+* `diffie-hellman-group-exchange-SHA-1`
+* `diffie-hellman-group14-SHA-1`
+* `diffie-hellman-group1-SHA-1`
 
 默认，上面的 `key exchange algorithms` 都可用。
 
-强烈建议移除 `diffie-hellman-group1-sha1`，因为容易遭受攻击。另外，建议移除其余的两个 `sha1` 的 kex 。
+强烈建议移除 `diffie-hellman-group1-SHA-1`，因为容易遭受攻击。另外，建议移除其余的两个 `SHA-1` 的 kex 。
 
 **sshd.kerberosKeytab**
 
@@ -3480,6 +3577,12 @@ SSH daemon 在某个时间段之后，会发布重新加密。
 此数值需要在速度和精度之间作出权衡。数值太大，精度比较准确，但会降低速度；数值太低，速度快了，精度会降低。
 
 默认值：50
+
+**suggest.skipServiceUsers**
+
+`suggesting reviewers` 时，是否忽略 `service users`。
+
+默认值：`TRUE`
 
 ### Section tracing
 
@@ -3837,7 +3940,7 @@ gc 时是否执行 `git pack-refs`
 
 **protocol.version**
 
-此参数用来设置客户端与服务器通信协议的版本。默认值为 0。
+此参数用来设置客户端与服务器通信协议的版本。默认值为 2。
 
 此参数在 `etc/jgit.config` 文件中进行全局配置。也可以在 project 中的 `config` 文件为具体的 project 配置。project 中的配置会重载全局配置。
 

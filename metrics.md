@@ -40,6 +40,9 @@ Gerrit 内部的运行情况的数据可以通过 plugin 发送给外部的监�
 * `proc/jvm/memory/object_pending_finalization_count`: 剩余 object 的数量
 * `proc/jvm/gc/count`: GC 对象的数量
 * `proc/jvm/gc/time`: GC 使用的时长
+* `proc/jvm/memory/pool/committed/<pool name>`: 提交到内存中的 pool 数量。
+* `proc/jvm/memory/pool/max/<pool name>`: 内存中的 pool 数量上限。
+* `proc/jvm/memory/pool/used/<pool name>`: 内存中已使用的 pool 数量。
 * `proc/jvm/thread/num_live`: 当前活动线程的数量
 * `proc/jvm/thread/num_daemon_live`: 当前 daemon 的线程数量
 * `proc/jvm/thread/num_peak_live`: 从 Java virtual machine 启动开始或者 peak 重置后，Peak 线程的数量
@@ -67,6 +70,12 @@ Gerrit 内部的运行情况的数据可以通过 plugin 发送给外部的监�
 * `change/submit_rule_evaluation`: 估算 change 的 submit rules 需要的时间
 * `change/submit_type_evaluation`: 估算 change 的 submit type 需要的时间
 
+### Comments
+
+* `ported_comments/as_patchset_level`: patchset-level comments 的数量
+* `ported_comments/as_file_level`: file-level comments 的数量
+* `ported_comments/as_range_comments`: line/range comments 的数量
+
 ### HTTP
 
 #### Jetty
@@ -87,6 +96,13 @@ Gerrit 内部的运行情况的数据可以通过 plugin 发送给外部的监�
 * `http/server/jetty/threadpool/min_pool_size`: 线程池的最小值
 * `http/server/jetty/threadpool/pool_size`: 当前线程池的大小
 * `http/server/jetty/threadpool/queue_size`: 对单一线程来说，请求队列的大小
+
+#### LDAP
+
+* `ldap/login_latency`: logins 的时长
+* `ldap/user_search_latency`: 搜索用户帐号的时长
+* `ldap/group_search_latency`: 查询群组成员的时长
+* `ldap/group_expansion_latency`: 查询嵌套群组的时长
 
 #### REST API
 
@@ -164,6 +180,8 @@ Gerrit 内部的运行情况的数据可以通过 plugin 发送给外部的监�
 * `git/upload-pack/phase_compressing`: 'Compressing...' 阶段耗费的时长
 * `git/upload-pack/phase_writing`: 向客户端传递数据耗费的时长
 * `git/upload-pack/pack_bytes`: 向客户端传递 pack 的大小
+* `git/auto-merge/num_operations`: `auto merge` 的数量
+* `git/auto-merge/latency`: `auto merge` 的时长
 
 ### BatchUpdate
 

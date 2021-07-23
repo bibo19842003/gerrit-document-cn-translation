@@ -1,0 +1,17 @@
+cross-repository-changes.md
+dev-contributing.md
+dev-crafting-changes.md
+dev-design.md
+dev-design-doc-solution-template.md
+dev-e2e-tests.md
+dev-plugins.md
+dev-plugins-lifecycle.md
+dev-processes.md
+dev-roles.md
+glossary.md
+install-j2ee.md
+pg-plugin-dev.md
+repository-maintenance.md
+user-attention-set.md
+user-porting-comments.md
+user-privacy.md

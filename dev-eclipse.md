@@ -73,7 +73,7 @@ gerrit 使用 [`google-java-format`](https://github.com/google/google-java-forma
 
 ## Testing
 
-### PolyGerrit UI 需要先启动 `server.go` 进程
+### Gerrit UI 需要先启动 `server.go` 进程
 执行如下命令:
 
 ```

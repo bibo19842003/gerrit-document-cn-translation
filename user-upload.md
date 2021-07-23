@@ -20,6 +20,8 @@ Gerrit 安装后，如果没有配置支持 SSH 认证，那么用户必须通�
 * 如果是 `LDAP` ，那么使用 LDAP 密码
 * 如果是 `HTTP_LDAP`, 那么可以使用上面两种认证方式。
 
+如果 `gitBasicAuthPolicy` 设置为 `LDAP` 或 `HTTP_LDAP`，并且用户使用 LDAP 的用户名密码认证，那么 git 客户端需要将 `http.cookieFile` 配置相应的本地文件，否则在进行认证的时候会频繁的连接服务器并增加服务器的负载。
+
 当配置 HTTP 认证时，再次点击 `HTTP Credentials` 后，会重新产生密码，原先的密码会失效。
 
 如果配置文件配置了 `HTTP password URL`，参考 [系统配置](config-gerrit.md) 的 httpPasswordUrl 部分，那么需要用户点击 `Obtain Password` 来获取密码；如果没有配置此 URL ，那么点击`Generate Password` 来获取密码。

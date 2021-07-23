@@ -96,6 +96,9 @@ Gerrit 没有提供一个内部交互的 shell，可以通过客户端执行一�
 **[gerrit close-connection](cmd-close-connection.md)**
 	关闭具体的 SSH 链接
 
+**[gerrit convert-ref-storage](cmd-convert-ref-storage.md)**
+	将 ref storage 转换为 reftable (目前为试验阶段)
+
 **[gerrit create-account](cmd-create-account.md)**
 	创建用户
 

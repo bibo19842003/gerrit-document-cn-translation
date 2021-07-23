@@ -8,30 +8,6 @@
 
 Gerrit 目前不支持 Java 13 及以后版本。
 
-## 配置 Java 的加密方式（可选）
-
-从 Oracle 下载 _Java Cryptography Extension (JCE) Unlimited Strength Jurisdiction Policy Files_ 并安装到 JRE 后，这些加密方式：_AES128CTR_, _AES256CTR_,_ARCFOUR256_, 和  _ARCFOUR128_ 可使用。
-
-```说明：
-安装 JCE 扩展是可选的，安装出口限制后可以使用。
-```
-
- * 下载 JCE 文件
-
-    [JDK7 JCE policy files](http://www.oracle.com/technetwork/java/javase/downloads/jce-7-download-432124.html)
-    [JDK8 JCE policy files](http://www.oracle.com/technetwork/java/javase/downloads/jce8-download-2133166.html)
- * 解压下载文件
-
-下载的压缩包包括下列文件：
-
-|文件名称 |描述
-| :------| :------|
-|README.txt |Information about JCE and installation guide
-|local_policy.jar |Unlimited strength local policy file
-|US_export_policy.jar |Unlimited strength US export policy file
-
- * 按照 `README.txt` 安装策政策文件。
-
 ## 下载 Gerrit
 
 可以从 [Gerrit Releases site](https://gerrit-releases.storage.googleapis.com/index.html) 下载 gerrit 官方提供的二进制包。

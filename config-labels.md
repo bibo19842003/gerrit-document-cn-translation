@@ -163,6 +163,14 @@
 
 如果值是 `true`, 最高的正分会在 change 的下一个 patch-set 上保留。默认值是 `false`。
 
+### `label.Label-Name.copyAllScoresIfListOfFilesDidNotChange`
+
+此参数用于：如果修改的文件没有被修改，可以不重新触发 CI 的运行。
+
+如果值是 `true`, 那么新的 patch-set 相对于上一个 patch-set 来说，若修改的文件列表没有变化的话，将自动复制上一个 patch-set 的打分（包括文件更名）。
+
+默认值是 `false`。
+
 ### `label.Label-Name.copyAllScoresOnMergeFirstParentUpdate`
 
 如果值是 `true`, 对于 change 的新 patch-set 来说，要是新、老 patch-set 都是 merge 节点，并且新的 patch-set 有一个父节点发生了变更，这时之前的 patch-set 上的打分会自动的复制到新的 patch-set 上面。

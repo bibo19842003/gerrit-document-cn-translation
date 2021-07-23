@@ -25,7 +25,7 @@
 |Full or abbreviated commit SHA-1 | d81b32ef
 |Email address                    | user@example.com
 
-对于搜索 change (如： numerical id, Change-Id, commit SHA1), 如果结果是一条 chang 的话，那么直接会跳转到这个 change 的页面。
+对于搜索 change (如： numerical id, Change-Id, commit SHA-1), 如果结果是一条 chang 的话，那么直接会跳转到这个 change 的页面。
 
 关于搜索，可以参考本文下面章节的描述。
 
@@ -63,6 +63,14 @@
 
 　在 'TIME'　之**后**所修改的 change．格式为： `2006-01-02[ 15:04:05[.890][ -0700]]`; 时间默认为 00:00:00 ；时区默认为： UTC.
 
+**mergedbefore:'TIME'**
+
+  'TIME' 之前 merged 的 change，与 `before:'TIME'` 相同。
+
+**mergedafter:'TIME'**
+
+  'TIME' 之后 merged 的 change，与 `after:'TIME'` 相同。
+
 **change:'ID'**
 
  使用 change 的 'ID' (不是change-id) 进行搜索，如： 15183．
@@ -71,9 +79,9 @@
 
  和搜索 change 相冲突的 change ．使用 'ID' (不是change-id) 进行搜索，如：15183．
 
-**destination:'NAME'**
+**destination:'[name=]NAME[,user=USER]'**
 
- 根据当前用户的 named-destination 进行搜索 change。可以参考 [Named Destinations](user-named-destinations.md)
+ 使用具体的用户名搜索 change。如 'USER' 为指定，那么为当前用户。可以参考 [Named Destinations](user-named-destinations.md)
 
 **owner:'USER', o:'USER'**
 
@@ -85,7 +93,7 @@
 
 **query:'NAME'**
 
- 根据当前用户的 named-query 进行搜索 change。可以参考 [Named Queries](user-named-queries.md)
+ 使用具体的用户名搜索 change。如 'USER' 为指定，那么为当前用户。可以参考 [Named Queries](user-named-queries.md)
 
 **reviewer:'USER', r:'USER'**
 
@@ -107,7 +115,7 @@ Change 的 submission 'ID'.
 
  需要被某组成员评审的 change。
 
-**commit:'SHA1'**
+**commit:'SHA-1'**
 
  通过 commit-id 来搜索 Change。
 
@@ -118,6 +126,9 @@ Change 的 submission 'ID'.
 **projects:'PREFIX'**
 
  通过 'PREFIX' 开头的 project 搜索 change。
+
+**parentof:'ID'**
+  查询 'ID' 的 parent change。查询结果只返回 parent change。
 
 **parentproject:'PROJECT'**
 

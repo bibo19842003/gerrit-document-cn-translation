@@ -29,7 +29,7 @@ Gerrit 网页上创建 change 的过程:
     为 change 提供 base 的 commit-id: 此处可以为空。
 
 
- 重要: Git 使用唯一的 SHA1 值识别 commit (换句话说，Git commit 会生成新的 SHA1 值)。 这个值和 Change-Id 不同，Change-Id 用于识别 change。
+ 重要: Git 使用唯一的 SHA-1 值识别 commit (换句话说，Git commit 会生成新的 SHA-1 值)。 这个值和 Change-Id 不同，Change-Id 用于识别 change。
 
     commit-msg: 简要描述一些 change 的信息。使用 commit-msg 的格式，可以参考 [向 Gerrit 社区贡献](dev-contributing.md) 的 `commit message` 章节。第一行为主题，因为用户的 dashboard 和 `git log --pretty=oneline output` 命令结果便于查看。
 
